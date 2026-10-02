@@ -1,318 +1,376 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-film="classic">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>Movie Night Seats</title>
-<meta name="description" content="Who's sitting where for Dune: Part Three on Dec 17 and Avengers: Doomsday on Dec 19.">
-<meta property="og:title" content="Movie Night Seats">
-<meta property="og:description" content="Who's sitting where for Dune: Part Three on Dec 17 and Avengers: Doomsday on Dec 19.">
+<title>Movie Nights</title>
+<meta name="description" content="Pick your seat for the next group movie night.">
+<meta property="og:title" content="Movie Nights">
+<meta property="og:description" content="Pick your seat for the next group movie night.">
 
 <!-- ================= SETTINGS =================
-  sheetCsvUrl: where the seat names come from.
-    "seats.csv"  reads the seats.csv file sitting next to this page (default).
-    To use a Google Sheet instead, paste its "Publish to web" CSV link here.
+  siteName:    the name in the sidebar and browser tab.
+  apiUrl:      your Google Apps Script web app link (ends in /exec).
+               With it, friends can claim, move, and give up seats.
+  organizer:   the name people see on "Ask ___" and "Pay ___".
+  venmo:       your Venmo username (no @).
+  cashtag:     your Cash App $cashtag (no $).
+  sheetCsvUrl: only used when apiUrl is empty; shows names from seats.csv, read-only.
+  moviesUrl:   the file that lists your movie nights.
 ============================================== -->
 <script>
-window.SEATS_CONFIG = {
-  sheetCsvUrl: "seats.csv"
+window.SITE_CONFIG = {
+  siteName: "Movie Nights",
+  apiUrl: "",
+  organizer: "Heston",
+  venmo: "Heston-Hill-1",
+  cashtag: "HestonHill",
+  sheetCsvUrl: "seats.csv",
+  moviesUrl: "movies.json"
 };
 </script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800&family=Cinzel:wght@800&family=Instrument+Sans:wght@400;500;600;700&family=Syncopate:wght@700&display=swap">
 <style>
+:root,:root[data-film="classic"],[data-film="classic"]{--display:"Big Shoulders Display","Arial Narrow",sans-serif;--dweight:800;--dcase:none;--dtrack:-0.005em;--h1:clamp(48px,12vw,96px);--h2:27px;--when:clamp(26px,6.4vw,38px);--card-t:30px;--bg:#f3efe7;--surface:#fffcf6;--ink:#1b1714;--muted:#6c6359;--line:#e1d8c9;--accent:#a8231b;--on-accent:#fff8f0;--seat:#e4dbcc;--seat-row:#ccbfa8;--band:rgba(168,35,27,.10);--screen:#c7b9a2;--art1:#1b1311;--art2:#8e1c15;--art3:#f6cf6a;--art4:#5c100c;}
+:root[data-film="dune"],[data-film="dune"]{--display:"Syncopate","Michroma","Arial Black",sans-serif;--dweight:700;--dcase:uppercase;--dtrack:.08em;--h1:clamp(25px,6.6vw,52px);--h2:16px;--when:clamp(17px,4.4vw,24px);--card-t:17px;--bg:#f2e7d5;--surface:#fbf5ea;--ink:#2a1c10;--muted:#76614c;--line:#dfcdb2;--accent:#a95c18;--on-accent:#fff8ec;--seat:#e2d3bb;--seat-row:#c9b18e;--band:rgba(169,92,24,.12);--screen:#c2a983;--art1:#f3c58c;--art2:#fbe9cf;--art3:#fff3dc;--art4:#e7b47a;--art5:#d2914f;--art6:#a9672f;}
+:root[data-film="doom"],[data-film="doom"]{--display:"Cinzel","Trajan Pro",Georgia,serif;--dweight:800;--dcase:none;--dtrack:.015em;--h1:clamp(34px,9vw,68px);--h2:23px;--when:clamp(22px,5.4vw,32px);--card-t:23px;--bg:#e8e7dc;--surface:#f6f5ee;--ink:#122017;--muted:#56645a;--line:#cbcfbf;--accent:#2a6e43;--on-accent:#f6f5ee;--seat:#d4d7c9;--seat-row:#b0b8a1;--band:rgba(42,110,67,.11);--screen:#a3ac96;--art1:#1a241d;--art2:#3f9a62;--art3:#c9a352;--art4:#4a5a4f;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]),:root:not([data-theme="light"])[data-film="classic"],:root:not([data-theme="light"]) [data-film="classic"]{--bg:#121013;--surface:#1c181d;--ink:#f3ece1;--muted:#a2988c;--line:#2d2830;--accent:#f2c14e;--on-accent:#1a1408;--seat:#29242c;--seat-row:#3e3641;--band:rgba(242,193,78,.12);--screen:#4a4250;--art1:#0b090b;--art2:#7a1812;--art3:#f6cf6a;--art4:#3d0b08;}:root:not([data-theme="light"])[data-film="dune"],:root:not([data-theme="light"]) [data-film="dune"]{--bg:#19110b;--surface:#231810;--ink:#f1e3c9;--muted:#a88f74;--line:#3a2a1c;--accent:#eaa543;--on-accent:#1a110a;--seat:#2f2318;--seat-row:#4b3725;--band:rgba(234,165,67,.13);--screen:#5b4430;--art1:#140b07;--art2:#7a3a14;--art3:#f4bd70;--art4:#3e2414;--art5:#2c190e;--art6:#1b110a;}:root:not([data-theme="light"])[data-film="doom"],:root:not([data-theme="light"]) [data-film="doom"]{--bg:#0c130e;--surface:#141f18;--ink:#e8e2ce;--muted:#8f9c8d;--line:#243329;--accent:#d0aa58;--on-accent:#0c130e;--seat:#1b2920;--seat-row:#2d4233;--band:rgba(208,170,88,.12);--screen:#33463a;--art1:#060a07;--art2:#1f8a4a;--art3:#cfa954;--art4:#2b3a30;}}
+:root[data-theme="dark"],:root[data-theme="dark"][data-film="classic"],:root[data-theme="dark"] [data-film="classic"]{--bg:#121013;--surface:#1c181d;--ink:#f3ece1;--muted:#a2988c;--line:#2d2830;--accent:#f2c14e;--on-accent:#1a1408;--seat:#29242c;--seat-row:#3e3641;--band:rgba(242,193,78,.12);--screen:#4a4250;--art1:#0b090b;--art2:#7a1812;--art3:#f6cf6a;--art4:#3d0b08;}
+:root[data-theme="dark"][data-film="dune"],:root[data-theme="dark"] [data-film="dune"]{--bg:#19110b;--surface:#231810;--ink:#f1e3c9;--muted:#a88f74;--line:#3a2a1c;--accent:#eaa543;--on-accent:#1a110a;--seat:#2f2318;--seat-row:#4b3725;--band:rgba(234,165,67,.13);--screen:#5b4430;--art1:#140b07;--art2:#7a3a14;--art3:#f4bd70;--art4:#3e2414;--art5:#2c190e;--art6:#1b110a;}
+:root[data-theme="dark"][data-film="doom"],:root[data-theme="dark"] [data-film="doom"]{--bg:#0c130e;--surface:#141f18;--ink:#e8e2ce;--muted:#8f9c8d;--line:#243329;--accent:#d0aa58;--on-accent:#0c130e;--seat:#1b2920;--seat-row:#2d4233;--band:rgba(208,170,88,.12);--screen:#33463a;--art1:#060a07;--art2:#1f8a4a;--art3:#cfa954;--art4:#2b3a30;}
 :root{
-  --bg:#f2e7d5;--surface:#fbf5ea;--ink:#2a1c10;--muted:#76614c;--line:#dfcdb2;--accent:#a95c18;
-  --seat:#e2d3bb;--seat-row:#c9b18e;--band:rgba(169,92,24,.12);--screen:#c2a983;
-  --t1:#b5661a;--t2:#9a4426;--t3:#7f6a3c;--t4:#3f5f7c;--on-tint:#fff8ec;
-  --display:"Big Shoulders Display","Arial Narrow","Roboto Condensed",sans-serif;
   --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --side-w:276px;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
-:root[data-film="doom"]{
-  --bg:#e9e8dd;--surface:#f7f6ef;--ink:#122017;--muted:#56645a;--line:#cdd1c1;--accent:#745717;
-  --seat:#d6d9cb;--seat-row:#b0b8a1;--band:rgba(44,116,70,.11);--screen:#a3ac96;
-  --t1:#785a19;--t2:#2a7144;--t3:#785a19;--t4:#2a7144;--on-tint:#f7f6ef;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#19110b;--surface:#231810;--ink:#f1e3c9;--muted:#a88f74;--line:#3a2a1c;--accent:#eaa543;
-    --seat:#2f2318;--seat-row:#4b3725;--band:rgba(234,165,67,.13);--screen:#5b4430;
-    --t1:#eaa543;--t2:#d9733f;--t3:#dfcca4;--t4:#97afc6;--on-tint:#1a110a;
-  }
-  :root:not([data-theme="light"])[data-film="doom"]{
-    --bg:#0d140f;--surface:#152019;--ink:#e8e2ce;--muted:#8e9b8c;--line:#253429;--accent:#d0aa58;
-    --seat:#1c2a20;--seat-row:#2e4334;--band:rgba(208,170,88,.12);--screen:#33463a;
-    --t1:#d0aa58;--t2:#62b67f;--t3:#d0aa58;--t4:#62b67f;--on-tint:#0d140f;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#19110b;--surface:#231810;--ink:#f1e3c9;--muted:#a88f74;--line:#3a2a1c;--accent:#eaa543;
-  --seat:#2f2318;--seat-row:#4b3725;--band:rgba(234,165,67,.13);--screen:#5b4430;
-  --t1:#eaa543;--t2:#d9733f;--t3:#dfcca4;--t4:#97afc6;--on-tint:#1a110a;
-}
-:root[data-theme="dark"][data-film="doom"]{
-  --bg:#0d140f;--surface:#152019;--ink:#e8e2ce;--muted:#8e9b8c;--line:#253429;--accent:#d0aa58;
-  --seat:#1c2a20;--seat-row:#2e4334;--band:rgba(208,170,88,.12);--screen:#33463a;
-  --t1:#d0aa58;--t2:#62b67f;--t3:#d0aa58;--t4:#62b67f;--on-tint:#0d140f;
-}
 *,*::before,*::after{box-sizing:inherit}
-html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px);background:var(--bg)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%;transition:background-color .35s ease,color .35s ease}
 button{font:inherit;color:inherit}
+a{color:inherit}
 :focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
-h2{font-family:var(--display);font-weight:700;font-size:26px;line-height:1.05;margin:0;letter-spacing:.005em}
+h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dcase);letter-spacing:var(--dtrack);font-size:var(--h2);line-height:1.15;margin:0}
 
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
-.tabs{position:relative;z-index:2;background:var(--bg);border-bottom:1px solid var(--line);transition:background-color .35s ease}
-.tabs-in{max-width:1120px;margin:0 auto;display:flex;padding:0 8px}
-.tab{flex:1 1 0;min-width:0;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);text-align:left;padding:12px 10px 9px;cursor:pointer}
-.tab.active{color:var(--ink);border-bottom-color:var(--accent)}
-.tab-t{display:block;font-family:var(--display);font-weight:700;font-size:20px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tab-d{display:block;font-size:13px;margin-top:1px}
+/* ---------- shell ---------- */
+.side{position:fixed;top:0;bottom:0;left:0;z-index:30;width:min(84vw,var(--side-w));overflow-y:auto;background:var(--surface);border-right:1px solid var(--line);
+  padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-102%);transition:transform .26s ease,background-color .35s ease}
+.nav-open .side{transform:none;box-shadow:0 0 40px rgba(0,0,0,.35)}
+.scrim{position:fixed;inset:0;z-index:29;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .26s ease}
+.nav-open .scrim{opacity:1;pointer-events:auto}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--bg);border-bottom:1px solid var(--line);transition:background-color .35s ease}
+.menu-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:0;border-radius:12px;background:none;cursor:pointer}
+.menu-btn svg{width:22px;height:22px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
+.top-brand{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dcase);letter-spacing:var(--dtrack);font-size:20px;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root[data-film="dune"] .top-brand{font-size:14px}
+@media (min-width:960px){
+  .side{transform:none;width:var(--side-w);box-shadow:none}
+  .scrim,.topbar{display:none}
+  .main{margin-left:var(--side-w)}
+}
 
+.brand{display:block;font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dcase);letter-spacing:var(--dtrack);font-size:26px;line-height:1.05;text-decoration:none;margin:0 6px 22px}
+:root[data-film="dune"] .brand{font-size:17px}
+.side-link{display:block;padding:10px 10px;border-radius:10px;text-decoration:none;font-weight:600}
+.side-link.active,.side-item.active{background:var(--band)}
+.side-label{margin:22px 10px 6px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.side-empty{margin:4px 10px;color:var(--muted);font-size:14px}
+.side-list{list-style:none;margin:0;padding:0}
+.side-item{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:10px;text-decoration:none}
+.side-item:hover,.side-link:hover{background:var(--band)}
+.side-item.past{opacity:.6}
+.side-dot{flex:0 0 auto;width:10px;height:10px;margin-top:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--line)}
+.side-txt{min-width:0}
+.side-t{display:block;font-weight:600;line-height:1.3}
+.side-d{display:block;font-size:13px;color:var(--muted)}
+.side-pay{margin-top:26px;border-top:1px solid var(--line);padding-top:4px}
+.side-pay p:not(.side-label){margin:4px 10px;font-size:14px;color:var(--muted)}
+.handle{background:none;border:0;padding:0;font-weight:600;color:var(--ink);cursor:copy;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+
+/* ---------- page ---------- */
 .wrap{max-width:1120px;margin:0 auto;padding:0 16px 72px}
-.hero{padding:26px 0 6px}
-.title{font-family:var(--display);font-weight:800;font-size:clamp(46px,12vw,92px);line-height:.9;margin:0;letter-spacing:-.005em}
-.when{display:flex;flex-wrap:wrap;gap:4px 20px;align-items:baseline;margin-top:14px;font-family:var(--display);font-weight:700;font-size:clamp(28px,7vw,42px);line-height:1}
+.hero-art{margin:0 -16px;height:clamp(150px,34vw,270px);overflow:hidden;position:relative}
+.hero-art::after{content:"";position:absolute;inset:auto 0 0 0;height:40%;background:linear-gradient(to bottom,transparent,var(--bg))}
+.art{display:block;width:100%;height:100%}
+@media (min-width:960px){ .hero-art{margin:0;border-radius:0 0 18px 18px} }
+.title{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dcase);letter-spacing:var(--dtrack);font-size:var(--h1);line-height:.98;margin:6px 0 0;overflow-wrap:anywhere}
+.crumb{display:inline-block;margin-top:16px;font-size:14px;color:var(--muted);text-decoration:none}
+.crumb:hover{color:var(--ink)}
+.mhero{padding-bottom:6px}
+.when{display:flex;flex-wrap:wrap;gap:4px 18px;align-items:baseline;margin-top:14px;font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dcase);letter-spacing:var(--dtrack);font-size:var(--when);line-height:1.1}
 .when .time{color:var(--accent)}
 .sub{margin:12px 0 0;font-size:17px}
 .note{margin:2px 0 0;color:var(--muted);font-size:14px}
 
-.grid{margin-top:18px}
-.col-info{margin-top:30px}
-@media (min-width:900px){
-  .grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(330px,.9fr);gap:40px;align-items:start}
-  .col-info{margin-top:0}
-}
+.home-hero .title{margin-top:-8px;position:relative}
+.lede{margin:12px 0 0;font-size:18px;max-width:46ch;color:var(--muted)}
+.home-sec{margin-top:40px}
+.home-sec h2{margin-bottom:14px}
+.empty{color:var(--muted)}
+.cards{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.mcard{display:flex;flex-direction:column;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:18px;overflow:hidden;text-decoration:none;transition:transform .18s ease,box-shadow .18s ease}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 12px 30px -18px rgba(0,0,0,.5)}
+.mcard.past{opacity:.7}
+.mcard-art{height:120px}
+.mcard-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:4px;flex:1}
+.mcard-t{margin:0;font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dcase);letter-spacing:var(--dtrack);font-size:var(--card-t);line-height:1.15}
+.mcard-when{margin:4px 0 0;display:flex;gap:12px;font-weight:600}
+.mcard-when span:last-child{color:var(--accent)}
+.mcard-where{margin:0;color:var(--muted);font-size:14px}
+.mcard-foot{margin-top:auto;padding-top:12px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:14px;border-top:1px solid var(--line)}
+.mcard-price{font-weight:600}
 
+.grid{margin-top:20px}
+.col-b{margin-top:22px}
+@media (min-width:1100px){
+  .grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.9fr);gap:36px;align-items:start}
+  .col-b{margin-top:0}
+}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 14px 14px;transition:background-color .35s ease}
 .card + .card{margin-top:14px}
 .sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
 .sec-head p{margin:0;color:var(--muted);font-size:14px}
 
+/* ---------- map ---------- */
 .mapcard svg{display:block;width:100%;height:auto;max-height:64vh;margin:10px auto 0}
 .screen{fill:none;stroke:var(--screen);stroke-width:11;stroke-linecap:round}
 .scr-label{font-family:var(--body);font-size:30px;fill:var(--muted);text-anchor:middle}
 .band{fill:var(--band)}
-.rowlabel{font-family:var(--display);font-weight:800;font-size:31px;fill:var(--accent);text-anchor:end;dominant-baseline:central}
+.rowlabel{font-family:var(--body);font-weight:700;font-size:28px;fill:var(--accent);text-anchor:end;dominant-baseline:central}
 .s{fill:var(--seat)}
 .s.r{fill:var(--seat-row)}
-.s.m{fill:transparent;stroke:var(--tc);stroke-width:3.4;cursor:pointer;animation:lit .5s ease-out both;animation-delay:var(--d,0ms)}
-.s.m.f{fill:var(--tc)}
+.s.m{fill:transparent;stroke:var(--accent);stroke-width:3.4;cursor:pointer;animation:lit .5s ease-out both;animation-delay:var(--d,0ms)}
+.s.m.f{fill:var(--accent)}
+.s.m.y{fill:var(--ink);stroke:var(--ink)}
 .s.m.sel{stroke:var(--ink);stroke-width:5}
 @keyframes lit{from{opacity:0}to{opacity:1}}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:10px}
 .sw{display:inline-block;width:15px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px}
 .sw.full{background:var(--accent)}
 .sw.open{border:2px solid var(--accent)}
+.sw.you{background:var(--ink)}
 
-.t1{--tc:var(--t1)}.t2{--tc:var(--t2)}.t3{--tc:var(--t3)}.t4{--tc:var(--t4)}
-
+/* ---------- close-up ---------- */
 .seatrow{display:flex;align-items:flex-start;justify-content:center;gap:4px;margin:18px 0 2px}
 .chair,.ghost{flex:1 1 0;min-width:0;max-width:58px;display:flex;flex-direction:column;align-items:center}
 .chair{background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.back{position:relative;width:100%;aspect-ratio:1/1.08;border:2.5px solid var(--tc);border-radius:10px 10px 4px 4px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:clamp(15px,3.8vw,21px);color:var(--tc);transition:background-color .15s ease,color .15s ease}
-.back::after{content:"";position:absolute;left:14%;right:14%;bottom:-7px;height:3px;border-radius:2px;background:var(--tc);opacity:.5}
-.chair.filled .back{background:var(--tc);color:var(--on-tint)}
+.back{position:relative;width:100%;aspect-ratio:1/1.08;border:2.5px solid var(--accent);border-radius:10px 10px 4px 4px;display:flex;align-items:center;justify-content:center;font-family:var(--body);font-weight:700;font-size:clamp(13px,3.4vw,18px);color:var(--accent);transition:background-color .15s ease,color .15s ease}
+.back::after{content:"";position:absolute;left:14%;right:14%;bottom:-7px;height:3px;border-radius:2px;background:var(--accent);opacity:.5}
+.chair.filled .back{background:var(--accent);color:var(--on-accent)}
+.chair.you .back{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chair.you .back::after{background:var(--ink)}
 .chair.sel .back{box-shadow:0 0 0 2.5px var(--surface),0 0 0 5px var(--ink)}
+.chair.from .back{border-style:dashed;opacity:.6}
+.moving .chair:not(.filled) .back{background:var(--band)}
 .who{display:block;width:calc(200% + 4px);flex:none;margin-top:12px;font-size:12px;line-height:1.15;text-align:center;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chair.lo .who{margin-top:29px}
 .chair.filled .who{color:var(--ink);font-weight:600}
 .ghost{opacity:.45}
 .ghost .who{width:100%}
-.ghost .back{--tc:var(--muted);border-style:dashed}
+.ghost .back{border-color:var(--muted);color:var(--muted);border-style:dashed}
+.ghost .back::after{background:var(--muted)}
 .aisle{flex:0 0 auto;align-self:stretch;writing-mode:vertical-rl;font-size:11px;color:var(--muted);border-left:1.5px dashed var(--line);padding-left:4px;margin-left:4px;max-height:64px;text-align:center}
 
 .editor{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;min-height:58px}
 .ed-hint{margin:6px 0;color:var(--muted);font-size:14px}
-.ed-row{display:flex;align-items:center;gap:10px}
-.ed-seat{font-family:var(--body);font-weight:600;font-size:24px;line-height:1;min-width:52px;color:var(--tc);letter-spacing:.01em}
+.ed-hint.strong{color:var(--ink);font-weight:500}
+.ed-row{display:flex;align-items:center;gap:12px}
+.ed-seat{font-family:var(--body);font-weight:700;font-size:24px;line-height:1;min-width:52px;color:var(--accent)}
 .ed-name{font-size:18px;font-weight:600}
-.ed-name.open{color:var(--muted);font-weight:400}
+.ed-name.open,.ed-status{font-size:16px;color:var(--muted);font-weight:400}
+.ed-status.you{color:var(--ink);font-weight:600}
+.ed-q{margin:8px 0 0;font-size:16px}
+.ed-form{display:flex;gap:8px;margin-top:10px}
 .ed-input{flex:1;min-width:0;font:inherit;font-size:17px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
-.ed-input:focus{outline:none;border-color:var(--tc)}
-.ed-meta{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.ed-input:focus{outline:none;border-color:var(--accent)}
+.ed-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.ed-meta{margin:8px 0 0;font-size:13px;color:var(--muted)}
 
-.btn{background:var(--accent);color:var(--on-tint);border:0;border-radius:999px;padding:11px 18px;font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap}
-.btn.sm{padding:10px 15px}
-.btnq{background:none;border:1.5px solid var(--line);color:var(--ink);border-radius:999px;padding:9.5px 16px;font-weight:500;font-size:15px;cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:var(--on-accent);border:0;border-radius:999px;padding:11px 18px;font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btnq{display:inline-flex;align-items:center;justify-content:center;background:none;border:1.5px solid var(--line);color:var(--ink);border-radius:999px;padding:9.5px 16px;font-weight:500;font-size:15px;cursor:pointer;text-decoration:none}
+.btnq:hover{border-color:var(--accent)}
+.btn:disabled,.btnq:disabled,.ed-input:disabled,.qty-b:disabled{opacity:.5;cursor:default}
 
-.roster .sec-head{margin-bottom:2px}
+/* ---------- pay ---------- */
+.price{display:flex;align-items:baseline;gap:8px;margin:10px 0 0}
+.price-n{font-family:var(--display);font-weight:var(--dweight);letter-spacing:var(--dtrack);font-size:clamp(34px,8vw,44px);line-height:1;color:var(--accent)}
+:root[data-film="dune"] .price-n{font-size:clamp(26px,6vw,34px)}
+.price-u{color:var(--muted)}
+.qty{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.qty-l{font-weight:500}
+.qty-b{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);background:var(--bg);font-size:20px;line-height:1;cursor:pointer}
+.qty-n{min-width:22px;text-align:center;font-weight:700;font-size:18px}
+.qty-t{margin-left:auto;color:var(--muted)}
+.qty-t strong{color:var(--ink);font-size:18px}
+.paybtns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.paybtns > *{flex:1 1 180px}
+.handles{display:flex;flex-wrap:wrap;gap:4px 18px;margin:14px 0 0;font-size:14px;color:var(--muted)}
+.qr{margin-top:12px}
+.qr summary,.prev summary{cursor:pointer;color:var(--muted);font-size:14px}
+.qr-grid{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px}
+.qr-grid figure{margin:0;text-align:center;font-size:13px;color:var(--muted)}
+.qr-grid svg{display:block;width:148px;height:148px;border-radius:10px;border:1px solid var(--line)}
+
+/* ---------- roster, details, share ---------- */
+.roster{margin-top:30px}
 .ro-note{margin:8px 0 0;font-size:14px;color:var(--muted)}
-.order{border-left:4px solid var(--tc);padding:2px 0 2px 14px;margin:20px 0 0}
-.order-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.conf{background:none;border:0;padding:0;font-family:var(--body);font-weight:600;font-size:23px;line-height:1.1;letter-spacing:.07em;cursor:copy;text-align:left;font-variant-numeric:tabular-nums}
-.conf .hash{color:var(--tc);margin-right:1px}
-.order-meta{font-size:13px;line-height:1.35;color:var(--muted);text-align:right}
-.order ul{list-style:none;margin:8px 0 0;padding:0}
-.seatline{display:flex;align-items:center;gap:8px;padding:3px 6px 3px 0;border-bottom:1px solid var(--line);border-radius:0;transition:background-color .2s ease}
+.lines{list-style:none;margin:14px 0 0;padding:0 0 0 14px;border-left:4px solid var(--accent)}
+.seatline{border-bottom:1px solid var(--line);transition:background-color .2s ease}
 .seatline:last-child{border-bottom:0}
 .seatline.sel{background:var(--band)}
-.sl-num{flex:0 0 46px;font-family:var(--body);font-weight:600;font-size:17px;color:var(--tc);padding-left:4px;letter-spacing:.01em}
-.sl-input{flex:1;min-width:0;font:inherit;font-size:16px;border:0;border-radius:8px;background:transparent;color:var(--ink);padding:8px 10px}
-.sl-input::placeholder{color:var(--muted);opacity:.75}
-.sl-input:hover{background:var(--bg)}
-.sl-input:focus{outline:2px solid var(--tc);background:var(--bg)}
+.sl-btn{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;padding:3px 6px 3px 0;margin:0;text-align:left;cursor:pointer;color:inherit;font:inherit}
+.sl-btn:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px;border-radius:6px}
+.sl-num{flex:0 0 46px;font-weight:600;font-size:17px;color:var(--accent);padding-left:4px}
 .sl-name{padding:8px 10px;font-weight:500}
 .sl-name.open{color:var(--muted);font-weight:400}
-
-.details{margin-top:34px;border-top:1px solid var(--line);padding-top:20px}
+.you-tag{margin-left:auto;font-size:12px;font-weight:600;line-height:1.4;color:var(--ink);border:1.5px solid var(--ink);border-radius:999px;padding:1px 9px}
+.details,.share{margin-top:34px;border-top:1px solid var(--line);padding-top:20px}
 .venue{margin:10px 0 2px;font-weight:600;font-size:17px}
 .addr{margin:0}
 .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .lnk{display:inline-flex;align-items:center;padding:9px 15px;border-radius:999px;border:1.5px solid var(--line);color:var(--ink);text-decoration:none;font-weight:500;font-size:15px}
 .lnk:hover{border-color:var(--accent)}
-.h-tix{margin-top:26px}
-.tix{margin:10px 0 0;max-width:62ch}
-
-.share{margin-top:34px;border-top:1px solid var(--line);padding-top:20px}
 .share p{margin:10px 0 14px;max-width:62ch}
 .prev{margin-top:14px}
-.prev summary{cursor:pointer;color:var(--muted);font-size:14px}
 .prev textarea{display:block;width:100%;margin-top:10px;font:inherit;font-size:14px;line-height:1.45;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);resize:vertical}
 
-.bar{position:absolute;left:0;right:0;top:100%;z-index:1;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 6px 14px -10px rgba(0,0,0,.45);transform:translateY(-100%);opacity:0;visibility:hidden;transition:transform .22s ease,opacity .22s ease,visibility 0s linear .22s}
-.bar.show{transform:none;opacity:1;visibility:visible;transition:transform .22s ease,opacity .22s ease}
-.bar-in{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:10px}
-.bar-msg{flex:1;min-width:0;font-size:14px}
-.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:11;transform:translate(-50%,8px);opacity:0;pointer-events:none;background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;max-width:calc(100% - 32px);transition:opacity .2s ease,transform .2s ease}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:40;transform:translate(-50%,8px);opacity:0;pointer-events:none;background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;max-width:calc(100% - 32px);transition:opacity .2s ease,transform .2s ease}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+@media (min-width:960px){ .toast{left:calc(50% + var(--side-w) / 2)} }
 
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+
 </style>
 </head>
 <body>
-<div id="app"><div class="top"><div id="tabs"></div></div><div id="view"></div><div id="toast" class="toast" role="status"></div></div>
+<div id="app">
+  <aside id="side" class="side" aria-label="Movie nights"></aside>
+  <div class="scrim" data-act="closenav"></div>
+  <div class="main">
+    <header class="topbar">
+      <button id="menu-btn" class="menu-btn" type="button" data-act="opennav" aria-label="Open menu" aria-expanded="false" aria-controls="side"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <a id="top-brand" class="top-brand" href="#/">Movie Nights</a>
+    </header>
+    <div id="view"></div>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+</div>
 <script>
 (function(){
 "use strict";
 
-const CFG = window.SEATS_CONFIG || {};
-const SHEET = String(CFG.sheetCsvUrl || "").trim();
-const SHOW_CONF = false;
+const CFG = window.SITE_CONFIG || {};
+const API = String(CFG.apiUrl || "").trim();
+const CSV = String(CFG.sheetCsvUrl || "").trim();
+const SITE = String(CFG.siteName || "Movie Nights").trim();
+const ORGANIZER = String(CFG.organizer || "the organizer").trim();
+const VENMO = String(CFG.venmo || "").trim().replace(/^@/, "");
+const CASHTAG = String(CFG.cashtag || "").trim().replace(/^\$/, "");
+const MOVIES_URL = String(CFG.moviesUrl || "movies.json").trim();
+const MODE = API ? "api" : (CSV ? "csv" : "none");
+const QR = {"venmo": "<svg viewBox=\"0 0 41 41\" shape-rendering=\"crispEdges\" aria-hidden=\"true\"><rect width=\"41\" height=\"41\" fill=\"#fff\"/><path d=\"M2 2h7v1h-7zM12 2h2v1h-2zM17 2h1v1h-1zM19 2h5v1h-5zM26 2h1v1h-1zM30 2h1v1h-1zM32 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM10 3h1v1h-1zM12 3h2v1h-2zM15 3h1v1h-1zM19 3h1v1h-1zM23 3h1v1h-1zM26 3h3v1h-3zM32 3h1v1h-1zM38 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h1v1h-1zM12 4h1v1h-1zM14 4h3v1h-3zM23 4h2v1h-2zM28 4h3v1h-3zM32 4h1v1h-1zM34 4h3v1h-3zM38 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM10 5h3v1h-3zM14 5h2v1h-2zM17 5h5v1h-5zM23 5h1v1h-1zM27 5h1v1h-1zM30 5h1v1h-1zM32 5h1v1h-1zM34 5h3v1h-3zM38 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM11 6h1v1h-1zM14 6h2v1h-2zM17 6h1v1h-1zM19 6h1v1h-1zM21 6h1v1h-1zM23 6h1v1h-1zM25 6h1v1h-1zM27 6h1v1h-1zM30 6h1v1h-1zM32 6h1v1h-1zM34 6h3v1h-3zM38 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM11 7h3v1h-3zM19 7h1v1h-1zM24 7h1v1h-1zM28 7h1v1h-1zM30 7h1v1h-1zM32 7h1v1h-1zM38 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h1v1h-1zM26 8h1v1h-1zM28 8h1v1h-1zM30 8h1v1h-1zM32 8h7v1h-7zM10 9h1v1h-1zM19 9h3v1h-3zM24 9h1v1h-1zM28 9h2v1h-2zM2 10h1v1h-1zM8 10h1v1h-1zM10 10h5v1h-5zM16 10h1v1h-1zM18 10h1v1h-1zM22 10h1v1h-1zM27 10h1v1h-1zM29 10h1v1h-1zM31 10h2v1h-2zM35 10h3v1h-3zM2 11h1v1h-1zM4 11h1v1h-1zM7 11h1v1h-1zM9 11h2v1h-2zM14 11h2v1h-2zM18 11h1v1h-1zM20 11h3v1h-3zM25 11h3v1h-3zM29 11h1v1h-1zM33 11h5v1h-5zM3 12h2v1h-2zM6 12h3v1h-3zM12 12h1v1h-1zM14 12h1v1h-1zM16 12h3v1h-3zM20 12h1v1h-1zM23 12h2v1h-2zM28 12h5v1h-5zM34 12h2v1h-2zM37 12h2v1h-2zM2 13h3v1h-3zM6 13h2v1h-2zM9 13h2v1h-2zM12 13h1v1h-1zM15 13h2v1h-2zM20 13h2v1h-2zM24 13h1v1h-1zM28 13h1v1h-1zM30 13h1v1h-1zM33 13h1v1h-1zM38 13h1v1h-1zM2 14h1v1h-1zM6 14h1v1h-1zM8 14h2v1h-2zM13 14h1v1h-1zM15 14h1v1h-1zM17 14h1v1h-1zM20 14h2v1h-2zM25 14h1v1h-1zM28 14h3v1h-3zM32 14h1v1h-1zM38 14h1v1h-1zM2 15h6v1h-6zM9 15h1v1h-1zM12 15h1v1h-1zM14 15h1v1h-1zM16 15h2v1h-2zM21 15h1v1h-1zM23 15h3v1h-3zM29 15h2v1h-2zM33 15h1v1h-1zM35 15h1v1h-1zM37 15h1v1h-1zM3 16h7v1h-7zM11 16h1v1h-1zM14 16h2v1h-2zM17 16h2v1h-2zM20 16h1v1h-1zM22 16h2v1h-2zM29 16h1v1h-1zM32 16h4v1h-4zM38 16h1v1h-1zM2 17h1v1h-1zM5 17h2v1h-2zM10 17h1v1h-1zM12 17h7v1h-7zM21 17h2v1h-2zM25 17h1v1h-1zM29 17h1v1h-1zM31 17h1v1h-1zM33 17h1v1h-1zM35 17h3v1h-3zM3 18h1v1h-1zM5 18h2v1h-2zM8 18h2v1h-2zM12 18h4v1h-4zM17 18h1v1h-1zM20 18h1v1h-1zM22 18h1v1h-1zM25 18h1v1h-1zM27 18h1v1h-1zM31 18h2v1h-2zM34 18h1v1h-1zM36 18h3v1h-3zM2 19h6v1h-6zM10 19h4v1h-4zM15 19h2v1h-2zM18 19h1v1h-1zM21 19h1v1h-1zM25 19h7v1h-7zM35 19h1v1h-1zM37 19h1v1h-1zM4 20h1v1h-1zM8 20h1v1h-1zM10 20h1v1h-1zM13 20h1v1h-1zM15 20h2v1h-2zM18 20h1v1h-1zM21 20h1v1h-1zM24 20h3v1h-3zM29 20h2v1h-2zM32 20h1v1h-1zM34 20h1v1h-1zM36 20h1v1h-1zM38 20h1v1h-1zM3 21h1v1h-1zM6 21h1v1h-1zM11 21h8v1h-8zM25 21h1v1h-1zM28 21h1v1h-1zM30 21h3v1h-3zM34 21h1v1h-1zM38 21h1v1h-1zM2 22h1v1h-1zM5 22h1v1h-1zM8 22h2v1h-2zM14 22h1v1h-1zM16 22h1v1h-1zM18 22h7v1h-7zM27 22h3v1h-3zM31 22h2v1h-2zM34 22h1v1h-1zM36 22h1v1h-1zM2 23h1v1h-1zM4 23h1v1h-1zM7 23h1v1h-1zM9 23h5v1h-5zM15 23h1v1h-1zM17 23h3v1h-3zM21 23h3v1h-3zM25 23h2v1h-2zM28 23h3v1h-3zM34 23h1v1h-1zM36 23h2v1h-2zM3 24h6v1h-6zM10 24h2v1h-2zM13 24h3v1h-3zM17 24h3v1h-3zM22 24h1v1h-1zM24 24h1v1h-1zM27 24h4v1h-4zM32 24h4v1h-4zM38 24h1v1h-1zM2 25h1v1h-1zM5 25h1v1h-1zM7 25h1v1h-1zM10 25h5v1h-5zM16 25h1v1h-1zM18 25h3v1h-3zM22 25h1v1h-1zM28 25h3v1h-3zM33 25h3v1h-3zM6 26h1v1h-1zM8 26h2v1h-2zM11 26h1v1h-1zM13 26h3v1h-3zM17 26h1v1h-1zM19 26h1v1h-1zM24 26h2v1h-2zM28 26h1v1h-1zM32 26h1v1h-1zM37 26h2v1h-2zM2 27h1v1h-1zM4 27h3v1h-3zM10 27h1v1h-1zM12 27h2v1h-2zM15 27h2v1h-2zM20 27h2v1h-2zM23 27h4v1h-4zM28 27h3v1h-3zM35 27h1v1h-1zM2 28h1v1h-1zM4 28h1v1h-1zM7 28h2v1h-2zM10 28h1v1h-1zM12 28h2v1h-2zM17 28h4v1h-4zM24 28h1v1h-1zM27 28h1v1h-1zM29 28h3v1h-3zM33 28h1v1h-1zM35 28h4v1h-4zM2 29h1v1h-1zM4 29h3v1h-3zM11 29h2v1h-2zM16 29h1v1h-1zM18 29h1v1h-1zM21 29h1v1h-1zM26 29h1v1h-1zM30 29h1v1h-1zM33 29h2v1h-2zM36 29h1v1h-1zM38 29h1v1h-1zM2 30h1v1h-1zM5 30h1v1h-1zM7 30h5v1h-5zM14 30h7v1h-7zM22 30h1v1h-1zM24 30h11v1h-11zM36 30h2v1h-2zM10 31h1v1h-1zM13 31h5v1h-5zM21 31h1v1h-1zM25 31h1v1h-1zM27 31h1v1h-1zM30 31h1v1h-1zM34 31h1v1h-1zM37 31h1v1h-1zM2 32h7v1h-7zM12 32h1v1h-1zM15 32h3v1h-3zM19 32h4v1h-4zM25 32h4v1h-4zM30 32h1v1h-1zM32 32h1v1h-1zM34 32h1v1h-1zM37 32h2v1h-2zM2 33h1v1h-1zM8 33h1v1h-1zM11 33h1v1h-1zM14 33h2v1h-2zM17 33h1v1h-1zM22 33h1v1h-1zM24 33h1v1h-1zM28 33h3v1h-3zM34 33h1v1h-1zM38 33h1v1h-1zM2 34h1v1h-1zM4 34h3v1h-3zM8 34h1v1h-1zM11 34h7v1h-7zM20 34h1v1h-1zM22 34h1v1h-1zM27 34h1v1h-1zM29 34h6v1h-6zM36 34h3v1h-3zM2 35h1v1h-1zM4 35h3v1h-3zM8 35h1v1h-1zM11 35h3v1h-3zM15 35h1v1h-1zM21 35h3v1h-3zM25 35h3v1h-3zM29 35h4v1h-4zM38 35h1v1h-1zM2 36h1v1h-1zM4 36h3v1h-3zM8 36h1v1h-1zM13 36h1v1h-1zM15 36h1v1h-1zM19 36h1v1h-1zM23 36h1v1h-1zM26 36h3v1h-3zM30 36h1v1h-1zM37 36h2v1h-2zM2 37h1v1h-1zM8 37h1v1h-1zM11 37h1v1h-1zM14 37h1v1h-1zM16 37h3v1h-3zM20 37h1v1h-1zM24 37h1v1h-1zM26 37h1v1h-1zM28 37h1v1h-1zM30 37h3v1h-3zM34 37h1v1h-1zM38 37h1v1h-1zM2 38h7v1h-7zM10 38h1v1h-1zM14 38h3v1h-3zM20 38h3v1h-3zM25 38h2v1h-2zM30 38h1v1h-1zM32 38h2v1h-2zM38 38h1v1h-1z\" fill=\"#000\"/></svg>", "cash": "<svg viewBox=\"0 0 33 33\" shape-rendering=\"crispEdges\" aria-hidden=\"true\"><rect width=\"33\" height=\"33\" fill=\"#fff\"/><path d=\"M2 2h7v1h-7zM10 2h2v1h-2zM14 2h4v1h-4zM20 2h1v1h-1zM24 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM17 3h1v1h-1zM19 3h2v1h-2zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h2v1h-2zM13 4h3v1h-3zM19 4h1v1h-1zM21 4h1v1h-1zM24 4h1v1h-1zM26 4h3v1h-3zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM11 5h1v1h-1zM13 5h2v1h-2zM17 5h4v1h-4zM22 5h1v1h-1zM24 5h1v1h-1zM26 5h3v1h-3zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM11 6h1v1h-1zM13 6h2v1h-2zM17 6h2v1h-2zM20 6h1v1h-1zM24 6h1v1h-1zM26 6h3v1h-3zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h2v1h-2zM15 7h2v1h-2zM18 7h3v1h-3zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h7v1h-7zM12 9h4v1h-4zM21 9h1v1h-1zM2 10h1v1h-1zM4 10h1v1h-1zM8 10h2v1h-2zM11 10h1v1h-1zM14 10h2v1h-2zM17 10h3v1h-3zM21 10h1v1h-1zM25 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM3 11h2v1h-2zM7 11h1v1h-1zM12 11h3v1h-3zM18 11h2v1h-2zM21 11h2v1h-2zM24 11h1v1h-1zM29 11h2v1h-2zM2 12h5v1h-5zM8 12h1v1h-1zM10 12h1v1h-1zM13 12h1v1h-1zM15 12h2v1h-2zM18 12h4v1h-4zM25 12h4v1h-4zM30 12h1v1h-1zM2 13h1v1h-1zM4 13h2v1h-2zM10 13h1v1h-1zM14 13h1v1h-1zM16 13h3v1h-3zM22 13h1v1h-1zM24 13h1v1h-1zM26 13h2v1h-2zM2 14h2v1h-2zM5 14h1v1h-1zM7 14h2v1h-2zM10 14h7v1h-7zM18 14h1v1h-1zM21 14h2v1h-2zM24 14h2v1h-2zM30 14h1v1h-1zM2 15h1v1h-1zM4 15h1v1h-1zM12 15h2v1h-2zM15 15h2v1h-2zM19 15h1v1h-1zM21 15h2v1h-2zM24 15h2v1h-2zM29 15h2v1h-2zM3 16h1v1h-1zM6 16h1v1h-1zM8 16h3v1h-3zM13 16h2v1h-2zM17 16h1v1h-1zM19 16h6v1h-6zM30 16h1v1h-1zM2 17h2v1h-2zM5 17h1v1h-1zM9 17h1v1h-1zM11 17h1v1h-1zM13 17h3v1h-3zM20 17h1v1h-1zM23 17h1v1h-1zM2 18h4v1h-4zM7 18h2v1h-2zM10 18h2v1h-2zM15 18h1v1h-1zM17 18h1v1h-1zM22 18h1v1h-1zM24 18h1v1h-1zM30 18h1v1h-1zM6 19h1v1h-1zM11 19h1v1h-1zM17 19h1v1h-1zM19 19h1v1h-1zM22 19h4v1h-4zM28 19h3v1h-3zM2 20h3v1h-3zM6 20h6v1h-6zM14 20h4v1h-4zM19 20h1v1h-1zM21 20h4v1h-4zM26 20h2v1h-2zM30 20h1v1h-1zM4 21h2v1h-2zM13 21h1v1h-1zM16 21h1v1h-1zM18 21h1v1h-1zM22 21h1v1h-1zM2 22h4v1h-4zM8 22h5v1h-5zM14 22h3v1h-3zM21 22h7v1h-7zM29 22h1v1h-1zM10 23h4v1h-4zM15 23h3v1h-3zM19 23h1v1h-1zM22 23h1v1h-1zM26 23h3v1h-3zM30 23h1v1h-1zM2 24h7v1h-7zM10 24h1v1h-1zM14 24h1v1h-1zM17 24h3v1h-3zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM30 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM15 25h1v1h-1zM17 25h1v1h-1zM22 25h1v1h-1zM26 25h1v1h-1zM29 25h1v1h-1zM2 26h1v1h-1zM4 26h3v1h-3zM8 26h1v1h-1zM11 26h1v1h-1zM15 26h1v1h-1zM17 26h1v1h-1zM20 26h8v1h-8zM29 26h2v1h-2zM2 27h1v1h-1zM4 27h3v1h-3zM8 27h1v1h-1zM11 27h5v1h-5zM17 27h7v1h-7zM26 27h3v1h-3zM30 27h1v1h-1zM2 28h1v1h-1zM4 28h3v1h-3zM8 28h1v1h-1zM10 28h1v1h-1zM14 28h1v1h-1zM16 28h2v1h-2zM26 28h1v1h-1zM29 28h2v1h-2zM2 29h1v1h-1zM8 29h1v1h-1zM12 29h3v1h-3zM20 29h1v1h-1zM22 29h1v1h-1zM25 29h3v1h-3zM2 30h7v1h-7zM10 30h3v1h-3zM14 30h1v1h-1zM17 30h1v1h-1zM21 30h7v1h-7zM30 30h1v1h-1z\" fill=\"#000\"/></svg>"};
+const THEMES = ["dune", "doom", "classic"];
 
-const FILMS = [
-  {
-    id: "dune", title: "Dune: Part Three", format: "IMAX 2D",
-    day: "Thu, Dec 17", time: "6:35 PM",
-    note: "Early screening. The film opens Dec 18.",
-    theater: "Regal Warren Moore 4DX & IMAX", aud: "Auditorium 17",
-    addr1: "1000 S. Telephone Rd.", addr2: "Moore, OK 73160", phone: "405-735-3228",
-    maps: "https://www.google.com/maps/search/?api=1&query=Regal%20Warren%20Moore%204DX%20%26%20IMAX%2C%201000%20S.%20Telephone%20Rd.%2C%20Moore%2C%20OK%2073160",
-    seatOrder: [19,18,17,16,15,14,13,12,11,10,9],
-    ghostL: 20, aisleR: true,
-    orders: [
-      { conf: "", seats: [19,18,17,16], bought: null, ti: 1 },
-      { conf: "", seats: [15,14,13,12], bought: null, ti: 2 },
-      { conf: "", seats: [11,10], bought: null, ti: 3 },
-      { conf: "", seats: [9], bought: null, ti: 4 }
-    ],
-    map: {
-      pitch: 21.67, num: "rtl", vb: [30, 560, 1072, 975], scr: [112, 1078, 668, 598],
-      rows: [
-        { y: 766, s: [[397,20]] },
-        { y: 807, s: [[353,23]] },
-        { y: 848, s: [[353,23]] },
-        { y: 912, p: [435,456,489,520,541,573,609,644,666,699,733,755] },
-        { y: 972, s: [[236,5],[374,21],[887,5]] },
-        { y: 1014, s: [[214,6],[374,22],[887,6]] },
-        { y: 1055, s: [[214,5],[353,23],[909,5]] },
-        { y: 1096, s: [[214,5],[353,24],[909,5]] },
-        { y: 1137, s: [[128,8],[331,25],[910,8]], i: true },
-        { y: 1179, s: [[128,7],[331,26],[932,7]] },
-        { y: 1220, s: [[128,7],[309,27],[932,7]] },
-        { y: 1261, s: [[128,6],[309,28],[954,6]] },
-        { y: 1303, s: [[124,6],[287,29],[954,6]] },
-        { y: 1344, s: [[124,5],[287,30],[976,5]] },
-        { y: 1385, s: [[124,5],[265,31],[976,5]] },
-        { y: 1426, s: [[124,4],[265,32],[997,4]] },
-        { y: 1467, s: [[146,3],[243,33],[997,3]] },
-        { y: 1509, s: [[146,3],[243,33],[997,3]] }
-      ]
-    }
-  },
-  {
-    id: "doom", title: "Avengers: Doomsday", format: null,
-    day: "Sat, Dec 19", time: "6:40 PM", note: null,
-    theater: "Harkins Bricktown 16", aud: null,
-    addr1: "150 East Reno Ave.", addr2: "Oklahoma City, OK 73104", phone: "405-231-4747",
-    maps: "https://www.google.com/maps/search/?api=1&query=Harkins%20Bricktown%2016%2C%20150%20E%20Reno%20Ave%2C%20Oklahoma%20City%2C%20OK%2073104",
-    seatOrder: [10,11,12,13,14,15,16,17],
-    ghostL: 9, aisleR: false,
-    orders: [
-      { conf: "", seats: [10,11,12,13], bought: null, ti: 1 },
-      { conf: "", seats: [14,15,16,17], bought: null, ti: 2 }
-    ],
-    map: {
-      pitch: 24.73, num: "ltr", vb: [28, 650, 1062, 1095], scr: [60, 1060, 760, 690],
-      rows: [
-        { y: 830, s: [[99,8],[395,14],[840,8]] },
-        { y: 877, s: [[99,8],[370,16],[840,8]] },
-        { y: 924, s: [[99,8],[370,17],[840,8]] },
-        { y: 971, s: [[74,9],[345,18],[864,9]] },
-        { y: 1018, s: [[74,9],[345,19],[864,9]] },
-        { y: 1065, s: [[74,8],[345,20],[889,8]] },
-        { y: 1112, p: [74,99,124,148,197,222,247,345,370,395,420,444,469,494,519,544,569,617,642,667,691,716,741,766,790,815,889,914,938,987,1012,1036,1061] },
-        { y: 1198, s: [[147,6],[345,13],[692,3],[862,6]] },
-        { y: 1245, s: [[147,6],[345,11],[862,6]], i: true },
-        { y: 1292, s: [[147,6],[345,19],[862,6]] },
-        { y: 1339, s: [[147,6],[345,19],[862,6]] },
-        { y: 1386, s: [[147,6],[345,19],[862,6]] },
-        { y: 1433, s: [[147,6],[345,19],[862,6]] },
-        { y: 1480, s: [[147,6],[345,19],[862,6]] },
-        { y: 1527, s: [[147,6],[345,19],[862,6]] },
-        { y: 1574, s: [[147,6],[345,19],[862,6]] },
-        { y: 1621, s: [[147,6],[345,19],[862,6]] },
-        { y: 1668, s: [[147,6],[345,19],[862,6]] },
-        { y: 1715, s: [[147,6],[345,6],[667,6],[862,6]] }
-      ]
-    }
-  }
-];
-
-const FILM_KEY = "seats.film";
+/* ---------- storage ---------- */
+const KEY_KEY = "seats.key", NAME_KEY = "seats.myname";
 function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
-function lsSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+function lsSet(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+function makeKey(){
+  try { if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch(e){}
+  let s = ""; for (let i = 0; i < 32; i++) s += Math.floor(Math.random() * 16).toString(16);
+  return s;
+}
+let TOKEN = lsGet(KEY_KEY);
+if (!TOKEN || TOKEN.length < 16) { TOKEN = makeKey(); lsSet(KEY_KEY, TOKEN); }
+let myName = lsGet(NAME_KEY) || "";
 
-let names = {};
-for (const f of FILMS) names[f.id] = {};
-let status = SHEET ? "loading" : "none";
-let lastLoad = 0;
-let filmId = FILMS.some(x => x.id === lsGet(FILM_KEY)) ? lsGet(FILM_KEY) : FILMS[0].id;
-let selected = null;
+/* ---------- state ---------- */
+let MOVIES = [], moviesStatus = "loading";
+let seats = {}, seatStatus = MODE === "none" ? "ok" : "loading";
+let route = { view: "home" };
+let selected = null, moveFrom = null, busy = false, lastLoad = 0;
+const qty = {};
 
-const tabsEl = document.getElementById("tabs");
-const view = document.getElementById("view");
+const appEl = document.getElementById("app");
+const sideEl = document.getElementById("side");
+const viewEl = document.getElementById("view");
 const toastEl = document.getElementById("toast");
-const app = document.getElementById("app");
+const brandEl = document.getElementById("top-brand");
+const reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
-function film(){ return FILMS.find(x => x.id === filmId) || FILMS[0]; }
-function nm(f, s){ return String(names[f.id][s] || "").trim(); }
-function orderOf(f, num){ return f.orders.find(o => o.seats.indexOf(num) !== -1) || null; }
-function tint(o){ return SHOW_CONF && o ? o.ti : 1; }
-function seatInFilm(f, s){ return /^I\d+$/.test(s) && f.seatOrder.indexOf(+s.slice(1)) !== -1; }
+/* ---------- helpers ---------- */
+const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function esc(t){ return String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]); }
-function short(n){ if (!n) return ""; const w = n.trim().split(/\s+/)[0]; return w.length > 10 ? w.slice(0,9) + "\u2026" : w; }
-function ariaSeat(s, name){ return "Seat " + s + (name ? ", " + name : ", open"); }
+function when(m){
+  const d = String(m.date).split("-").map(Number), t = String(m.time || "0:00").split(":").map(Number);
+  return new Date(d[0], (d[1] || 1) - 1, d[2] || 1, t[0] || 0, t[1] || 0);
+}
+function dayLabel(m){ const t = when(m); return DAYS[t.getDay()] + ", " + MONTHS[t.getMonth()] + " " + t.getDate(); }
+function timeLabel(m){ const t = when(m); let h = t.getHours(); const ap = h >= 12 ? "PM" : "AM"; h = h % 12 || 12; return h + ":" + String(t.getMinutes()).padStart(2, "0") + " " + ap; }
+function isPast(m){ return when(m).getTime() + 4 * 3600e3 < Date.now(); }
+function amount(n){ return Math.round(n * 100) % 100 ? n.toFixed(2) : String(Math.round(n)); }
+function money(n){ return "$" + amount(n); }
+function themeOf(m){ return m && THEMES.indexOf(m.theme) !== -1 ? m.theme : "classic"; }
+function seatIds(m){ return m.seats.map(n => m.row + n); }
+function hasSeat(m, s){ return seatIds(m).indexOf(s) !== -1; }
+function info(m, s){ return (seats[m.id] && seats[m.id][s]) || null; }
+function nm(m, s){ const i = info(m, s); return i ? i.name : ""; }
+function mine(m, s){ const i = info(m, s); return !!(i && i.mine); }
+function short(n){ if (!n) return ""; const w = n.trim().split(/\s+/)[0]; return w.length > 10 ? w.slice(0, 9) + "\u2026" : w; }
+function withParam(u, k, v){ return u + (u.indexOf("?") === -1 ? "?" : "&") + k + "=" + encodeURIComponent(v); }
+function current(){ return route.view === "movie" ? MOVIES.find(x => x.id === route.id) || null : null; }
+function typing(){ const a = document.activeElement; return !!(a && a.id === "ed-in"); }
 
-/* ---------- sheet ---------- */
+/* ---------- data ---------- */
+function normalizeMovie(m){
+  if (!m || !m.id || !m.title || !m.date || !m.row || !Array.isArray(m.seats) || !m.map) return null;
+  const out = Object.assign({}, m);
+  out.id = String(m.id).toLowerCase();
+  out.row = String(m.row).toUpperCase();
+  out.price = Number(m.price) || 0;
+  out.theater = m.theater || {};
+  return out;
+}
+
+async function loadMovies(){
+  try {
+    const res = await fetch(withParam(MOVIES_URL, "v", Date.now()), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    MOVIES = (data.movies || []).map(normalizeMovie).filter(Boolean);
+    moviesStatus = "ok";
+  } catch(e) {
+    moviesStatus = "error";
+  }
+}
+
+function applyList(list){
+  seats = {};
+  for (const m of MOVIES) seats[m.id] = {};
+  for (const s of (list || [])) {
+    const m = MOVIES.find(x => x.id === String(s.film || "").toLowerCase());
+    const id = String(s.seat || "").toUpperCase();
+    const name = String(s.name || "").trim().slice(0, 30);
+    if (m && name && hasSeat(m, id)) seats[m.id][id] = { name: name, mine: !!s.mine };
+  }
+  const m = current();
+  if (moveFrom && (!m || !mine(m, moveFrom))) moveFrom = null;
+}
 
 function parseCSV(t){
   const rows = []; let row = [], fld = "", q = false;
   for (let i = 0; i < t.length; i++) {
     const c = t[i];
-    if (q) {
-      if (c === '"') { if (t[i + 1] === '"') { fld += '"'; i++; } else q = false; }
-      else fld += c;
-    } else if (c === '"') q = true;
+    if (q) { if (c === '"') { if (t[i + 1] === '"') { fld += '"'; i++; } else q = false; } else fld += c; }
+    else if (c === '"') q = true;
     else if (c === ",") { row.push(fld); fld = ""; }
     else if (c === "\n") { row.push(fld); rows.push(row); row = []; fld = ""; }
     else if (c !== "\r") fld += c;
@@ -320,86 +378,187 @@ function parseCSV(t){
   if (fld !== "" || row.length) { row.push(fld); rows.push(row); }
   return rows;
 }
-
-function filmFor(cell){
-  const v = cell.trim().toLowerCase();
-  if (v.indexOf("dune") !== -1) return FILMS.find(f => f.id === "dune");
-  if (v.indexOf("doom") !== -1 || v.indexOf("avengers") !== -1) return FILMS.find(f => f.id === "doom");
-  return null;
-}
-
-function parseSheet(text){
-  const out = {};
-  for (const f of FILMS) out[f.id] = {};
+function csvToList(text){
+  const out = [];
   for (const r of parseCSV(text)) {
     if (r.length < 3) continue;
-    const f = filmFor(r[0] || "");
-    if (!f) continue;
+    const cell = String(r[0] || "").trim().toLowerCase();
+    const m = MOVIES.find(x => x.id === cell || x.title.toLowerCase() === cell) ||
+      MOVIES.find(x => cell && (x.id.indexOf(cell) === 0 || x.title.toLowerCase().indexOf(cell) !== -1));
+    if (!m) continue;
     let seat = String(r[1] || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-    if (/^\d+$/.test(seat)) seat = "I" + seat;
-    const name = String(r[2] || "").trim().slice(0, 30);
-    if (name && seatInFilm(f, seat)) out[f.id][seat] = name;
+    if (/^\d+$/.test(seat)) seat = m.row + seat;
+    out.push({ film: m.id, seat: seat, name: r[2], mine: false });
   }
   return out;
 }
 
-async function load(){
-  if (!SHEET) return;
+async function loadSeats(){
+  if (MODE === "none") return;
   lastLoad = Date.now();
   try {
-    let url = SHEET;
-    if (!/^https?:/i.test(url)) url += (url.indexOf("?") === -1 ? "?" : "&") + "v=" + Date.now();
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const text = await res.text();
-    if (/^\s*</.test(text)) throw new Error("Not CSV");
-    names = parseSheet(text);
-    status = "ok";
-  } catch (e) {
-    status = "error";
+    if (MODE === "api") {
+      const res = await fetch(withParam(withParam(API, "token", TOKEN), "t", Date.now()), { cache: "no-store" });
+      const data = await res.json();
+      if (!data || !data.ok) throw new Error("bad");
+      applyList(data.seats);
+    } else {
+      let u = CSV;
+      if (!/^https?:/i.test(u)) u = withParam(u, "v", Date.now());
+      const res = await fetch(u, { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const text = await res.text();
+      if (/^\s*</.test(text)) throw new Error("Not CSV");
+      applyList(csvToList(text));
+    }
+    seatStatus = "ok";
+  } catch(e) {
+    seatStatus = "error";
   }
+  if (!typing()) render();
+}
+
+async function send(payload, okMsg){
+  const m = current();
+  if (busy || MODE !== "api" || !m) return false;
+  busy = true; renderEditor();
+  let ok = false;
+  try {
+    const res = await fetch(API, { method: "POST", body: JSON.stringify(Object.assign({ token: TOKEN, film: m.id }, payload)) });
+    const data = await res.json();
+    if (data && data.seats) { applyList(data.seats); seatStatus = "ok"; lastLoad = Date.now(); }
+    if (data && data.ok) { ok = true; if (okMsg) toast(okMsg); }
+    else toast((data && data.message) || "That didn\u2019t go through. Try again.");
+  } catch(e) {
+    toast("Couldn\u2019t reach the seat list. Check your connection and try again.");
+  }
+  busy = false;
   render();
+  return ok;
 }
 
-/* ---------- views ---------- */
-
-function tabsHTML(){
-  return '<nav class="tabs" aria-label="Movies"><div class="tabs-in">' + FILMS.map(x =>
-    '<button type="button" class="tab' + (x.id === filmId ? ' active' : '') + '" data-act="film" data-film="' + x.id + '" aria-pressed="' + (x.id === filmId) + '">' +
-    '<span class="tab-t">' + esc(x.title) + '</span><span class="tab-d">' + esc(x.day) + '</span></button>'
-  ).join("") + '</div></nav>';
+/* ---------- art (original motifs, one per theme) ---------- */
+function art(theme, kind, uid){
+  const id = kind + "-" + String(uid || "x").replace(/[^a-z0-9]/gi, "");
+  const open = '<svg class="art art-' + theme + '" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">';
+  if (theme === "dune") {
+    return open +
+      '<defs><linearGradient id="sky-' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--art1)"/><stop offset="1" stop-color="var(--art2)"/></linearGradient>' +
+      '<radialGradient id="sun-' + id + '"><stop offset="0" stop-color="var(--art3)"/><stop offset=".55" stop-color="var(--art3)" stop-opacity=".9"/><stop offset="1" stop-color="var(--art3)" stop-opacity="0"/></radialGradient></defs>' +
+      '<rect width="1200" height="400" fill="url(#sky-' + id + ')"/>' +
+      '<circle cx="790" cy="262" r="170" fill="url(#sun-' + id + ')" opacity=".55"/>' +
+      '<circle cx="790" cy="262" r="92" fill="var(--art3)"/>' +
+      '<path d="M0 268 C 190 226 370 300 560 258 S 920 214 1200 252 V400 H0Z" fill="var(--art4)"/>' +
+      '<path d="M0 312 C 170 280 350 334 540 300 S 880 268 1200 318 V400 H0Z" fill="var(--art5)"/>' +
+      '<path d="M0 352 C 230 322 430 376 650 348 S 1000 330 1200 362 V400 H0Z" fill="var(--art6)"/>' +
+      '<path d="M120 300 C 300 286 380 318 520 304" fill="none" stroke="var(--art3)" stroke-opacity=".35" stroke-width="2"/>' +
+      '<path d="M700 330 C 820 318 930 336 1080 326" fill="none" stroke="var(--art3)" stroke-opacity=".3" stroke-width="2"/>' +
+      '</svg>';
+  }
+  if (theme === "doom") {
+    const arch = (cx, w, top, op) => {
+      const l = cx - w / 2, r = cx + w / 2, spring = top + w * 0.95;
+      return '<g opacity="' + op + '"><path d="M' + l + ' 400 V' + spring + ' Q' + l + ' ' + (top + w * 0.25) + ' ' + cx + ' ' + top + ' Q' + r + ' ' + (top + w * 0.25) + ' ' + r + ' ' + spring + ' V400Z" fill="url(#glow-' + id + ')" stroke="var(--art3)" stroke-width="4"/>' +
+        '<path d="M' + cx + ' ' + (top + 18) + ' V400 M' + (l + 6) + ' ' + (spring + 40) + ' H' + (r - 6) + '" stroke="var(--art3)" stroke-width="3" opacity=".7"/></g>';
+    };
+    let rivets = "";
+    for (let x = 30; x < 1200; x += 60) rivets += '<circle cx="' + x + '" cy="22" r="4"/><circle cx="' + x + '" cy="378" r="4"/>';
+    return open +
+      '<defs><radialGradient id="mist-' + id + '" cx=".5" cy=".75" r=".6"><stop offset="0" stop-color="var(--art2)" stop-opacity=".75"/><stop offset="1" stop-color="var(--art2)" stop-opacity="0"/></radialGradient>' +
+      '<linearGradient id="glow-' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--art2)" stop-opacity=".95"/><stop offset="1" stop-color="var(--art2)" stop-opacity=".15"/></linearGradient></defs>' +
+      '<rect width="1200" height="400" fill="var(--art1)"/>' +
+      '<rect width="1200" height="400" fill="url(#mist-' + id + ')"/>' +
+      arch(330, 120, 150, .45) + arch(870, 120, 150, .45) + arch(600, 190, 60, 1) +
+      '<g fill="var(--art4)">' + rivets + '</g>' +
+      '<rect y="0" width="1200" height="44" fill="var(--art1)" opacity=".35"/>' +
+      '</svg>';
+  }
+  let bulbs = "";
+  for (let x = 30; x < 1200; x += 56) bulbs += '<circle cx="' + x + '" cy="30" r="9"/><circle cx="' + (x + 28) + '" cy="370" r="9"/>';
+  return open +
+    '<defs><linearGradient id="fold-' + id + '" x1="0" y1="0" x2="80" y2="0" gradientUnits="userSpaceOnUse" spreadMethod="repeat"><stop offset="0" stop-color="var(--art2)"/><stop offset=".5" stop-color="var(--art4)"/><stop offset="1" stop-color="var(--art2)"/></linearGradient>' +
+    '<radialGradient id="spot-' + id + '" cx=".5" cy=".55" r=".5"><stop offset="0" stop-color="var(--art3)" stop-opacity=".28"/><stop offset="1" stop-color="var(--art3)" stop-opacity="0"/></radialGradient></defs>' +
+    '<rect width="1200" height="400" fill="var(--art1)"/>' +
+    '<rect x="0" y="60" width="1200" height="280" fill="url(#fold-' + id + ')" opacity=".9"/>' +
+    '<rect width="1200" height="400" fill="url(#spot-' + id + ')"/>' +
+    '<rect x="0" y="0" width="1200" height="60" fill="var(--art1)"/><rect x="0" y="340" width="1200" height="60" fill="var(--art1)"/>' +
+    '<g fill="var(--art3)" class="bulbs">' + bulbs + '</g>' +
+    '</svg>';
 }
 
-function heroHTML(f){
-  return '<header class="hero"><h1 class="title">' + esc(f.title) + '</h1>' +
-    '<div class="when"><span>' + esc(f.day) + '</span><span class="time">' + esc(f.time) + '</span></div>' +
-    '<p class="sub">' + (f.format ? esc(f.format) + ' at ' : '') + esc(f.theater) + '</p>' +
-    (f.note ? '<p class="note">' + esc(f.note) + '</p>' : '') + '</header>';
+/* ---------- sidebar ---------- */
+function sideHTML(m){
+  const list = MOVIES.slice().sort((a, b) => when(b) - when(a));
+  let s = '<a class="brand" href="#/">' + esc(SITE) + '</a>' +
+    '<a class="side-link' + (!m ? ' active' : '') + '" href="#/"' + (!m ? ' aria-current="page"' : '') + '>Upcoming</a>' +
+    '<p class="side-label">Movie nights</p>';
+  if (moviesStatus === "loading") s += '<p class="side-empty">Loading\u2026</p>';
+  else if (!list.length) s += '<p class="side-empty">None yet.</p>';
+  else s += '<ul class="side-list">' + list.map(x =>
+    '<li><a class="side-item' + (m && m.id === x.id ? ' active' : '') + (isPast(x) ? ' past' : '') + '" href="#/' + esc(x.id) + '"' + (m && m.id === x.id ? ' aria-current="page"' : '') + '>' +
+    '<span class="side-dot" data-film="' + themeOf(x) + '"></span><span class="side-txt"><span class="side-t">' + esc(x.title) + '</span>' +
+    '<span class="side-d">' + dayLabel(x) + (isPast(x) ? ', past' : '') + '</span></span></a></li>').join("") + '</ul>';
+  if (VENMO || CASHTAG) {
+    s += '<div class="side-pay"><p class="side-label">Pay ' + esc(ORGANIZER) + '</p>' +
+      (VENMO ? '<p>Venmo <button type="button" class="handle" data-act="copy" data-text="@' + esc(VENMO) + '">@' + esc(VENMO) + '</button></p>' : '') +
+      (CASHTAG ? '<p>Cash App <button type="button" class="handle" data-act="copy" data-text="$' + esc(CASHTAG) + '">$' + esc(CASHTAG) + '</button></p>' : '') + '</div>';
+  }
+  return s;
 }
 
-function mapSVG(f){
-  const m = f.map, p = m.pitch;
+/* ---------- home ---------- */
+function seatsOpenText(m){
+  if (seatStatus === "loading") return "Checking seats\u2026";
+  if (seatStatus === "error") return m.seats.length + " seats";
+  const open = seatIds(m).filter(s => !nm(m, s)).length;
+  return open === 0 ? "All " + m.seats.length + " seats taken" : open + " of " + m.seats.length + " seats open";
+}
+
+function cardHTML(m){
+  return '<a class="mcard' + (isPast(m) ? ' past' : '') + '" href="#/' + esc(m.id) + '" data-film="' + themeOf(m) + '">' +
+    '<div class="mcard-art">' + art(themeOf(m), "card", m.id) + '</div>' +
+    '<div class="mcard-body"><h3 class="mcard-t">' + esc(m.title) + '</h3>' +
+    '<p class="mcard-when"><span>' + dayLabel(m) + '</span><span>' + timeLabel(m) + '</span></p>' +
+    '<p class="mcard-where">' + esc(m.theater.name || "") + '</p>' +
+    '<div class="mcard-foot"><span>' + seatsOpenText(m) + '</span>' + (m.price ? '<span class="mcard-price">' + money(m.price) + ' a ticket</span>' : '') + '</div>' +
+    '</div></a>';
+}
+
+function homeHTML(){
+  let s = '<main class="wrap home"><header class="home-hero"><div class="hero-art">' + art("classic", "hero", "home") + '</div>' +
+    '<h1 class="title">' + esc(SITE) + '</h1><p class="lede">Pick your seat for the next group showing. Seats are first come, first served.</p></header>';
+  if (moviesStatus === "loading") return s + '<p class="empty">Loading movie nights\u2026</p></main>';
+  if (moviesStatus === "error") return s + '<p class="empty">The movie list didn\u2019t load. Refresh the page to try again.</p></main>';
+  const up = MOVIES.filter(m => !isPast(m)).sort((a, b) => when(a) - when(b));
+  const past = MOVIES.filter(isPast).sort((a, b) => when(b) - when(a));
+  s += '<section class="home-sec" aria-labelledby="up-h"><h2 id="up-h">Upcoming</h2>' +
+    (up.length ? '<div class="cards">' + up.map(cardHTML).join("") + '</div>' : '<p class="empty">Nothing on the calendar yet.</p>') + '</section>';
+  if (past.length) s += '<section class="home-sec" aria-labelledby="past-h"><h2 id="past-h">Past</h2><div class="cards">' + past.map(cardHTML).join("") + '</div></section>';
+  return s + '</main>';
+}
+
+/* ---------- movie page ---------- */
+function mapSVG(m){
+  const mp = m.map, p = mp.pitch, vb = mp.viewBox, sc = mp.screen;
   const w = +(p * 0.74).toFixed(2), h = +(p * 0.62).toFixed(2), rx = +(p * 0.16).toFixed(2);
-  const x1 = m.scr[0], x2 = m.scr[1], ye = m.scr[2], yp = m.scr[3];
-  const cx = (x1 + x2) / 2, cy = 2 * yp - ye;
-  let out = '<svg viewBox="' + m.vb.join(" ") + '" aria-hidden="true" focusable="false">';
-  out += '<path class="screen" d="M' + x1 + ' ' + ye + ' Q' + cx + ' ' + cy + ' ' + x2 + ' ' + ye + '"/>';
-  out += '<text class="scr-label" x="' + cx + '" y="' + (yp + 44) + '">Screen</text>';
+  const cx = (sc[0] + sc[1]) / 2, cy = 2 * sc[3] - sc[2];
+  let out = '<svg viewBox="' + vb.join(" ") + '" aria-hidden="true" focusable="false">';
+  out += '<path class="screen" d="M' + sc[0] + ' ' + sc[2] + ' Q' + cx + ' ' + cy + ' ' + sc[1] + ' ' + sc[2] + '"/>';
+  out += '<text class="scr-label" x="' + cx + '" y="' + (sc[3] + 44) + '">Screen</text>';
   let k = 0;
-  for (const r of m.rows) {
-    const xs = r.p ? r.p.slice() : r.s.flatMap(seg => Array.from({ length: seg[1] }, (_, i) => seg[0] + i * p));
-    if (r.i) {
-      out += '<rect class="band" x="' + m.vb[0] + '" y="' + (r.y - p * 0.66).toFixed(1) + '" width="' + m.vb[2] + '" height="' + (p * 1.32).toFixed(1) + '" rx="' + (p * 0.5).toFixed(1) + '"/>';
-      out += '<text class="rowlabel" x="' + (xs[0] - p * 0.9).toFixed(1) + '" y="' + r.y + '">Row I</text>';
+  for (const r of mp.rows) {
+    const xs = r.points ? r.points.slice() : r.segments.flatMap(seg => Array.from({ length: seg[1] }, (_, i) => seg[0] + i * p));
+    if (r.ours) {
+      out += '<rect class="band" x="' + vb[0] + '" y="' + (r.y - p * 0.66).toFixed(1) + '" width="' + vb[2] + '" height="' + (p * 1.32).toFixed(1) + '" rx="' + (p * 0.5).toFixed(1) + '"/>';
+      out += '<text class="rowlabel" x="' + (xs[0] - p * 0.9).toFixed(1) + '" y="' + r.y + '">Row ' + esc(m.row) + '</text>';
     }
     xs.forEach((x, i) => {
       const geo = ' x="' + (x - w / 2).toFixed(1) + '" y="' + (r.y - h / 2).toFixed(1) + '" width="' + w + '" height="' + h + '" rx="' + rx + '"/>';
-      if (r.i) {
-        const num = m.num === "rtl" ? xs.length - i : i + 1;
-        const o = orderOf(f, num);
-        if (o) {
-          const s = "I" + num;
-          out += '<rect class="s m t' + tint(o) + (nm(f, s) ? ' f' : '') + (selected === s ? ' sel' : '') + '" data-act="pick" data-seat="' + s + '" style="--d:' + (k++ * 45) + 'ms"' + geo;
+      if (r.ours) {
+        const num = mp.numbering === "rtl" ? xs.length - i : i + 1;
+        if (m.seats.indexOf(num) !== -1) {
+          const s = m.row + num;
+          out += '<rect class="s m' + (nm(m, s) ? ' f' : '') + (mine(m, s) ? ' y' : '') + (selected === s ? ' sel' : '') + '" data-act="pick" data-seat="' + s + '" style="--d:' + (k++ * 45) + 'ms"' + geo;
           return;
         }
         out += '<rect class="s r"' + geo;
@@ -409,105 +568,218 @@ function mapSVG(f){
   return out + '</svg>';
 }
 
-function mapHTML(f){
-  return '<section class="card mapcard" aria-label="Auditorium map"><div class="sec-head"><h2>' + esc(f.aud || "The auditorium") + '</h2><p>Our seats are in row I</p></div>' +
-    mapSVG(f) +
-    '<div class="legend"><span><i class="sw full"></i>Named</span><span><i class="sw open"></i>Still open</span></div></section>';
+function mapHTML(m){
+  return '<section class="card mapcard" aria-label="Auditorium map"><div class="sec-head"><h2>' + esc(m.auditorium || "The auditorium") + '</h2><p>Our seats are in row ' + esc(m.row) + '</p></div>' +
+    mapSVG(m) +
+    '<div class="legend"><span><i class="sw full"></i>Taken</span><span><i class="sw open"></i>Open</span>' + (MODE === "api" ? '<span><i class="sw you"></i>Yours</span>' : '') + '</div></section>';
 }
 
-function editorHTML(f){
-  if (!selected || !seatInFilm(f, selected)) return '<p class="ed-hint">Tap a seat to see who\u2019s sitting there.</p>';
-  const o = orderOf(f, +selected.slice(1)), name = nm(f, selected);
-  return '<div class="ed-row t' + tint(o) + '"><span class="ed-seat">' + selected + '</span><span class="ed-name' + (name ? '' : ' open') + '">' + (name ? esc(name) : 'Open seat') + '</span></div>' +
-    (SHOW_CONF ? '<p class="ed-meta">On confirmation #' + o.conf + '.</p>' : '');
+function seatHead(s, statusHTML){ return '<div class="ed-row"><span class="ed-seat">' + s + '</span>' + statusHTML + '</div>'; }
+
+function editorHTML(m){
+  const dis = busy ? ' disabled' : '';
+  const label = t => busy ? 'Saving\u2026' : t;
+
+  if (MODE !== "api") {
+    if (!selected || !hasSeat(m, selected)) return '<p class="ed-hint">Tap a seat to see who\u2019s sitting there.</p>';
+    const name = nm(m, selected);
+    return seatHead(selected, '<span class="ed-name' + (name ? '' : ' open') + '">' + (name ? esc(name) : 'Open seat') + '</span>');
+  }
+
+  if (moveFrom) {
+    const who = nm(m, moveFrom);
+    if (!selected || selected === moveFrom || !hasSeat(m, selected)) {
+      return '<p class="ed-hint strong">Tap an open seat to move ' + esc(who) + ' out of ' + moveFrom + '.</p>' +
+        '<div class="ed-actions"><button type="button" class="btnq" data-act="cancelmove"' + dis + '>Cancel</button></div>';
+    }
+    if (nm(m, selected)) {
+      return seatHead(selected, '<span class="ed-name">' + esc(nm(m, selected)) + '</span>') +
+        '<p class="ed-meta">That seat\u2019s taken. Tap an open one.</p>' +
+        '<div class="ed-actions"><button type="button" class="btnq" data-act="cancelmove"' + dis + '>Cancel move</button></div>';
+    }
+    return seatHead(selected, '<span class="ed-status">Open</span>') +
+      '<p class="ed-q">Move ' + esc(who) + ' from ' + moveFrom + ' to ' + selected + '?</p>' +
+      '<div class="ed-actions"><button type="button" class="btn" data-act="domove"' + dis + '>' + label('Move here') + '</button>' +
+      '<button type="button" class="btnq" data-act="cancelmove"' + dis + '>Cancel</button></div>';
+  }
+
+  if (!selected || !hasSeat(m, selected)) {
+    return '<p class="ed-hint">' + (seatStatus === "error" ? 'The seat list didn\u2019t load. Refresh the page to try again.' : 'Tap an open seat to claim it.') + '</p>';
+  }
+
+  const name = nm(m, selected);
+  if (!name) {
+    return seatHead(selected, '<span class="ed-status">Open</span>') +
+      '<div class="ed-form"><input id="ed-in" class="ed-input" type="text" value="' + esc(myName) + '" placeholder="Your name" maxlength="30" autocomplete="name" autocapitalize="words" spellcheck="false" enterkeyhint="done" aria-label="Name for seat ' + selected + '"' + dis + '>' +
+      '<button type="button" class="btn" data-act="claim"' + dis + '>' + label('Claim seat') + '</button></div>' +
+      '<p class="ed-meta">Picking for someone else? Type their name instead.</p>';
+  }
+
+  if (mine(m, selected)) {
+    return seatHead(selected, '<span class="ed-status you">Your seat</span>') +
+      '<div class="ed-form"><input id="ed-in" class="ed-input" type="text" value="' + esc(name) + '" maxlength="30" autocomplete="name" autocapitalize="words" spellcheck="false" enterkeyhint="done" aria-label="Name for seat ' + selected + '"' + dis + '>' +
+      '<button type="button" class="btn" data-act="rename"' + dis + '>' + label('Save name') + '</button></div>' +
+      '<div class="ed-actions"><button type="button" class="btnq" data-act="move"' + dis + '>Move to another seat</button>' +
+      '<button type="button" class="btnq" data-act="release"' + dis + '>Give up seat</button>' +
+      (m.price ? '<button type="button" class="btnq" data-act="topay"' + dis + '>Pay ' + money(m.price) + '</button>' : '') + '</div>';
+  }
+
+  return seatHead(selected, '<span class="ed-name">' + esc(name) + '</span>') +
+    '<p class="ed-meta">Taken. Ask ' + esc(ORGANIZER) + ' if this needs to change.</p>';
 }
 
-function closeHTML(f){
-  let s = '<section class="card close" aria-labelledby="close-h"><div class="sec-head"><h2 id="close-h">Row I up close</h2><p>As you face the screen</p></div><div class="seatrow">';
-  if (f.ghostL) s += '<div class="ghost" aria-hidden="true"><span class="back">' + f.ghostL + '</span><span class="who">&nbsp;</span></div>';
-  f.seatOrder.forEach((num, i) => {
-    const seat = "I" + num, o = orderOf(f, num), name = nm(f, seat);
-    s += '<button type="button" class="chair t' + tint(o) + (i % 2 ? ' lo' : '') + (name ? ' filled' : '') + (selected === seat ? ' sel' : '') + '" data-act="pick" data-seat="' + seat + '" aria-label="' + esc(ariaSeat(seat, name)) + '">' +
+function closeHTML(m){
+  let s = '<section class="card close" aria-labelledby="close-h"><div class="sec-head"><h2 id="close-h">Row ' + esc(m.row) + ' up close</h2><p>As you face the screen</p></div><div class="seatrow">';
+  if (m.ghostLeft) s += '<div class="ghost" aria-hidden="true"><span class="back">' + esc(m.ghostLeft) + '</span><span class="who">&nbsp;</span></div>';
+  m.seats.forEach((num, i) => {
+    const seat = m.row + num, name = nm(m, seat), you = mine(m, seat);
+    s += '<button type="button" class="chair' + (i % 2 ? ' lo' : '') + (name ? ' filled' : '') + (you ? ' you' : '') + (selected === seat ? ' sel' : '') + (moveFrom === seat ? ' from' : '') + '" data-act="pick" data-seat="' + seat + '" aria-label="' + esc("Seat " + seat + (name ? ", " + name + (you ? ", yours" : "") : ", open")) + '">' +
       '<span class="back">' + num + '</span><span class="who">' + (esc(short(name)) || '\u00b7') + '</span></button>';
   });
-  if (f.aisleR) s += '<div class="aisle" aria-hidden="true">Aisle</div>';
-  return s + '</div><div id="editor" class="editor">' + editorHTML(f) + '</div></section>';
+  if (m.aisleRight) s += '<div class="aisle" aria-hidden="true">Aisle</div>';
+  return s + '</div><div id="editor" class="editor" aria-live="polite">' + editorHTML(m) + '</div></section>';
 }
 
-function seatLines(f, seats){
-  return '<ul>' + seats.map(num => {
-    const seat = "I" + num, name = nm(f, seat);
-    return '<li class="seatline' + (selected === seat ? ' sel' : '') + '" data-row="' + seat + '"><span class="sl-num">' + seat + '</span>' +
-      '<span class="sl-name' + (name ? '' : ' open') + '">' + (name ? esc(name) : 'Open') + '</span></li>';
-  }).join("") + '</ul>';
+function qtyFor(m){
+  const max = m.seats.length;
+  const held = seatIds(m).filter(s => mine(m, s)).length;
+  const n = qty[m.id] != null ? qty[m.id] : Math.max(1, held);
+  return Math.min(Math.max(1, n), max);
 }
 
-function rosterHTML(f){
-  const total = f.seatOrder.length, named = f.seatOrder.filter(n => nm(f, "I" + n)).length;
-  let s = '<section class="roster" aria-labelledby="ro-h"><div class="sec-head"><h2 id="ro-h">Who sits where</h2><p>' +
-    (status === "loading" ? 'Loading names\u2026' : named + ' of ' + total + ' named') + '</p></div>';
-  if (status === "error") s += '<p class="ro-note">The seat list didn\u2019t load. Refresh the page to try again.</p>';
-  if (SHOW_CONF) {
-    for (const o of f.orders) {
-      s += '<div class="order t' + o.ti + '"><div class="order-head">' +
-        '<button type="button" class="conf" data-act="copy" data-text="' + o.conf + '" aria-label="Copy confirmation number ' + o.conf + '"><span class="hash">#</span>' + o.conf + '</button>' +
-        '<span class="order-meta">' + o.seats.length + (o.seats.length === 1 ? ' ticket' : ' tickets') + (o.bought ? '<br>Bought ' + esc(o.bought) : '') + '</span></div>' +
-        seatLines(f, o.seats) + '</div>';
-    }
-  } else {
-    s += '<div class="order t1">' + seatLines(f, f.seatOrder) + '</div>';
+function payHTML(m){
+  if (!m.price && !VENMO && !CASHTAG) return "";
+  const n = qtyFor(m), total = m.price * n;
+  const held = seatIds(m).filter(s => mine(m, s));
+  const note = m.title + ", " + n + (n === 1 ? " ticket" : " tickets") + (held.length ? " (" + held.join(", ") + ")" : "");
+  const amt = total ? amount(total) : "";
+  const venmoUrl = "https://venmo.com/" + encodeURIComponent(VENMO) + "?txn=pay" + (amt ? "&amount=" + amt : "") + "&note=" + encodeURIComponent(note);
+  const cashUrl = "https://cash.app/$" + encodeURIComponent(CASHTAG) + (amt ? "/" + amt : "");
+  const totalTxt = total ? " " + money(total) : "";
+  let s = '<section class="card pay" id="pay" aria-labelledby="pay-h"><div class="sec-head"><h2 id="pay-h">Pay for tickets</h2></div>';
+  if (m.price) {
+    s += '<p class="price"><span class="price-n">' + money(m.price) + '</span><span class="price-u">per ticket</span></p>' +
+      '<div class="qty" role="group" aria-label="Number of tickets"><span class="qty-l">Tickets</span>' +
+      '<button type="button" class="qty-b" data-act="qty" data-d="-1" aria-label="One fewer ticket"' + (n <= 1 ? ' disabled' : '') + '>\u2212</button>' +
+      '<span class="qty-n" aria-live="polite">' + n + '</span>' +
+      '<button type="button" class="qty-b" data-act="qty" data-d="1" aria-label="One more ticket"' + (n >= m.seats.length ? ' disabled' : '') + '>+</button>' +
+      '<span class="qty-t">Total <strong>' + money(total) + '</strong></span></div>';
+  }
+  s += '<div class="paybtns">' +
+    (VENMO ? '<a class="btn" href="' + esc(venmoUrl) + '" target="_blank" rel="noopener">Pay' + totalTxt + ' with Venmo</a>' : '') +
+    (CASHTAG ? '<a class="btnq" href="' + esc(cashUrl) + '" target="_blank" rel="noopener">Pay' + totalTxt + ' with Cash App</a>' : '') + '</div>';
+  s += '<p class="handles">' +
+    (VENMO ? '<span>Venmo <button type="button" class="handle" data-act="copy" data-text="@' + esc(VENMO) + '">@' + esc(VENMO) + '</button></span>' : '') +
+    (CASHTAG ? '<span>Cash App <button type="button" class="handle" data-act="copy" data-text="$' + esc(CASHTAG) + '">$' + esc(CASHTAG) + '</button></span>' : '') + '</p>' +
+    '<p class="ed-meta">' + (VENMO ? 'Venmo fills in a note for you. ' : '') + (CASHTAG ? 'On Cash App, add your name and seat to the note.' : '') + '</p>';
+  if (QR && (QR.venmo || QR.cash)) {
+    s += '<details class="qr" id="qr"><summary>On a computer? Scan to pay</summary><div class="qr-grid">' +
+      (VENMO && QR.venmo ? '<figure>' + QR.venmo + '<figcaption>Venmo</figcaption></figure>' : '') +
+      (CASHTAG && QR.cash ? '<figure>' + QR.cash + '<figcaption>Cash App</figcaption></figure>' : '') + '</div></details>';
   }
   return s + '</section>';
 }
 
-function detailsHTML(f){
-  const n = f.seatOrder.length, c = f.orders.length;
-  return '<section class="details" aria-labelledby="where-h"><h2 id="where-h">Where</h2>' +
-    '<p class="venue">' + esc(f.theater) + '</p>' +
-    '<p class="addr">' + esc(f.addr1) + '<br>' + esc(f.addr2) + (f.aud ? '<br>' + esc(f.aud) : '') + '</p>' +
-    '<div class="links"><a class="lnk" href="' + esc(f.maps) + '" target="_blank" rel="noopener">Directions</a>' +
-    '<a class="lnk" href="tel:' + f.phone.replace(/\D/g, "") + '">Call ' + esc(f.phone) + '</a></div>' +
-    (SHOW_CONF
-      ? '<h2 class="h-tix">Tickets</h2><p class="tix">' + n + ' seats on ' + c + ' confirmations. Tap a confirmation number to copy it. In Fandango you can view or text each ticket, or give the box office a confirmation number to pick up the seats listed under it.</p>'
-      : '') +
-    '</section>';
+function rosterHTML(m){
+  const total = m.seats.length, taken = seatIds(m).filter(s => nm(m, s)).length;
+  let s = '<section class="roster" aria-labelledby="ro-h"><div class="sec-head"><h2 id="ro-h">Who sits where</h2><p>' +
+    (seatStatus === "loading" ? 'Loading seats\u2026' : taken + ' of ' + total + ' taken') + '</p></div>';
+  if (seatStatus === "error") s += '<p class="ro-note">The seat list didn\u2019t load. Refresh the page to try again.</p>';
+  else if (MODE === "api") s += '<p class="ro-note">Tap any open seat to claim it. This phone can move or give up the seats it picks.</p>';
+  s += '<ul class="lines">' + m.seats.map(num => {
+    const seat = m.row + num, name = nm(m, seat), you = mine(m, seat);
+    return '<li class="seatline' + (selected === seat ? ' sel' : '') + '" data-row="' + seat + '"><button type="button" class="sl-btn" data-act="pick" data-seat="' + seat + '" data-scroll="1">' +
+      '<span class="sl-num">' + seat + '</span><span class="sl-name' + (name ? '' : ' open') + '">' + (name ? esc(name) : 'Open') + '</span>' +
+      (you ? '<span class="you-tag">You</span>' : '') + '</button></li>';
+  }).join("") + '</ul></section>';
+  return s;
 }
 
-function listText(f){
-  const L = [f.title + (f.format ? " (" + f.format + ")" : ""), f.day + " at " + f.time, f.theater + (f.aud ? ", " + f.aud : ""), f.addr1 + ", " + f.addr2, "", "Row I, left to right as you face the screen:"];
-  for (const num of f.seatOrder) { const s = "I" + num; L.push(s + "  " + (nm(f, s) || "open")); }
+function detailsHTML(m){
+  const t = m.theater;
+  return '<section class="details" aria-labelledby="where-h"><h2 id="where-h">Where</h2>' +
+    '<p class="venue">' + esc(t.name || "") + '</p>' +
+    '<p class="addr">' + esc(t.address1 || "") + (t.address2 ? '<br>' + esc(t.address2) : '') + (m.auditorium ? '<br>' + esc(m.auditorium) : '') + '</p>' +
+    '<div class="links">' + (t.maps ? '<a class="lnk" href="' + esc(t.maps) + '" target="_blank" rel="noopener">Directions</a>' : '') +
+    (t.phone ? '<a class="lnk" href="tel:' + String(t.phone).replace(/\D/g, "") + '">Call ' + esc(t.phone) + '</a>' : '') + '</div></section>';
+}
+
+function listText(m){
+  const t = m.theater;
+  const L = [m.title + (m.format ? " (" + m.format + ")" : ""), dayLabel(m) + " at " + timeLabel(m), (t.name || "") + (m.auditorium ? ", " + m.auditorium : ""), [t.address1, t.address2].filter(Boolean).join(", ")];
+  if (m.price) L.push("Tickets are " + money(m.price) + (VENMO ? ". Venmo @" + VENMO : "") + (CASHTAG ? (VENMO ? " or" : ".") + " Cash App $" + CASHTAG : "") + ".");
+  L.push("", "Row " + m.row + ", left to right as you face the screen:");
+  for (const num of m.seats) { const s = m.row + num; L.push(s + "  " + (nm(m, s) || "open")); }
   return L.join("\n");
 }
 
-function shareHTML(f){
+function shareHTML(m){
   return '<section class="share" aria-labelledby="share-h"><h2 id="share-h">Send the seat list</h2>' +
-    '<p>Copies the showtime, the theater, and who\u2019s in each seat, ready to paste into a group text.</p>' +
+    '<p>Copies the showtime, the theater, the ticket price, and who\u2019s in each seat, ready to paste into a group text.</p>' +
     '<button type="button" class="btn" data-act="copylist">Copy seat list</button>' +
-    '<details class="prev" id="prev"><summary>Preview the text</summary><textarea id="listprev" readonly rows="' + (f.seatOrder.length + 7) + '">' + esc(listText(f)) + '</textarea></details></section>';
+    '<details class="prev" id="prev"><summary>Preview the text</summary><textarea id="listprev" readonly rows="' + (m.seats.length + 9) + '">' + esc(listText(m)) + '</textarea></details></section>';
 }
 
+function movieHTML(m){
+  const theme = themeOf(m);
+  return '<main class="wrap movie"><header class="mhero"><div class="hero-art">' + art(theme, "hero", m.id) + '</div>' +
+    '<a class="crumb" href="#/">\u2190 Upcoming</a>' +
+    '<h1 class="title">' + esc(m.title) + '</h1>' +
+    '<div class="when"><span>' + dayLabel(m) + '</span><span class="time">' + timeLabel(m) + '</span></div>' +
+    '<p class="sub">' + (m.format ? esc(m.format) + ' at ' : '') + esc(m.theater.name || "") + '</p>' +
+    (m.note ? '<p class="note">' + esc(m.note) + '</p>' : '') +
+    (isPast(m) ? '<p class="note">This showing has passed.</p>' : '') + '</header>' +
+    '<div class="grid"><div class="col-a">' + mapHTML(m) + closeHTML(m) + '</div>' +
+    '<div class="col-b">' + payHTML(m) + rosterHTML(m) + detailsHTML(m) + shareHTML(m) + '</div></div></main>';
+}
+
+function notFoundHTML(){
+  return '<main class="wrap"><header class="mhero"><a class="crumb" href="#/">\u2190 Upcoming</a><h1 class="title">Not found</h1>' +
+    '<p class="sub">That movie night isn\u2019t on the list. It may have been renamed or removed.</p></header></main>';
+}
+
+/* ---------- render ---------- */
 function render(){
-  const f = film();
-  const prevOpen = !!(document.getElementById("prev") || {}).open;
-  document.documentElement.setAttribute("data-film", f.id);
-  tabsEl.innerHTML = tabsHTML();
-  view.innerHTML = '<main class="wrap">' + heroHTML(f) +
-    '<div class="grid"><div class="col-map">' + mapHTML(f) + closeHTML(f) + '</div>' +
-    '<div class="col-info">' + rosterHTML(f) + detailsHTML(f) + shareHTML(f) + '</div></div></main>';
-  const d = document.getElementById("prev");
-  if (d && prevOpen) d.open = true;
+  const m = current();
+  const open = {};
+  ["prev", "qr"].forEach(id => { const d = document.getElementById(id); open[id] = !!(d && d.open); });
+  document.documentElement.setAttribute("data-film", m ? themeOf(m) : "classic");
+  document.title = m ? m.title + " | " + SITE : SITE;
+  brandEl.textContent = SITE;
+  sideEl.innerHTML = sideHTML(m);
+  viewEl.className = moveFrom ? "moving" : "";
+  if (route.view === "movie" && !m && moviesStatus === "ok") viewEl.innerHTML = notFoundHTML();
+  else viewEl.innerHTML = m ? movieHTML(m) : homeHTML();
+  ["prev", "qr"].forEach(id => { const d = document.getElementById(id); if (d && open[id]) d.open = true; });
+}
+
+function renderEditor(){
+  const m = current(), ed = document.getElementById("editor");
+  if (m && ed) ed.innerHTML = editorHTML(m);
+}
+
+function renderPay(){
+  const m = current(), p = document.getElementById("pay");
+  if (!m || !p) return;
+  const qrOpen = !!(document.getElementById("qr") || {}).open;
+  p.outerHTML = payHTML(m);
+  const q = document.getElementById("qr");
+  if (q && qrOpen) q.open = true;
+}
+
+function parseRoute(){
+  const h = decodeURIComponent(location.hash.replace(/^#\/?/, "")).toLowerCase().replace(/\/+$/, "");
+  return h ? { view: "movie", id: h } : { view: "home" };
 }
 
 /* ---------- interaction ---------- */
-
 let toastTimer = 0;
 function toast(msg){
   toastEl.textContent = msg;
   toastEl.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2200);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2800);
 }
-
 function legacyCopy(t){
   try {
     const ta = document.createElement("textarea");
@@ -524,9 +796,9 @@ async function copy(t){
   try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(t); return true; } } catch(e){}
   return legacyCopy(t);
 }
-
 async function copyList(){
-  if (await copy(listText(film()))) { toast("Seat list copied"); return; }
+  const m = current(); if (!m) return;
+  if (await copy(listText(m))) { toast("Seat list copied"); return; }
   const d = document.getElementById("prev"), ta = document.getElementById("listprev");
   if (d) d.open = true;
   if (ta) { ta.focus(); ta.select(); }
@@ -534,37 +806,114 @@ async function copyList(){
 }
 
 function updateSel(){
-  view.querySelectorAll(".sel").forEach(el => el.classList.remove("sel"));
-  if (selected) view.querySelectorAll('.chair[data-seat="' + selected + '"], rect[data-seat="' + selected + '"], li[data-row="' + selected + '"]').forEach(el => el.classList.add("sel"));
-  const ed = document.getElementById("editor");
-  if (ed) ed.innerHTML = editorHTML(film());
+  viewEl.querySelectorAll(".sel").forEach(el => el.classList.remove("sel"));
+  if (selected) viewEl.querySelectorAll('.chair[data-seat="' + selected + '"], rect[data-seat="' + selected + '"], li[data-row="' + selected + '"]').forEach(el => el.classList.add("sel"));
+  renderEditor();
 }
 
-app.addEventListener("click", async e => {
+function pick(seat, fromRoster){
+  const m = current();
+  if (!m || !hasSeat(m, seat) || busy) return;
+  selected = (selected === seat && !moveFrom) ? null : seat;
+  updateSel();
+  if (fromRoster) {
+    const ed = document.getElementById("editor");
+    if (ed) ed.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+  }
+  if (MODE === "api" && selected && !moveFrom && !nm(m, selected) && !myName) {
+    const i = document.getElementById("ed-in");
+    if (i) i.focus({ preventScroll: !!fromRoster });
+  }
+}
+
+async function claim(){
+  const i = document.getElementById("ed-in");
+  const name = i ? i.value.trim().slice(0, 30) : "";
+  if (!name) { toast("Type a name first"); if (i) i.focus(); return; }
+  const seat = selected;
+  if (i) i.blur();
+  if (!myName) { myName = name; lsSet(NAME_KEY, name); }
+  await send({ action: "claim", seat: seat, name: name }, name + " is in " + seat);
+}
+async function rename(){
+  const i = document.getElementById("ed-in");
+  const name = i ? i.value.trim().slice(0, 30) : "";
+  if (!name) { toast("Type a name, or use Give up seat"); return; }
+  if (i) i.blur();
+  await send({ action: "claim", seat: selected, name: name }, "Name saved");
+}
+async function release(){
+  const m = current(), seat = selected, name = nm(m, seat);
+  if (!window.confirm("Give up " + seat + (name ? " (" + name + ")" : "") + "? Someone else can take it.")) return;
+  await send({ action: "release", seat: seat }, seat + " is open again");
+}
+async function doMove(){
+  const from = moveFrom, to = selected;
+  const ok = await send({ action: "move", from: from, seat: to }, "Moved to " + to);
+  if (ok) { moveFrom = null; render(); }
+}
+
+function setNav(open){
+  appEl.classList.toggle("nav-open", open);
+  const btn = document.getElementById("menu-btn");
+  if (btn) btn.setAttribute("aria-expanded", String(open));
+  if (open) { const a = sideEl.querySelector("a"); if (a) a.focus({ preventScroll: true }); }
+}
+
+appEl.addEventListener("click", async e => {
   const t = e.target.closest("[data-act]");
-  if (!t) return;
+  if (!t || t.disabled) return;
   const act = t.getAttribute("data-act");
-  if (act === "film") {
-    const id = t.getAttribute("data-film");
-    if (id === filmId) return;
-    filmId = id; selected = null; lsSet(FILM_KEY, id); render();
-    try { window.scrollTo(0, 0); } catch(err){}
-  } else if (act === "pick") {
-    const s = t.getAttribute("data-seat");
-    selected = selected === s ? null : s; updateSel();
-  } else if (act === "copy") {
-    const c = t.getAttribute("data-text");
-    toast((await copy(c)) ? "Copied #" + c : "Couldn\u2019t copy. The number is #" + c);
-  } else if (act === "copylist") copyList();
+  if (act === "opennav") setNav(true);
+  else if (act === "closenav") setNav(false);
+  else if (act === "pick") pick(t.getAttribute("data-seat"), t.hasAttribute("data-scroll"));
+  else if (act === "claim") claim();
+  else if (act === "rename") rename();
+  else if (act === "release") release();
+  else if (act === "move") { moveFrom = selected; selected = null; render(); }
+  else if (act === "cancelmove") { selected = moveFrom; moveFrom = null; render(); }
+  else if (act === "domove") doMove();
+  else if (act === "copylist") copyList();
+  else if (act === "copy") { const c = t.getAttribute("data-text"); toast((await copy(c)) ? "Copied " + c : "Couldn\u2019t copy. It\u2019s " + c); }
+  else if (act === "qty") {
+    const m = current(); if (!m) return;
+    qty[m.id] = Math.min(Math.max(1, qtyFor(m) + Number(t.getAttribute("data-d"))), m.seats.length);
+    renderPay();
+  }
+  else if (act === "topay") {
+    const p = document.getElementById("pay");
+    if (p) p.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  }
+});
+
+appEl.addEventListener("keydown", e => {
+  if (e.key === "Escape" && appEl.classList.contains("nav-open")) { setNav(false); return; }
+  if (e.key !== "Enter" || !e.target || e.target.id !== "ed-in") return;
+  e.preventDefault();
+  const m = current();
+  if (m && nm(m, selected) && mine(m, selected)) rename(); else claim();
+});
+
+window.addEventListener("hashchange", () => {
+  route = parseRoute(); selected = null; moveFrom = null;
+  setNav(false);
+  render();
+  try { window.scrollTo(0, 0); } catch(err){}
 });
 
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && SHEET && Date.now() - lastLoad > 60000) load();
+  if (document.visibilityState === "visible" && MODE !== "none" && !busy && Date.now() - lastLoad > 15000) loadSeats();
 });
+setInterval(() => {
+  if (MODE === "api" && document.visibilityState === "visible" && !busy && !typing() && Date.now() - lastLoad > 30000) loadSeats();
+}, 5000);
 
+/* ---------- start ---------- */
+route = parseRoute();
 render();
-load();
+loadMovies().then(() => { applyList([]); render(); return loadSeats(); });
 })();
+
 </script>
 </body>
 </html>
