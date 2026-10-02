@@ -1,5 +1,5 @@
 {
- "_how_to_add_a_movie": "Add an entry to movies. Seat ids are row + number (I19). seats are listed left to right as you face the screen. theme is dune, doom, or classic.",
+ "_how_to_add_a_movie": "Add an entry to movies. Seat ids are row + number (I19). seats are listed left to right as you face the screen. theme is dune, doom, or classic. tagline is the short line under the title; ghost is the big outlined word behind it.",
  "movies": [
   {
    "id": "dune",
@@ -8,7 +8,7 @@
    "format": "IMAX 2D",
    "date": "2026-12-17",
    "time": "18:35",
-   "note": "Early screening. The film opens Dec 18.",
+   "note": "The film opens Dec 18.",
    "price": 24,
    "theater": {
     "name": "Regal Warren Moore 4DX & IMAX",
@@ -334,7 +334,9 @@
       ]
      }
     ]
-   }
+   },
+   "tagline": "Early screening",
+   "ghost": "Dune"
   },
   {
    "id": "doom",
@@ -736,7 +738,9 @@
       ]
      }
     ]
-   }
+   },
+   "tagline": "Opening weekend",
+   "ghost": "Doomsday"
   }
  ]
 }
