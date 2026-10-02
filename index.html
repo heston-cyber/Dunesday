@@ -153,11 +153,15 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 .hero-bg .art{display:block;width:100%;height:100%}
 .hero::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(to top,var(--bg) 28%,rgba(18,17,15,.78) 46%,rgba(18,17,15,.12) 72%,rgba(18,17,15,.45))}
 .ghost{position:absolute;z-index:2;left:-.04em;top:10%;font-family:var(--display);font-weight:var(--dweight);text-transform:uppercase;letter-spacing:var(--dtrack);font-size:var(--ghost);line-height:.8;white-space:nowrap;color:transparent;-webkit-text-stroke:1.2px rgba(230,229,211,.17);pointer-events:none;user-select:none}
-.hero-in{position:relative;z-index:3;padding:0 20px 48px;max-width:860px}
+.hero-in{position:relative;z-index:3;padding:32px 20px 48px;max-width:860px}
 .kicker{display:flex;flex-wrap:wrap;gap:6px 24px;margin:0 0 12px;font-weight:600;font-size:14px}
 .title{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dcase);letter-spacing:var(--dtrack);line-height:var(--dline);font-size:var(--h1);margin:0;overflow-wrap:anywhere}
 .title .t-first,.title .t-rest{display:block}
 .title .t-first{font-size:.5em;line-height:.9}
+.trailer{width:min(100%,640px);margin:22px 0 6px}
+.trailer-l{margin:0 0 8px;font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.trailer-v{position:relative;aspect-ratio:16/9;background:#000;border:1px solid var(--line);box-shadow:0 22px 60px -24px rgba(0,0,0,.9)}
+.trailer-v iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .tagline{margin:16px 0 0;color:var(--accent2);font-weight:700;font-size:13px;letter-spacing:.32em;text-transform:uppercase}
 .meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px;margin:12px 0 0;font-size:12px;letter-spacing:.24em;text-transform:uppercase}
 .meta span{color:var(--muted)}
@@ -174,7 +178,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   .hero-movie .hero-bg{left:30%}
   .hero-movie::after{background:linear-gradient(to right,var(--bg) 32%,rgba(18,17,15,.6) 52%,rgba(18,17,15,0) 78%),linear-gradient(to top,var(--bg) 4%,rgba(18,17,15,0) 40%)}
   .hero-home::after{background:linear-gradient(to right,var(--bg) 18%,rgba(18,17,15,.5) 50%,rgba(18,17,15,0) 80%),linear-gradient(to top,var(--bg) 4%,rgba(18,17,15,0) 40%)}
-  .hero-in{padding:0 40px 64px}
+  .hero-in{padding:48px 40px 64px}
   .ghost{top:16%}
 }
 
@@ -603,11 +607,9 @@ function ticketCardHTML(m){
     '<i class="perf perf-t"></i><i class="perf perf-b"></i></a>';
 }
 
-function homeHTML(){
-  const up = MOVIES.filter(m => !isPast(m)).sort((a, b) => when(a) - when(b));
-  const past = MOVIES.filter(isPast).sort((a, b) => when(b) - when(a));
-  const nx = up[0];
-  let s = '<main class="page home"><section class="hero hero-home" aria-labelledby="home-h">' +
+function homeHeroHTML(){
+  const nx = nextUp();
+  let s = '<section class="hero hero-home" aria-labelledby="home-h">' +
     '<div class="hero-bg">' + art("classic", "hero", "home") + '</div>' +
     '<div class="ghost" aria-hidden="true">' + esc(ghostWord(null)) + '</div>' +
     '<div class="hero-in"><h1 id="home-h" class="title">' + siteTitleHTML() + '</h1>' +
@@ -615,13 +617,19 @@ function homeHTML(){
     (nx ? '<p class="meta"><span>Next showing</span><b>' + esc(nx.title) + '</b><b class="acc">' + dayLabel(nx) + '</b></p>' +
       '<a class="ring-btn" href="#/' + esc(nx.id) + '"><span class="ring"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span><span>Choose your seat</span></a>' : '') +
     '</div></section>';
-  s += '<section class="sec" aria-labelledby="up-h"><header class="sec-h"><h2 id="up-h">Upcoming</h2></header>';
+  return s;
+}
+
+function homeBodyHTML(){
+  const up = MOVIES.filter(m => !isPast(m)).sort((a, b) => when(a) - when(b));
+  const past = MOVIES.filter(isPast).sort((a, b) => when(b) - when(a));
+  let s = '<section class="sec" aria-labelledby="up-h"><header class="sec-h"><h2 id="up-h">Upcoming</h2></header>';
   if (moviesStatus === "loading") s += '<p class="empty">Loading movie nights\u2026</p>';
   else if (moviesStatus === "error") s += '<p class="empty">The movie list didn\u2019t load. Refresh the page to try again.</p>';
   else s += up.length ? '<div class="tk-grid">' + up.map(ticketCardHTML).join("") + '</div>' : '<p class="empty">Nothing on the calendar yet.</p>';
   s += '</section>';
   if (past.length) s += '<section class="sec" aria-labelledby="past-h"><header class="sec-h"><h2 id="past-h">Past</h2></header><div class="tk-grid">' + past.map(ticketCardHTML).join("") + '</div></section>';
-  return s + '</main>';
+  return s;
 }
 
 /* ---------- movie page ---------- */
@@ -814,29 +822,41 @@ function whereSecHTML(m){
     '<details class="prev" id="prev"><summary>Preview the text</summary><textarea id="listprev" readonly rows="' + (m.seats.length + 9) + '">' + esc(listText(m)) + '</textarea></details></div></div></section>';
 }
 
-function movieHTML(m){
+function trailerHTML(m){
+  const id = String(m.trailer || "").trim();
+  if (!/^[A-Za-z0-9_-]{6,20}$/.test(id)) return '';
+  return '<div class="trailer"><p class="trailer-l">Official trailer</p><div class="trailer-v">' +
+    '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?rel=0&playsinline=1" title="' + esc(m.title) + ' official trailer" loading="lazy" ' +
+    'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div></div>';
+}
+
+function movieHeroHTML(m){
   const theme = themeOf(m);
   const kicker = [m.format, m.theater.name].filter(Boolean);
-  return '<main class="page movie"><section class="hero hero-movie" aria-labelledby="m-h">' +
+  return '<section class="hero hero-movie" aria-labelledby="m-h">' +
     '<div class="hero-bg">' + art(theme, "hero", m.id) + '</div>' +
     '<div class="ghost" aria-hidden="true">' + esc(ghostWord(m)) + '</div>' +
     '<div class="hero-in">' +
     (kicker.length ? '<p class="kicker">' + kicker.map(k => '<span>' + esc(k) + '</span>').join("") + '</p>' : '') +
     '<h1 id="m-h" class="title">' + esc(m.title) + '</h1>' +
+    trailerHTML(m) +
     (m.tagline ? '<p class="tagline">' + esc(m.tagline) + '</p>' : '') +
     '<p class="meta"><span>Showtime</span><b>' + dayLabel(m) + '</b><b class="acc">' + timeLabel(m) + '</b></p>' +
     (m.note ? '<p class="note">' + esc(m.note) + '</p>' : '') +
     (isPast(m) ? '<p class="note">This showing has passed.</p>' : '') +
     '<button type="button" class="ring-btn" data-act="jump" data-to="seats"><span class="ring"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v13M6 12l6 6 6-6"/></svg></span><span>Pick a seat</span></button>' +
-    '</div></section>' +
-    '<div class="body-grid"><div class="col-a">' + seatsSecHTML(m) + '</div><div class="col-b">' + ticketsSecHTML(m) + whoSecHTML(m) + '</div></div>' +
-    whereSecHTML(m) + '</main>';
+    '</div></section>';
+}
+
+function movieBodyHTML(m){
+  return '<div class="body-grid"><div class="col-a">' + seatsSecHTML(m) + '</div><div class="col-b">' + ticketsSecHTML(m) + whoSecHTML(m) + '</div></div>' +
+    whereSecHTML(m);
 }
 
 function notFoundHTML(){
-  return '<main class="page"><section class="hero hero-movie short"><div class="hero-in"><h1 class="title">Not found</h1>' +
+  return '<section class="hero hero-movie short"><div class="hero-in"><h1 class="title">Not found</h1>' +
     '<p class="note">That movie night isn\u2019t on the list. It may have been renamed or removed.</p>' +
-    '<a class="ring-btn" href="#/"><span class="ring"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6"/></svg></span><span>See upcoming</span></a></div></section></main>';
+    '<a class="ring-btn" href="#/"><span class="ring"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6"/></svg></span><span>See upcoming</span></a></div></section>';
 }
 
 /* ---------- render ---------- */
@@ -849,8 +869,14 @@ function render(){
   topEl.innerHTML = topbarHTML(m);
   sideEl.innerHTML = sideHTML(m);
   viewEl.className = moveFrom ? "moving" : "";
-  if (route.view === "movie" && !m && moviesStatus === "ok") viewEl.innerHTML = notFoundHTML();
-  else viewEl.innerHTML = m ? movieHTML(m) : homeHTML();
+  const missing = route.view === "movie" && !m && moviesStatus === "ok";
+  const key = (missing ? "missing" : m ? "movie:" + m.id : "home") + "|" + moviesStatus;
+  if (viewEl.getAttribute("data-key") !== key) {
+    viewEl.innerHTML = '<main class="page ' + (m ? 'movie' : 'home') + '"><div id="hero-slot">' + (missing ? notFoundHTML() : m ? movieHeroHTML(m) : homeHeroHTML()) + '</div><div id="body-slot"></div></main>';
+    viewEl.setAttribute("data-key", key);
+  }
+  const body = document.getElementById("body-slot");
+  if (body) body.innerHTML = missing ? '' : m ? movieBodyHTML(m) : homeBodyHTML();
   ["prev", "qr"].forEach(id => { const d = document.getElementById(id); if (d && open[id]) d.open = true; });
 }
 

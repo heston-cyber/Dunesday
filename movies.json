@@ -1,5 +1,5 @@
 {
- "_how_to_add_a_movie": "Add an entry to movies. Seat ids are row + number (I19). seats are listed left to right as you face the screen. theme is dune, doom, or classic. tagline is the short line under the title; ghost is the big outlined word behind it.",
+ "_how_to_add_a_movie": "Add an entry to movies. Seat ids are row + number (I19). seats are listed left to right as you face the screen. theme is dune, doom, or classic. tagline is the short line under the title; ghost is the big outlined word behind it. trailer is the YouTube video ID (the part after watch?v=).",
  "movies": [
   {
    "id": "dune",
@@ -336,7 +336,8 @@
     ]
    },
    "tagline": "Early screening",
-   "ghost": "Dune"
+   "ghost": "Dune",
+   "trailer": "NdvqHc56lE0"
   },
   {
    "id": "doom",
@@ -740,7 +741,8 @@
     ]
    },
    "tagline": "Opening weekend",
-   "ghost": "Doomsday"
+   "ghost": "Doomsday",
+   "trailer": "irVNGjRFZGk"
   }
  ]
 }
