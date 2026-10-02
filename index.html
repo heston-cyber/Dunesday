@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Movie Night Seats</title>
+<meta name="description" content="Who's sitting where for Dune: Part Three on Dec 17 and Avengers: Doomsday on Dec 19.">
+<meta property="og:title" content="Movie Night Seats">
+<meta property="og:description" content="Who's sitting where for Dune: Part Three on Dec 17 and Avengers: Doomsday on Dec 19.">
+
+<!-- ================= SETTINGS =================
+  sheetCsvUrl: where the seat names come from.
+    "seats.csv"  reads the seats.csv file sitting next to this page (default).
+    To use a Google Sheet instead, paste its "Publish to web" CSV link here.
+============================================== -->
+<script>
+window.SEATS_CONFIG = {
+  sheetCsvUrl: "seats.csv"
+};
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f2e7d5;--surface:#fbf5ea;--ink:#2a1c10;--muted:#76614c;--line:#dfcdb2;--accent:#a95c18;
+  --seat:#e2d3bb;--seat-row:#c9b18e;--band:rgba(169,92,24,.12);--screen:#c2a983;
+  --t1:#b5661a;--t2:#9a4426;--t3:#7f6a3c;--t4:#3f5f7c;--on-tint:#fff8ec;
+  --display:"Big Shoulders Display","Arial Narrow","Roboto Condensed",sans-serif;
+  --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+:root[data-film="doom"]{
+  --bg:#e9e8dd;--surface:#f7f6ef;--ink:#122017;--muted:#56645a;--line:#cdd1c1;--accent:#745717;
+  --seat:#d6d9cb;--seat-row:#b0b8a1;--band:rgba(44,116,70,.11);--screen:#a3ac96;
+  --t1:#785a19;--t2:#2a7144;--t3:#785a19;--t4:#2a7144;--on-tint:#f7f6ef;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#19110b;--surface:#231810;--ink:#f1e3c9;--muted:#a88f74;--line:#3a2a1c;--accent:#eaa543;
+    --seat:#2f2318;--seat-row:#4b3725;--band:rgba(234,165,67,.13);--screen:#5b4430;
+    --t1:#eaa543;--t2:#d9733f;--t3:#dfcca4;--t4:#97afc6;--on-tint:#1a110a;
+  }
+  :root:not([data-theme="light"])[data-film="doom"]{
+    --bg:#0d140f;--surface:#152019;--ink:#e8e2ce;--muted:#8e9b8c;--line:#253429;--accent:#d0aa58;
+    --seat:#1c2a20;--seat-row:#2e4334;--band:rgba(208,170,88,.12);--screen:#33463a;
+    --t1:#d0aa58;--t2:#62b67f;--t3:#d0aa58;--t4:#62b67f;--on-tint:#0d140f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#19110b;--surface:#231810;--ink:#f1e3c9;--muted:#a88f74;--line:#3a2a1c;--accent:#eaa543;
+  --seat:#2f2318;--seat-row:#4b3725;--band:rgba(234,165,67,.13);--screen:#5b4430;
+  --t1:#eaa543;--t2:#d9733f;--t3:#dfcca4;--t4:#97afc6;--on-tint:#1a110a;
+}
+:root[data-theme="dark"][data-film="doom"]{
+  --bg:#0d140f;--surface:#152019;--ink:#e8e2ce;--muted:#8e9b8c;--line:#253429;--accent:#d0aa58;
+  --seat:#1c2a20;--seat-row:#2e4334;--band:rgba(208,170,88,.12);--screen:#33463a;
+  --t1:#d0aa58;--t2:#62b67f;--t3:#d0aa58;--t4:#62b67f;--on-tint:#0d140f;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%;transition:background-color .35s ease,color .35s ease}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+h2{font-family:var(--display);font-weight:700;font-size:26px;line-height:1.05;margin:0;letter-spacing:.005em}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.tabs{position:relative;z-index:2;background:var(--bg);border-bottom:1px solid var(--line);transition:background-color .35s ease}
+.tabs-in{max-width:1120px;margin:0 auto;display:flex;padding:0 8px}
+.tab{flex:1 1 0;min-width:0;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);text-align:left;padding:12px 10px 9px;cursor:pointer}
+.tab.active{color:var(--ink);border-bottom-color:var(--accent)}
+.tab-t{display:block;font-family:var(--display);font-weight:700;font-size:20px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab-d{display:block;font-size:13px;margin-top:1px}
+
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px 72px}
+.hero{padding:26px 0 6px}
+.title{font-family:var(--display);font-weight:800;font-size:clamp(46px,12vw,92px);line-height:.9;margin:0;letter-spacing:-.005em}
+.when{display:flex;flex-wrap:wrap;gap:4px 20px;align-items:baseline;margin-top:14px;font-family:var(--display);font-weight:700;font-size:clamp(28px,7vw,42px);line-height:1}
+.when .time{color:var(--accent)}
+.sub{margin:12px 0 0;font-size:17px}
+.note{margin:2px 0 0;color:var(--muted);font-size:14px}
+
+.grid{margin-top:18px}
+.col-info{margin-top:30px}
+@media (min-width:900px){
+  .grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(330px,.9fr);gap:40px;align-items:start}
+  .col-info{margin-top:0}
+}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 14px 14px;transition:background-color .35s ease}
+.card + .card{margin-top:14px}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.sec-head p{margin:0;color:var(--muted);font-size:14px}
+
+.mapcard svg{display:block;width:100%;height:auto;max-height:64vh;margin:10px auto 0}
+.screen{fill:none;stroke:var(--screen);stroke-width:11;stroke-linecap:round}
+.scr-label{font-family:var(--body);font-size:30px;fill:var(--muted);text-anchor:middle}
+.band{fill:var(--band)}
+.rowlabel{font-family:var(--display);font-weight:800;font-size:31px;fill:var(--accent);text-anchor:end;dominant-baseline:central}
+.s{fill:var(--seat)}
+.s.r{fill:var(--seat-row)}
+.s.m{fill:transparent;stroke:var(--tc);stroke-width:3.4;cursor:pointer;animation:lit .5s ease-out both;animation-delay:var(--d,0ms)}
+.s.m.f{fill:var(--tc)}
+.s.m.sel{stroke:var(--ink);stroke-width:5}
+@keyframes lit{from{opacity:0}to{opacity:1}}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:10px}
+.sw{display:inline-block;width:15px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px}
+.sw.full{background:var(--accent)}
+.sw.open{border:2px solid var(--accent)}
+
+.t1{--tc:var(--t1)}.t2{--tc:var(--t2)}.t3{--tc:var(--t3)}.t4{--tc:var(--t4)}
+
+.seatrow{display:flex;align-items:flex-start;justify-content:center;gap:4px;margin:18px 0 2px}
+.chair,.ghost{flex:1 1 0;min-width:0;max-width:58px;display:flex;flex-direction:column;align-items:center}
+.chair{background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.back{position:relative;width:100%;aspect-ratio:1/1.08;border:2.5px solid var(--tc);border-radius:10px 10px 4px 4px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:clamp(15px,3.8vw,21px);color:var(--tc);transition:background-color .15s ease,color .15s ease}
+.back::after{content:"";position:absolute;left:14%;right:14%;bottom:-7px;height:3px;border-radius:2px;background:var(--tc);opacity:.5}
+.chair.filled .back{background:var(--tc);color:var(--on-tint)}
+.chair.sel .back{box-shadow:0 0 0 2.5px var(--surface),0 0 0 5px var(--ink)}
+.who{display:block;width:calc(200% + 4px);flex:none;margin-top:12px;font-size:12px;line-height:1.15;text-align:center;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chair.lo .who{margin-top:29px}
+.chair.filled .who{color:var(--ink);font-weight:600}
+.ghost{opacity:.45}
+.ghost .who{width:100%}
+.ghost .back{--tc:var(--muted);border-style:dashed}
+.aisle{flex:0 0 auto;align-self:stretch;writing-mode:vertical-rl;font-size:11px;color:var(--muted);border-left:1.5px dashed var(--line);padding-left:4px;margin-left:4px;max-height:64px;text-align:center}
+
+.editor{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;min-height:58px}
+.ed-hint{margin:6px 0;color:var(--muted);font-size:14px}
+.ed-row{display:flex;align-items:center;gap:10px}
+.ed-seat{font-family:var(--body);font-weight:600;font-size:24px;line-height:1;min-width:52px;color:var(--tc);letter-spacing:.01em}
+.ed-name{font-size:18px;font-weight:600}
+.ed-name.open{color:var(--muted);font-weight:400}
+.ed-input{flex:1;min-width:0;font:inherit;font-size:17px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.ed-input:focus{outline:none;border-color:var(--tc)}
+.ed-meta{margin:6px 0 0;font-size:13px;color:var(--muted)}
+
+.btn{background:var(--accent);color:var(--on-tint);border:0;border-radius:999px;padding:11px 18px;font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap}
+.btn.sm{padding:10px 15px}
+.btnq{background:none;border:1.5px solid var(--line);color:var(--ink);border-radius:999px;padding:9.5px 16px;font-weight:500;font-size:15px;cursor:pointer}
+
+.roster .sec-head{margin-bottom:2px}
+.ro-note{margin:8px 0 0;font-size:14px;color:var(--muted)}
+.order{border-left:4px solid var(--tc);padding:2px 0 2px 14px;margin:20px 0 0}
+.order-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.conf{background:none;border:0;padding:0;font-family:var(--body);font-weight:600;font-size:23px;line-height:1.1;letter-spacing:.07em;cursor:copy;text-align:left;font-variant-numeric:tabular-nums}
+.conf .hash{color:var(--tc);margin-right:1px}
+.order-meta{font-size:13px;line-height:1.35;color:var(--muted);text-align:right}
+.order ul{list-style:none;margin:8px 0 0;padding:0}
+.seatline{display:flex;align-items:center;gap:8px;padding:3px 6px 3px 0;border-bottom:1px solid var(--line);border-radius:0;transition:background-color .2s ease}
+.seatline:last-child{border-bottom:0}
+.seatline.sel{background:var(--band)}
+.sl-num{flex:0 0 46px;font-family:var(--body);font-weight:600;font-size:17px;color:var(--tc);padding-left:4px;letter-spacing:.01em}
+.sl-input{flex:1;min-width:0;font:inherit;font-size:16px;border:0;border-radius:8px;background:transparent;color:var(--ink);padding:8px 10px}
+.sl-input::placeholder{color:var(--muted);opacity:.75}
+.sl-input:hover{background:var(--bg)}
+.sl-input:focus{outline:2px solid var(--tc);background:var(--bg)}
+.sl-name{padding:8px 10px;font-weight:500}
+.sl-name.open{color:var(--muted);font-weight:400}
+
+.details{margin-top:34px;border-top:1px solid var(--line);padding-top:20px}
+.venue{margin:10px 0 2px;font-weight:600;font-size:17px}
+.addr{margin:0}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.lnk{display:inline-flex;align-items:center;padding:9px 15px;border-radius:999px;border:1.5px solid var(--line);color:var(--ink);text-decoration:none;font-weight:500;font-size:15px}
+.lnk:hover{border-color:var(--accent)}
+.h-tix{margin-top:26px}
+.tix{margin:10px 0 0;max-width:62ch}
+
+.share{margin-top:34px;border-top:1px solid var(--line);padding-top:20px}
+.share p{margin:10px 0 14px;max-width:62ch}
+.prev{margin-top:14px}
+.prev summary{cursor:pointer;color:var(--muted);font-size:14px}
+.prev textarea{display:block;width:100%;margin-top:10px;font:inherit;font-size:14px;line-height:1.45;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);resize:vertical}
+
+.bar{position:absolute;left:0;right:0;top:100%;z-index:1;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 6px 14px -10px rgba(0,0,0,.45);transform:translateY(-100%);opacity:0;visibility:hidden;transition:transform .22s ease,opacity .22s ease,visibility 0s linear .22s}
+.bar.show{transform:none;opacity:1;visibility:visible;transition:transform .22s ease,opacity .22s ease}
+.bar-in{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.bar-msg{flex:1;min-width:0;font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:11;transform:translate(-50%,8px);opacity:0;pointer-events:none;background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;max-width:calc(100% - 32px);transition:opacity .2s ease,transform .2s ease}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div id="app"><div class="top"><div id="tabs"></div></div><div id="view"></div><div id="toast" class="toast" role="status"></div></div>
+<script>
+(function(){
+"use strict";
+
+const CFG = window.SEATS_CONFIG || {};
+const SHEET = String(CFG.sheetCsvUrl || "").trim();
+const SHOW_CONF = false;
+
+const FILMS = [
+  {
+    id: "dune", title: "Dune: Part Three", format: "IMAX 2D",
+    day: "Thu, Dec 17", time: "6:35 PM",
+    note: "Early screening. The film opens Dec 18.",
+    theater: "Regal Warren Moore 4DX & IMAX", aud: "Auditorium 17",
+    addr1: "1000 S. Telephone Rd.", addr2: "Moore, OK 73160", phone: "405-735-3228",
+    maps: "https://www.google.com/maps/search/?api=1&query=Regal%20Warren%20Moore%204DX%20%26%20IMAX%2C%201000%20S.%20Telephone%20Rd.%2C%20Moore%2C%20OK%2073160",
+    seatOrder: [19,18,17,16,15,14,13,12,11,10,9],
+    ghostL: 20, aisleR: true,
+    orders: [
+      { conf: "", seats: [19,18,17,16], bought: null, ti: 1 },
+      { conf: "", seats: [15,14,13,12], bought: null, ti: 2 },
+      { conf: "", seats: [11,10], bought: null, ti: 3 },
+      { conf: "", seats: [9], bought: null, ti: 4 }
+    ],
+    map: {
+      pitch: 21.67, num: "rtl", vb: [30, 560, 1072, 975], scr: [112, 1078, 668, 598],
+      rows: [
+        { y: 766, s: [[397,20]] },
+        { y: 807, s: [[353,23]] },
+        { y: 848, s: [[353,23]] },
+        { y: 912, p: [435,456,489,520,541,573,609,644,666,699,733,755] },
+        { y: 972, s: [[236,5],[374,21],[887,5]] },
+        { y: 1014, s: [[214,6],[374,22],[887,6]] },
+        { y: 1055, s: [[214,5],[353,23],[909,5]] },
+        { y: 1096, s: [[214,5],[353,24],[909,5]] },
+        { y: 1137, s: [[128,8],[331,25],[910,8]], i: true },
+        { y: 1179, s: [[128,7],[331,26],[932,7]] },
+        { y: 1220, s: [[128,7],[309,27],[932,7]] },
+        { y: 1261, s: [[128,6],[309,28],[954,6]] },
+        { y: 1303, s: [[124,6],[287,29],[954,6]] },
+        { y: 1344, s: [[124,5],[287,30],[976,5]] },
+        { y: 1385, s: [[124,5],[265,31],[976,5]] },
+        { y: 1426, s: [[124,4],[265,32],[997,4]] },
+        { y: 1467, s: [[146,3],[243,33],[997,3]] },
+        { y: 1509, s: [[146,3],[243,33],[997,3]] }
+      ]
+    }
+  },
+  {
+    id: "doom", title: "Avengers: Doomsday", format: null,
+    day: "Sat, Dec 19", time: "6:40 PM", note: null,
+    theater: "Harkins Bricktown 16", aud: null,
+    addr1: "150 East Reno Ave.", addr2: "Oklahoma City, OK 73104", phone: "405-231-4747",
+    maps: "https://www.google.com/maps/search/?api=1&query=Harkins%20Bricktown%2016%2C%20150%20E%20Reno%20Ave%2C%20Oklahoma%20City%2C%20OK%2073104",
+    seatOrder: [10,11,12,13,14,15,16,17],
+    ghostL: 9, aisleR: false,
+    orders: [
+      { conf: "", seats: [10,11,12,13], bought: null, ti: 1 },
+      { conf: "", seats: [14,15,16,17], bought: null, ti: 2 }
+    ],
+    map: {
+      pitch: 24.73, num: "ltr", vb: [28, 650, 1062, 1095], scr: [60, 1060, 760, 690],
+      rows: [
+        { y: 830, s: [[99,8],[395,14],[840,8]] },
+        { y: 877, s: [[99,8],[370,16],[840,8]] },
+        { y: 924, s: [[99,8],[370,17],[840,8]] },
+        { y: 971, s: [[74,9],[345,18],[864,9]] },
+        { y: 1018, s: [[74,9],[345,19],[864,9]] },
+        { y: 1065, s: [[74,8],[345,20],[889,8]] },
+        { y: 1112, p: [74,99,124,148,197,222,247,345,370,395,420,444,469,494,519,544,569,617,642,667,691,716,741,766,790,815,889,914,938,987,1012,1036,1061] },
+        { y: 1198, s: [[147,6],[345,13],[692,3],[862,6]] },
+        { y: 1245, s: [[147,6],[345,11],[862,6]], i: true },
+        { y: 1292, s: [[147,6],[345,19],[862,6]] },
+        { y: 1339, s: [[147,6],[345,19],[862,6]] },
+        { y: 1386, s: [[147,6],[345,19],[862,6]] },
+        { y: 1433, s: [[147,6],[345,19],[862,6]] },
+        { y: 1480, s: [[147,6],[345,19],[862,6]] },
+        { y: 1527, s: [[147,6],[345,19],[862,6]] },
+        { y: 1574, s: [[147,6],[345,19],[862,6]] },
+        { y: 1621, s: [[147,6],[345,19],[862,6]] },
+        { y: 1668, s: [[147,6],[345,19],[862,6]] },
+        { y: 1715, s: [[147,6],[345,6],[667,6],[862,6]] }
+      ]
+    }
+  }
+];
+
+const FILM_KEY = "seats.film";
+function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+function lsSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+
+let names = {};
+for (const f of FILMS) names[f.id] = {};
+let status = SHEET ? "loading" : "none";
+let lastLoad = 0;
+let filmId = FILMS.some(x => x.id === lsGet(FILM_KEY)) ? lsGet(FILM_KEY) : FILMS[0].id;
+let selected = null;
+
+const tabsEl = document.getElementById("tabs");
+const view = document.getElementById("view");
+const toastEl = document.getElementById("toast");
+const app = document.getElementById("app");
+
+function film(){ return FILMS.find(x => x.id === filmId) || FILMS[0]; }
+function nm(f, s){ return String(names[f.id][s] || "").trim(); }
+function orderOf(f, num){ return f.orders.find(o => o.seats.indexOf(num) !== -1) || null; }
+function tint(o){ return SHOW_CONF && o ? o.ti : 1; }
+function seatInFilm(f, s){ return /^I\d+$/.test(s) && f.seatOrder.indexOf(+s.slice(1)) !== -1; }
+function esc(t){ return String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]); }
+function short(n){ if (!n) return ""; const w = n.trim().split(/\s+/)[0]; return w.length > 10 ? w.slice(0,9) + "\u2026" : w; }
+function ariaSeat(s, name){ return "Seat " + s + (name ? ", " + name : ", open"); }
+
+/* ---------- sheet ---------- */
+
+function parseCSV(t){
+  const rows = []; let row = [], fld = "", q = false;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (q) {
+      if (c === '"') { if (t[i + 1] === '"') { fld += '"'; i++; } else q = false; }
+      else fld += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(fld); fld = ""; }
+    else if (c === "\n") { row.push(fld); rows.push(row); row = []; fld = ""; }
+    else if (c !== "\r") fld += c;
+  }
+  if (fld !== "" || row.length) { row.push(fld); rows.push(row); }
+  return rows;
+}
+
+function filmFor(cell){
+  const v = cell.trim().toLowerCase();
+  if (v.indexOf("dune") !== -1) return FILMS.find(f => f.id === "dune");
+  if (v.indexOf("doom") !== -1 || v.indexOf("avengers") !== -1) return FILMS.find(f => f.id === "doom");
+  return null;
+}
+
+function parseSheet(text){
+  const out = {};
+  for (const f of FILMS) out[f.id] = {};
+  for (const r of parseCSV(text)) {
+    if (r.length < 3) continue;
+    const f = filmFor(r[0] || "");
+    if (!f) continue;
+    let seat = String(r[1] || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (/^\d+$/.test(seat)) seat = "I" + seat;
+    const name = String(r[2] || "").trim().slice(0, 30);
+    if (name && seatInFilm(f, seat)) out[f.id][seat] = name;
+  }
+  return out;
+}
+
+async function load(){
+  if (!SHEET) return;
+  lastLoad = Date.now();
+  try {
+    let url = SHEET;
+    if (!/^https?:/i.test(url)) url += (url.indexOf("?") === -1 ? "?" : "&") + "v=" + Date.now();
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    if (/^\s*</.test(text)) throw new Error("Not CSV");
+    names = parseSheet(text);
+    status = "ok";
+  } catch (e) {
+    status = "error";
+  }
+  render();
+}
+
+/* ---------- views ---------- */
+
+function tabsHTML(){
+  return '<nav class="tabs" aria-label="Movies"><div class="tabs-in">' + FILMS.map(x =>
+    '<button type="button" class="tab' + (x.id === filmId ? ' active' : '') + '" data-act="film" data-film="' + x.id + '" aria-pressed="' + (x.id === filmId) + '">' +
+    '<span class="tab-t">' + esc(x.title) + '</span><span class="tab-d">' + esc(x.day) + '</span></button>'
+  ).join("") + '</div></nav>';
+}
+
+function heroHTML(f){
+  return '<header class="hero"><h1 class="title">' + esc(f.title) + '</h1>' +
+    '<div class="when"><span>' + esc(f.day) + '</span><span class="time">' + esc(f.time) + '</span></div>' +
+    '<p class="sub">' + (f.format ? esc(f.format) + ' at ' : '') + esc(f.theater) + '</p>' +
+    (f.note ? '<p class="note">' + esc(f.note) + '</p>' : '') + '</header>';
+}
+
+function mapSVG(f){
+  const m = f.map, p = m.pitch;
+  const w = +(p * 0.74).toFixed(2), h = +(p * 0.62).toFixed(2), rx = +(p * 0.16).toFixed(2);
+  const x1 = m.scr[0], x2 = m.scr[1], ye = m.scr[2], yp = m.scr[3];
+  const cx = (x1 + x2) / 2, cy = 2 * yp - ye;
+  let out = '<svg viewBox="' + m.vb.join(" ") + '" aria-hidden="true" focusable="false">';
+  out += '<path class="screen" d="M' + x1 + ' ' + ye + ' Q' + cx + ' ' + cy + ' ' + x2 + ' ' + ye + '"/>';
+  out += '<text class="scr-label" x="' + cx + '" y="' + (yp + 44) + '">Screen</text>';
+  let k = 0;
+  for (const r of m.rows) {
+    const xs = r.p ? r.p.slice() : r.s.flatMap(seg => Array.from({ length: seg[1] }, (_, i) => seg[0] + i * p));
+    if (r.i) {
+      out += '<rect class="band" x="' + m.vb[0] + '" y="' + (r.y - p * 0.66).toFixed(1) + '" width="' + m.vb[2] + '" height="' + (p * 1.32).toFixed(1) + '" rx="' + (p * 0.5).toFixed(1) + '"/>';
+      out += '<text class="rowlabel" x="' + (xs[0] - p * 0.9).toFixed(1) + '" y="' + r.y + '">Row I</text>';
+    }
+    xs.forEach((x, i) => {
+      const geo = ' x="' + (x - w / 2).toFixed(1) + '" y="' + (r.y - h / 2).toFixed(1) + '" width="' + w + '" height="' + h + '" rx="' + rx + '"/>';
+      if (r.i) {
+        const num = m.num === "rtl" ? xs.length - i : i + 1;
+        const o = orderOf(f, num);
+        if (o) {
+          const s = "I" + num;
+          out += '<rect class="s m t' + tint(o) + (nm(f, s) ? ' f' : '') + (selected === s ? ' sel' : '') + '" data-act="pick" data-seat="' + s + '" style="--d:' + (k++ * 45) + 'ms"' + geo;
+          return;
+        }
+        out += '<rect class="s r"' + geo;
+      } else out += '<rect class="s"' + geo;
+    });
+  }
+  return out + '</svg>';
+}
+
+function mapHTML(f){
+  return '<section class="card mapcard" aria-label="Auditorium map"><div class="sec-head"><h2>' + esc(f.aud || "The auditorium") + '</h2><p>Our seats are in row I</p></div>' +
+    mapSVG(f) +
+    '<div class="legend"><span><i class="sw full"></i>Named</span><span><i class="sw open"></i>Still open</span></div></section>';
+}
+
+function editorHTML(f){
+  if (!selected || !seatInFilm(f, selected)) return '<p class="ed-hint">Tap a seat to see who\u2019s sitting there.</p>';
+  const o = orderOf(f, +selected.slice(1)), name = nm(f, selected);
+  return '<div class="ed-row t' + tint(o) + '"><span class="ed-seat">' + selected + '</span><span class="ed-name' + (name ? '' : ' open') + '">' + (name ? esc(name) : 'Open seat') + '</span></div>' +
+    (SHOW_CONF ? '<p class="ed-meta">On confirmation #' + o.conf + '.</p>' : '');
+}
+
+function closeHTML(f){
+  let s = '<section class="card close" aria-labelledby="close-h"><div class="sec-head"><h2 id="close-h">Row I up close</h2><p>As you face the screen</p></div><div class="seatrow">';
+  if (f.ghostL) s += '<div class="ghost" aria-hidden="true"><span class="back">' + f.ghostL + '</span><span class="who">&nbsp;</span></div>';
+  f.seatOrder.forEach((num, i) => {
+    const seat = "I" + num, o = orderOf(f, num), name = nm(f, seat);
+    s += '<button type="button" class="chair t' + tint(o) + (i % 2 ? ' lo' : '') + (name ? ' filled' : '') + (selected === seat ? ' sel' : '') + '" data-act="pick" data-seat="' + seat + '" aria-label="' + esc(ariaSeat(seat, name)) + '">' +
+      '<span class="back">' + num + '</span><span class="who">' + (esc(short(name)) || '\u00b7') + '</span></button>';
+  });
+  if (f.aisleR) s += '<div class="aisle" aria-hidden="true">Aisle</div>';
+  return s + '</div><div id="editor" class="editor">' + editorHTML(f) + '</div></section>';
+}
+
+function seatLines(f, seats){
+  return '<ul>' + seats.map(num => {
+    const seat = "I" + num, name = nm(f, seat);
+    return '<li class="seatline' + (selected === seat ? ' sel' : '') + '" data-row="' + seat + '"><span class="sl-num">' + seat + '</span>' +
+      '<span class="sl-name' + (name ? '' : ' open') + '">' + (name ? esc(name) : 'Open') + '</span></li>';
+  }).join("") + '</ul>';
+}
+
+function rosterHTML(f){
+  const total = f.seatOrder.length, named = f.seatOrder.filter(n => nm(f, "I" + n)).length;
+  let s = '<section class="roster" aria-labelledby="ro-h"><div class="sec-head"><h2 id="ro-h">Who sits where</h2><p>' +
+    (status === "loading" ? 'Loading names\u2026' : named + ' of ' + total + ' named') + '</p></div>';
+  if (status === "error") s += '<p class="ro-note">The seat list didn\u2019t load. Refresh the page to try again.</p>';
+  if (SHOW_CONF) {
+    for (const o of f.orders) {
+      s += '<div class="order t' + o.ti + '"><div class="order-head">' +
+        '<button type="button" class="conf" data-act="copy" data-text="' + o.conf + '" aria-label="Copy confirmation number ' + o.conf + '"><span class="hash">#</span>' + o.conf + '</button>' +
+        '<span class="order-meta">' + o.seats.length + (o.seats.length === 1 ? ' ticket' : ' tickets') + (o.bought ? '<br>Bought ' + esc(o.bought) : '') + '</span></div>' +
+        seatLines(f, o.seats) + '</div>';
+    }
+  } else {
+    s += '<div class="order t1">' + seatLines(f, f.seatOrder) + '</div>';
+  }
+  return s + '</section>';
+}
+
+function detailsHTML(f){
+  const n = f.seatOrder.length, c = f.orders.length;
+  return '<section class="details" aria-labelledby="where-h"><h2 id="where-h">Where</h2>' +
+    '<p class="venue">' + esc(f.theater) + '</p>' +
+    '<p class="addr">' + esc(f.addr1) + '<br>' + esc(f.addr2) + (f.aud ? '<br>' + esc(f.aud) : '') + '</p>' +
+    '<div class="links"><a class="lnk" href="' + esc(f.maps) + '" target="_blank" rel="noopener">Directions</a>' +
+    '<a class="lnk" href="tel:' + f.phone.replace(/\D/g, "") + '">Call ' + esc(f.phone) + '</a></div>' +
+    (SHOW_CONF
+      ? '<h2 class="h-tix">Tickets</h2><p class="tix">' + n + ' seats on ' + c + ' confirmations. Tap a confirmation number to copy it. In Fandango you can view or text each ticket, or give the box office a confirmation number to pick up the seats listed under it.</p>'
+      : '') +
+    '</section>';
+}
+
+function listText(f){
+  const L = [f.title + (f.format ? " (" + f.format + ")" : ""), f.day + " at " + f.time, f.theater + (f.aud ? ", " + f.aud : ""), f.addr1 + ", " + f.addr2, "", "Row I, left to right as you face the screen:"];
+  for (const num of f.seatOrder) { const s = "I" + num; L.push(s + "  " + (nm(f, s) || "open")); }
+  return L.join("\n");
+}
+
+function shareHTML(f){
+  return '<section class="share" aria-labelledby="share-h"><h2 id="share-h">Send the seat list</h2>' +
+    '<p>Copies the showtime, the theater, and who\u2019s in each seat, ready to paste into a group text.</p>' +
+    '<button type="button" class="btn" data-act="copylist">Copy seat list</button>' +
+    '<details class="prev" id="prev"><summary>Preview the text</summary><textarea id="listprev" readonly rows="' + (f.seatOrder.length + 7) + '">' + esc(listText(f)) + '</textarea></details></section>';
+}
+
+function render(){
+  const f = film();
+  const prevOpen = !!(document.getElementById("prev") || {}).open;
+  document.documentElement.setAttribute("data-film", f.id);
+  tabsEl.innerHTML = tabsHTML();
+  view.innerHTML = '<main class="wrap">' + heroHTML(f) +
+    '<div class="grid"><div class="col-map">' + mapHTML(f) + closeHTML(f) + '</div>' +
+    '<div class="col-info">' + rosterHTML(f) + detailsHTML(f) + shareHTML(f) + '</div></div></main>';
+  const d = document.getElementById("prev");
+  if (d && prevOpen) d.open = true;
+}
+
+/* ---------- interaction ---------- */
+
+let toastTimer = 0;
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2200);
+}
+
+function legacyCopy(t){
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = t; ta.setAttribute("readonly", "");
+    ta.style.position = "fixed"; ta.style.top = "0"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, t.length);
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return ok;
+  } catch(e){ return false; }
+}
+async function copy(t){
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(t); return true; } } catch(e){}
+  return legacyCopy(t);
+}
+
+async function copyList(){
+  if (await copy(listText(film()))) { toast("Seat list copied"); return; }
+  const d = document.getElementById("prev"), ta = document.getElementById("listprev");
+  if (d) d.open = true;
+  if (ta) { ta.focus(); ta.select(); }
+  toast("Select the text below to copy it");
+}
+
+function updateSel(){
+  view.querySelectorAll(".sel").forEach(el => el.classList.remove("sel"));
+  if (selected) view.querySelectorAll('.chair[data-seat="' + selected + '"], rect[data-seat="' + selected + '"], li[data-row="' + selected + '"]').forEach(el => el.classList.add("sel"));
+  const ed = document.getElementById("editor");
+  if (ed) ed.innerHTML = editorHTML(film());
+}
+
+app.addEventListener("click", async e => {
+  const t = e.target.closest("[data-act]");
+  if (!t) return;
+  const act = t.getAttribute("data-act");
+  if (act === "film") {
+    const id = t.getAttribute("data-film");
+    if (id === filmId) return;
+    filmId = id; selected = null; lsSet(FILM_KEY, id); render();
+    try { window.scrollTo(0, 0); } catch(err){}
+  } else if (act === "pick") {
+    const s = t.getAttribute("data-seat");
+    selected = selected === s ? null : s; updateSel();
+  } else if (act === "copy") {
+    const c = t.getAttribute("data-text");
+    toast((await copy(c)) ? "Copied #" + c : "Couldn\u2019t copy. The number is #" + c);
+  } else if (act === "copylist") copyList();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && SHEET && Date.now() - lastLoad > 60000) load();
+});
+
+render();
+load();
+})();
+</script>
+</body>
+</html>
