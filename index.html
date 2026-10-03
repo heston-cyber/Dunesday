@@ -375,6 +375,10 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 .ar-sound .mute{display:none}
 .ar-sound.off .wave{display:none}
 .ar-sound.off .mute{display:block}
+/* no text selection, callouts, or tap flashes around the game; the name box still works */
+.arcade{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.arcade input{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 
 </style>
 </head>
@@ -1231,6 +1235,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     player = G.newPlayer(0);
     rot = 0; acc = 0; buffer = 0; banner = 1.4; newTop = false; particles = []; camY = 0; zoneBanner = null;
     mode = "play";
+    playing(true);
     music.start();
     hud();
   }
@@ -1286,6 +1291,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 
   function showStart() {
     mode = "name"; held = false; pausedFrom = null;
+    playing(false);
     music.stop(); music.resume();
     startCard.hidden = false;
     pauseCard.hidden = true;
@@ -1323,6 +1329,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   /* ---------- input: one button, tap to jump, hold to keep jumping ---------- */
   function press() {
     if (mode === "name") return;
+    clearSelection();
     if (mode === "paused") { resume(); return; }
     if (music.unlock && music.state !== "running" && !music.muted) music.unlock(); // recovers after a call or another app took the audio
     held = true; buffer = 0.12;
@@ -1336,6 +1343,15 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   cv.addEventListener("pointercancel", lift);
   cv.addEventListener("lostpointercapture", () => { touches = 0; release(); });
   cv.addEventListener("contextmenu", e => e.preventDefault());
+  // iPhones turn quick taps and long holds into text selection, magnifier, or zoom; the game area opts out of all of it
+  ["touchstart", "touchmove", "touchend"].forEach(type => cv.addEventListener(type, e => { if (e.cancelable) e.preventDefault(); }, { passive: false }));
+  function clearSelection() { try { const s = window.getSelection && window.getSelection(); if (s && s.rangeCount) s.removeAllRanges(); } catch (e) {} }
+  function playing(on) { document.documentElement.classList.toggle("ar-playing", !!on); if (on) clearSelection(); }
+  document.addEventListener("selectstart", e => {
+    if (!document.documentElement.classList.contains("ar-playing")) return;
+    const t = e.target && e.target.nodeType === 3 ? e.target.parentElement : e.target;
+    if (!(t && t.closest && t.closest("input, textarea"))) e.preventDefault();
+  });
   window.addEventListener("keydown", e => {
     if (root.hidden) return;
     if (mode === "name") { if (e.key === "Enter" && document.activeElement === nameIn) { e.preventDefault(); begin(); } return; }
