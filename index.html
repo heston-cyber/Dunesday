@@ -499,12 +499,30 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
 
   /* Builds the course ahead of x. Same seed gives the same course every attempt, for every player.
      Each new chunk is checked with a small solver before it is kept, so the course can always be beaten. */
+  /* The fixed course (seed 2026) comes pre-built out to ~3,000 m, so phones never generate it mid-run.
+     Past that, the builder below carries on from a clear runway. */
+  const BAKED = {"seed": 2026, "end": 3009.6, "data": "b140,0,1,1;b70,0,4,1;s120,0;b70,0,4,1;s130,0;s10,0;s60,0;s90,0;s10,0;s60,0;b70,0,1,1;b110,0,1,1;s60,0;s10,0;b70,0,4,1;b140,0,3,1;b30,0,4,2;b110,0,3,1;s30,0;s10,0;s60,0;s30,0;b60,0,1,1;s10,0;s10,0;b10,0,1,1;b90,0,3,1;s30,0;s10,0;s90,0;s10,0;b50,0,3,1;s30,0;s10,0;b80,0,7,1;s30,1;b90,0,3,1;b30,0,4,2;b110,0,1,1;s10,0;s10,0;b10,0,1,1;s60,0;b90,0,4,1;b120,0,7,1;s30,1;s90,0;s30,0;b110,0,3,1;b30,0,4,2;b110,0,1,1;s10,0;s10,0;b10,0,1,1;s70,0;s30,0;b80,0,7,1;s30,1;b100,0,1,1;s10,0;s10,0;b10,0,1,1;b90,0,3,1;s30,0;s10,0;b50,0,4,1;b80,0,3,1;b30,0,4,2;s120,0;s40,0;s45,0;s10,0;s10,0;b65,0,1,1;s10,0;s10,0;b10,0,1,1;s75,0;s10,0;s40,0;s10,0;s45,0;s10,0;s40,0;s10,0;s65,0;s10,0;s40,0;s10,0;b45,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;s65,0;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;s45,0;s10,0;s40,0;s10,0;s756,0;s10,0;s10,0;b45,0,8,1;s30,1;s10,1;b105,0,8,1;b30,2,4,1;s105,0;s10,0;s10,0;b45,1,6,1;b125,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,1,5,1;s70,0;b75,0,4,1;b95,0,7,1;s30,1;b95,1,5,1;s70,0;b105,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;s75,0;s10,0;s40,0;s10,0;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,1,5,1;s70,0;b435,0,8,1;s30,1;s10,1;b85,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;s45,0;s30,0;b75,0,7,1;s30,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s45,0;s10,0;s10,0;b45,1,6,1;b125,0,3,1;s30,0;s10,0;b55,0,1,1;b65,0,8,1;b30,2,4,1;b115,1,5,1;s70,0;b65,0,8,1;b30,2,4,1;b105,0,9,1;b20,3,5,1;v10,2;v20,2;s95,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,1,6,1;s105,0;b50,1,4,1;s75,0;s10,0;s10,0;s55,0;s40,0;b55,0,2,1;b20,0,7,2;s30,2;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b55,2,6,1;v20,1;v10,1;b85,1,6,1;b95,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b115,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,1,6,1;s345,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b85,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b75,0,7,1;s30,1;b75,1,6,1;b95,0,1,1;s10,0;s10,0;b10,0,1,1;b45,1,6,1;b95,2,6,1;v20,1;v10,1;b75,0,4,1;b95,0,4,1;s85,0;s40,0;b55,1,6,1;b105,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,0,9,1;b20,3,5,1;v10,2;v20,2;s85,0;b50,1,4,1;b135,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,1,6,1;b115,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,0,8,1;b30,2,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,1,5,1;s70,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s65,0;s10,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,2,6,1;v20,1;v10,1;b65,1,6,1;s115,0;b50,1,4,1;b105,1,6,1;b95,2,6,1;v20,1;v10,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,9,1;b20,3,5,1;v10,2;v20,2;b95,2,6,1;v20,1;v10,1;b85,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s55,0;b50,1,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;s10,0;b45,0,8,1;b30,2,4,1;s85,0;s30,0;b55,0,1,1;s10,0;s10,0;b10,0,1,1;s65,0;s30,0;b75,0,8,1;b30,2,4,1;b95,0,8,1;b30,2,4,1;b85,0,3,1;b30,0,4,2;b95,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,9,1;b20,3,5,1;v10,2;v20,2;s85,0;b50,1,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,1,5,1;s70,0;b115,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b45,0,3,1;s30,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,2,6,1;v20,1;v10,1;b95,0,1,1;b65,2,6,1;v20,1;v10,1;s65,0;s30,0;b55,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,2,1;b20,0,7,2;s30,2;b75,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,3,1;b30,0,4,2;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b45,2,6,1;v20,1;v10,1;b95,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,0,4,1;b105,1,5,1;s70,0;s55,0;b50,1,4,1;s85,0;s10,0;s40,0;s10,0;s65,0;b50,1,4,1;b95,0,3,1;b30,0,4,2;b85,0,9,1;b20,3,5,1;v10,2;v20,2;s105,0;b50,1,4,1;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,2,1;b20,0,7,2;s30,2;s75,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,1,6,1;b125,1,5,1;s70,0;b55,1,6,1;b95,0,8,1;b30,2,4,1;b95,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b65,0,4,1;s85,0;b50,1,4,1;b85,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,3,1;s30,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,0,1,1;b45,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b105,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s45,0;s10,0;s10,0;b65,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,3,1;s30,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b115,0,2,1;b20,0,7,2;s30,2;b165,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;b50,1,4,1;s105,0;b50,1,4,1;b105,0,8,1;b30,2,4,1;b95,0,3,1;s30,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b85,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,1,5,1;s70,0;b45,0,9,1;b20,3,5,1;v10,2;v20,2;b85,0,1,1;s10,0;s10,0;b10,0,1,1;s45,0;b50,1,4,1;b135,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2"};
+  function decodeBaked(B) {
+    const out = []; let x10 = 0;
+    B.data.split(";").forEach(tok => {
+      const t = tok[0], n = tok.slice(1).split(",").map(Number);
+      x10 += n[0];
+      out.push(t === "b" ? { t: "b", x: x10 / 10, y: n[1], w: n[2], h: n[3] } : { t: t, x: x10 / 10, y: n[1] });
+    });
+    return out;
+  }
   function Course(seed, allowed) {
     this.r = rng(seed);
     this.objs = [];
     this.end = 14; // empty runway at the start
     this.allowed = allowed || null;
     this.frontier = [newPlayer(0)];
+    if (!allowed && seed === BAKED.seed) {
+      this.objs = decodeBaked(BAKED);
+      this.end = BAKED.end + 6;
+      this.frontier = [{ x: this.end - 2, y: 0, vy: 0, grounded: true, dead: false }];
+      this.r = rng(seed + 1);
+    }
   }
   function stateKey(p) { return Math.round(p.y * 200) + "," + Math.round(p.vy * 20) + "," + (p.grounded ? 1 : 0); }
   Course.prototype.advance = function (states, toX) {
@@ -566,8 +584,9 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       if (!kept && this.end === base) { this.frontier = this.advance(this.frontier.slice(), base + 4); this.end = base + 6; }
     }
   };
-  Course.prototype.near = function (x0, x1) {
-    const a = this.objs, out = [];
+  Course.prototype.near = function (x0, x1, into) {
+    const a = this.objs, out = into || [];
+    out.length = 0;
     let lo = 0, hi = a.length;
     const from = x0 - 10;
     while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid].x < from) lo = mid + 1; else hi = mid; }
@@ -588,21 +607,26 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     return [[o.x, o.y], [o.x + 1, o.y], [o.x + 0.5, o.y + 1]].map(p => [cx + (p[0] - cx) * k, cy + (p[1] - cy) * k]);
   }
 
-  function boxHitsTri(bx0, by0, bx1, by1, tri) {
-    const box = [[bx0, by0], [bx1, by0], [bx1, by1], [bx0, by1]];
-    const axes = [[1, 0], [0, 1]];
+  function triOf(o) { // computed once per spike: [x0,y0,x1,y1,x2,y2]
+    if (!o._tri) { const t = spikeTri(o); o._tri = [t[0][0], t[0][1], t[1][0], t[1][1], t[2][0], t[2][1]]; }
+    return o._tri;
+  }
+  function sepAxis(ax, ay, bx0, by0, bx1, by1, T) {
+    const d1 = bx0 * ax + by0 * ay, d2 = bx1 * ax + by0 * ay, d3 = bx1 * ax + by1 * ay, d4 = bx0 * ax + by1 * ay;
+    const bmin = Math.min(d1, d2, d3, d4), bmax = Math.max(d1, d2, d3, d4);
+    const e1 = T[0] * ax + T[1] * ay, e2 = T[2] * ax + T[3] * ay, e3 = T[4] * ax + T[5] * ay;
+    const tmin = Math.min(e1, e2, e3), tmax = Math.max(e1, e2, e3);
+    return bmax <= tmin || tmax <= bmin;
+  }
+  function boxHitsTri(bx0, by0, bx1, by1, T) {
+    if (sepAxis(1, 0, bx0, by0, bx1, by1, T) || sepAxis(0, 1, bx0, by0, bx1, by1, T)) return false;
     for (let i = 0; i < 3; i++) {
-      const a = tri[i], b = tri[(i + 1) % 3];
-      axes.push([-(b[1] - a[1]), b[0] - a[0]]);
-    }
-    for (const ax of axes) {
-      let bmin = Infinity, bmax = -Infinity, tmin = Infinity, tmax = -Infinity;
-      for (const p of box) { const d = p[0] * ax[0] + p[1] * ax[1]; bmin = Math.min(bmin, d); bmax = Math.max(bmax, d); }
-      for (const p of tri) { const d = p[0] * ax[0] + p[1] * ax[1]; tmin = Math.min(tmin, d); tmax = Math.max(tmax, d); }
-      if (bmax <= tmin || tmax <= bmin) return false;
+      const ax = T[i * 2], ay = T[i * 2 + 1], bx = T[((i + 1) % 3) * 2], by = T[((i + 1) % 3) * 2 + 1];
+      if (sepAxis(-(by - ay), bx - ax, bx0, by0, bx1, by1, T)) return false;
     }
     return true;
   }
+  const NEAR = [];
 
   function newPlayer(x) { return { x: x, y: 0, vy: 0, grounded: true, dead: false }; }
 
@@ -614,11 +638,11 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
 
     const prevY = pl.y;
     pl.x += P.speed * dt;
-    const near = course.near(pl.x - 1, pl.x + 2);
-    const blocks = near.filter(o => o.t === "b");
+    const near = course.near(pl.x - 1, pl.x + 2, NEAR);
 
     // walking or flying into a block's side
-    for (const b of blocks) {
+    for (let i = 0; i < near.length; i++) {
+      const b = near[i]; if (b.t !== "b") continue;
       const top = b.y + b.h;
       const overlapX = pl.x + S > b.x + 1e-6 && pl.x < b.x + b.w - 1e-6;
       const overlapY = pl.y < top - 1e-6 && pl.y + S > b.y + 1e-6;
@@ -631,7 +655,8 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     // support check: walk off an edge and you fall
     if (pl.grounded) {
       let support = pl.y <= 1e-6;
-      if (!support) for (const b of blocks) {
+      if (!support) for (let i = 0; i < near.length; i++) {
+        const b = near[i]; if (b.t !== "b") continue;
         if (Math.abs(b.y + b.h - pl.y) < 1e-4 && pl.x + S > b.x + 0.04 && pl.x < b.x + b.w - 0.04) { support = true; break; }
       }
       if (!support) { pl.grounded = false; pl.vy = 0; }
@@ -642,27 +667,30 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       pl.y += pl.vy * dt;
       if (pl.vy <= 0) {
         let land = pl.y <= 0 ? 0 : null;
-        for (const b of blocks) {
+        for (let i = 0; i < near.length; i++) {
+          const b = near[i]; if (b.t !== "b") continue;
           const top = b.y + b.h;
           if (pl.x + S > b.x + 0.04 && pl.x < b.x + b.w - 0.04 && prevY >= top - 1e-6 && pl.y <= top) land = Math.max(land === null ? -1 : land, top);
         }
         if (land !== null) { pl.y = land; pl.vy = 0; pl.grounded = true; }
       } else {
-        for (const b of blocks) {
+        for (let i = 0; i < near.length; i++) {
+          const b = near[i]; if (b.t !== "b") continue;
           if (pl.x + S > b.x + 0.04 && pl.x < b.x + b.w - 0.04 && prevY + S <= b.y + 1e-6 && pl.y + S > b.y) { pl.dead = true; return pl; }
         }
       }
     }
 
     const sh = P.shrink;
-    for (const o of near) {
+    for (let i = 0; i < near.length; i++) {
+      const o = near[i];
       if (o.t !== "s" && o.t !== "v") continue;
-      if (boxHitsTri(pl.x + sh, pl.y + sh, pl.x + S - sh, pl.y + S - sh, spikeTri(o))) { pl.dead = true; return pl; }
+      if (boxHitsTri(pl.x + sh, pl.y + sh, pl.x + S - sh, pl.y + S - sh, triOf(o))) { pl.dead = true; return pl; }
     }
     return pl;
   }
 
-  const api = { P: P, CHUNKS: CHUNKS, CLEAR: CLEAR, Course: Course, newPlayer: newPlayer, step: step, spikeTri: spikeTri, rng: rng };
+  const api = { P: P, CHUNKS: CHUNKS, CLEAR: CLEAR, BAKED: BAKED, decodeBaked: decodeBaked, Course: Course, newPlayer: newPlayer, step: step, spikeTri: spikeTri, rng: rng };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.HMNGame = api;
 })(this);
@@ -1211,11 +1239,84 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     // everything below the floor is a band for thumbs, so tapping never covers the action
     U = Math.min(W / 11.5, (H - 64) / 5.9);
     groundY = U * 5.9;
+    buildSprites();
     draw();
+  }
+
+  /* ---------- pre-drawn pieces: drawn once per screen size, then just stamped each frame ---------- */
+  const SPR = {};
+  function layer(w, h, paint) {
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.ceil(w * dpr)); c.height = Math.max(1, Math.ceil(h * dpr));
+    const x = c.getContext("2d"); x.setTransform(dpr, 0, 0, dpr, 0, 0); paint(x, w, h);
+    return c;
+  }
+  function buildSprites() {
+    if (!W || !H) return;
+    const s = U, pad = Math.ceil(U * 0.5);
+    const square = glow => layer(s + pad * 2, s + pad * 2, x => {
+      x.translate(pad + s / 2, pad + s / 2);
+      if (glow) { x.shadowColor = C.gold; x.shadowBlur = 14; }
+      const g = x.createRadialGradient(0, 0, s * 0.05, 0, 0, s * 0.7);
+      g.addColorStop(0, C.gold); g.addColorStop(1, C.ember);
+      x.fillStyle = g; x.fillRect(-s / 2, -s / 2, s, s);
+      x.shadowBlur = 0;
+      const lw = Math.max(2, s * 0.08);
+      x.strokeStyle = C.rust; x.lineWidth = lw; x.strokeRect(-s / 2 + lw / 2, -s / 2 + lw / 2, s - lw, s - lw);
+    });
+    SPR.pad = pad; SPR.player = square(false); SPR.playerGlow = square(true);
+    const spike = (fill, line, glow, down) => layer(s + pad * 2, s + pad * 2, x => {
+      x.translate(pad, pad);
+      if (glow) { x.shadowColor = "#ffffff"; x.shadowBlur = 12; }
+      x.beginPath();
+      if (!down) { x.moveTo(2, s - 1); x.lineTo(s - 2, s - 1); x.lineTo(s / 2, 2); }
+      else { x.moveTo(2, 1); x.lineTo(s - 2, 1); x.lineTo(s / 2, s - 2); }
+      x.closePath(); x.lineJoin = "round";
+      x.fillStyle = fill; x.fill(); x.strokeStyle = line; x.lineWidth = 2; x.stroke();
+    });
+    const SP = { stage: [C.black, C.bone, false], bh: ["#05060b", C.ember, false], fourD: ["rgba(255,255,255,0.16)", "#ffffff", true], limbo: [C.black, C.black, false] };
+    SPR.spike = {}; SPR.hang = {};
+    for (const k in SP) { SPR.spike[k] = spike(SP[k][0], SP[k][1], SP[k][2], false); SPR.hang[k] = spike(SP[k][0], SP[k][1], SP[k][2], true); }
+    SPR.cell = layer(s, s, x => { x.fillStyle = "rgba(255,255,255,0.05)"; x.fillRect(1.5, 1.5, s - 3, s - 3); x.strokeStyle = "rgba(255,255,255,0.9)"; x.lineWidth = 1.6; x.strokeRect(2.5, 2.5, s - 5, s - 5); });
+    // backgrounds
+    SPR.stageBg = layer(W, H, x => {
+      x.fillStyle = C.black; x.fillRect(0, 0, W, H);
+      const gy = groundY;
+      const beam = x.createLinearGradient(W, 0, W * 0.35, gy);
+      beam.addColorStop(0, "rgba(255,223,0,0.30)"); beam.addColorStop(0.55, "rgba(253,152,0,0.08)"); beam.addColorStop(1, "rgba(253,152,0,0)");
+      x.fillStyle = beam; x.beginPath(); x.moveTo(W, 0); x.lineTo(W, H * 0.12); x.lineTo(W * 0.42, gy); x.lineTo(W * 0.12, gy); x.closePath(); x.fill();
+      const lamp = x.createRadialGradient(W, 0, 0, W, 0, H * 0.7);
+      lamp.addColorStop(0, "rgba(255,180,71,0.45)"); lamp.addColorStop(1, "rgba(255,180,71,0)");
+      x.fillStyle = lamp; x.fillRect(0, 0, W, H);
+    });
+    SPR.spaceBg = layer(W, H, x => {
+      const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#04050a"); g.addColorStop(1, "#0c0f1c"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+      for (const st of stars) { x.fillStyle = "rgba(230,229,211," + (0.3 + 0.5 * ((st.tw * 7) % 1)) + ")"; x.fillRect(st.x * W, st.y * H * 0.9, st.r * 1.3, st.r * 1.3); }
+    });
+    SPR.fdBg = layer(W, H, x => { const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#0a0614"); g.addColorStop(1, "#160c22"); x.fillStyle = g; x.fillRect(0, 0, W, H); });
+    SPR.strand = layer(3, H, x => { const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(0.5, "rgba(255,240,215,0.28)"); g.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = g; x.fillRect(0, 0, 3, H); });
+    SPR.limboBg = layer(W, H, x => { const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#fbfaf6"); g.addColorStop(1, "#ecebe4"); x.fillStyle = g; x.fillRect(0, 0, W, H); });
+    // the black hole at full size: glow, back of the disk, photon ring, lensed arc, dark core, front of the disk
+    const r = H * 0.13, bhHalf = Math.ceil(r * 3.1);
+    SPR.bhHalf = bhHalf;
+    SPR.bh = layer(bhHalf * 2, bhHalf * 2, x => {
+      const cx = bhHalf, cy = bhHalf;
+      const glow = x.createRadialGradient(cx, cy, r * 0.8, cx, cy, r * 3.05);
+      glow.addColorStop(0, "rgba(253,152,0,0.55)"); glow.addColorStop(0.45, "rgba(221,75,0,0.18)"); glow.addColorStop(1, "rgba(221,75,0,0)");
+      x.fillStyle = glow; x.fillRect(0, 0, bhHalf * 2, bhHalf * 2);
+      const bands = [[2.35, 0.52, 0.42, "rgba(221,75,0,0.45)"], [2.05, 0.46, 0.3, "rgba(253,152,0,0.7)"], [1.75, 0.4, 0.18, "rgba(255,200,110,0.9)"], [1.5, 0.34, 0.08, "rgba(255,240,205,0.95)"]];
+      const disk = (from, to) => bands.forEach(([rx, ry, lw, col]) => { x.beginPath(); x.ellipse(cx, cy, r * rx, r * ry, -0.16, from, to); x.strokeStyle = col; x.lineWidth = r * lw; x.stroke(); });
+      disk(Math.PI, Math.PI * 2);
+      x.beginPath(); x.arc(cx, cy, r * 1.12, 0, Math.PI * 2); x.strokeStyle = "rgba(255,230,170,0.9)"; x.lineWidth = Math.max(1.5, r * 0.06); x.stroke();
+      x.beginPath(); x.ellipse(cx, cy - r * 0.08, r * 1.35, r * 1.05, 0, Math.PI * 1.08, Math.PI * 1.92); x.strokeStyle = "rgba(255,180,71,0.55)"; x.lineWidth = r * 0.12; x.stroke();
+      x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fillStyle = "#000"; x.fill();
+      disk(0, Math.PI);
+    });
   }
 
   /* ---------- HUD ---------- */
   function setText(el, t) { if (el.textContent !== t) el.textContent = t; }
+  const hudCache = { w: "", b: null };
   function hud() {
     const d = player ? Math.max(0, Math.floor(player.x)) : 0;
     setText(hudAttempt, String(Math.max(attempts, 1)));
@@ -1223,9 +1324,10 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     setText(hudTop, top ? top.score + " m" : "\u2013");
     setText(hudTopName, top ? top.name : "No score yet");
     const goal = top ? Math.max(top.score, 50) : 200;
-    fill.style.width = Math.min(100, d / goal * 100) + "%";
-    const beating = top && d > top.score;
-    root.classList.toggle("beating", !!beating);
+    const wPct = Math.min(100, Math.round(d / goal * 1000) / 10) + "%";
+    if (wPct !== hudCache.w) { fill.style.width = wPct; hudCache.w = wPct; }
+    const beating = !!(top && d > top.score);
+    if (beating !== hudCache.b) { root.classList.toggle("beating", beating); hudCache.b = beating; }
     setText(trackNote, beating ? "New top score" : top ? (Math.max(0, top.score - d)) + " m to beat " + top.name : "Set the first top score");
   }
 
@@ -1235,12 +1337,13 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     player = G.newPlayer(0);
     rot = 0; acc = 0; buffer = 0; banner = 1.4; newTop = false; particles = []; camY = 0; zoneBanner = null;
     mode = "play";
+    simClock = performance.now();
     playing(true);
     music.start();
     hud();
   }
 
-  let pending = 0, testRun = false;
+  let pending = 0, testRun = false, godMode = false;
   function submit(score) {
     if (!API) return;
     pending = Math.max(pending, score);
@@ -1318,7 +1421,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     mode = pausedFrom || "play"; pausedFrom = null;
     pauseCard.hidden = true;
     pauseBtn.hidden = false;
-    acc = 0; last = 0;
+    acc = 0; last = 0; simClock = performance.now();
     music.resume();
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   }
@@ -1331,6 +1434,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     if (mode === "name") return;
     clearSelection();
     if (mode === "paused") { resume(); return; }
+    if (mode === "play") simulate(performance.now());
     if (music.unlock && music.state !== "running" && !music.muted) music.unlock(); // recovers after a call or another app took the audio
     held = true; buffer = 0.12;
   }
@@ -1364,23 +1468,37 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   document.addEventListener("visibilitychange", () => { if (document.hidden) { release(); pause(); } last = 0; });
 
   /* ---------- loop ---------- */
+  /* Physics runs on its own clock in fixed 1/240 s steps. A tap first brings the simulation up to the
+     exact moment of the tap, so jumps happen when your finger lands, not on the next screen refresh.
+     Drawing then projects the last fraction of a step forward so motion stays smooth between steps. */
+  const STEP_MS = P.dt * 1000, ROT_RATE = 90 / (2 * P.jumpV / P.gravity);
+  let simClock = 0, lead = 0, liftY = 0, rotLead = 0;
+  function simulate(now) {
+    if (mode !== "play") { simClock = now; return; }
+    if (now - simClock > 120) simClock = now - 120; // after a stall, never fast-forward into a crash
+    while (simClock + STEP_MS <= now && mode === "play") {
+      simClock += STEP_MS;
+      if (course.end < player.x + 30) course.ensure(player.x + 30);
+      const wasGrounded = player.grounded;
+      G.step(player, course, held || buffer > 0);
+      if (wasGrounded && !player.grounded && player.vy > 0) buffer = 0;
+      buffer = Math.max(0, buffer - P.dt);
+      if (!player.grounded) rot += ROT_RATE * P.dt;
+      else rot = Math.round(rot / 90) * 90;
+      if (player.dead) { if (godMode) { player.dead = false; player.grounded = true; player.y = Math.max(0, player.y); player.vy = 0; } else die(); }
+    }
+  }
   function frame(t) {
     const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
     last = t;
     if (mode !== "paused") clock += dt;
+    lead = liftY = rotLead = 0;
     if (mode === "play") {
-      acc += dt;
-      while (acc >= P.dt && mode === "play") {
-        acc -= P.dt;
-        if (course.end < player.x + 30) course.ensure(player.x + 30);
-        const wasGrounded = player.grounded;
-        const want = held || buffer > 0;
-        G.step(player, course, want);
-        if (wasGrounded && !player.grounded && player.vy > 0) buffer = 0;
-        buffer = Math.max(0, buffer - P.dt);
-        if (!player.grounded) rot += (90 / (2 * P.jumpV / P.gravity)) * P.dt;
-        else rot = Math.round(rot / 90) * 90;
-        if (player.dead) die();
+      simulate(t);
+      if (mode === "play") {
+        const ahead = Math.max(0, Math.min(STEP_MS, t - simClock)) / 1000;
+        lead = P.speed * ahead;
+        if (!player.grounded) { liftY = player.vy * ahead - 0.5 * P.gravity * ahead * ahead; rotLead = ROT_RATE * ahead; }
       }
       banner = Math.max(0, banner - dt);
       const want = Math.max(0, player.y - 2.4);
@@ -1409,6 +1527,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   const stars = Array.from({ length: 110 }, (_, i) => ({ x: (i * 97.13) % 1, y: (i * 61.7) % 1, r: (i % 7 === 0) ? 1.6 : (i % 3 ? 0.7 : 1.1), tw: (i * 1.7) % 6.28 }));
   const strands = Array.from({ length: 14 }, (_, i) => ({ x: (i * 0.0714 + (i * 37) % 7 * 0.011), w: 0.6 + (i % 4) * 0.4 }));
   let camY = 0, clock = 0;
+  const VIS = [];
 
   /* where the run is: 0 stage, then black hole from 490 m, pulled in 787-826, fourth dimension, limbo from 1200 m */
   const Z = { bh: 490.2, bhIn: 503.1, bhCalmEnd: 567.6, warp: 786.9, fourD: 825.6, limboIn: 1186.8, limbo: 1199.7 };
@@ -1470,15 +1589,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   function drawStage(a, camX, sy) {
     if (a <= 0) return;
     ctx.globalAlpha = a;
-    ctx.fillStyle = C.black; ctx.fillRect(-10, -10, W + 20, H + 20);
-    const gy = sy(0);
-    const beam = ctx.createLinearGradient(W, 0, W * 0.35, gy);
-    beam.addColorStop(0, "rgba(255,223,0,0.30)"); beam.addColorStop(0.55, "rgba(253,152,0,0.08)"); beam.addColorStop(1, "rgba(253,152,0,0)");
-    ctx.fillStyle = beam;
-    ctx.beginPath(); ctx.moveTo(W, 0); ctx.lineTo(W, H * 0.12); ctx.lineTo(W * 0.42, gy); ctx.lineTo(W * 0.12, gy); ctx.closePath(); ctx.fill();
-    const lamp = ctx.createRadialGradient(W, 0, 0, W, 0, H * 0.7);
-    lamp.addColorStop(0, "rgba(255,180,71,0.45)"); lamp.addColorStop(1, "rgba(255,180,71,0)");
-    ctx.fillStyle = lamp; ctx.fillRect(0, 0, W, H);
+    ctx.drawImage(SPR.stageBg, 0, 0, W, H);
     ctx.fillStyle = "rgba(255,223,0,0.35)";
     for (const m of motes) {
       const px = ((m.x - camX * 0.25) % 60 + 60) % 60 * U * 0.6;
@@ -1490,39 +1601,18 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   function drawSpace(a, sc, camX) {
     if (a <= 0) return;
     ctx.globalAlpha = a;
-    const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, "#04050a"); bg.addColorStop(1, "#0c0f1c");
-    ctx.fillStyle = bg; ctx.fillRect(-10, -10, W + 20, H + 20);
-    for (const s of stars) {
-      const px = ((s.x * W * 1.6 - camX * U * 0.06) % (W * 1.6) + W * 1.6) % (W * 1.6) - W * 0.3;
-      const tw = 0.55 + 0.45 * Math.sin(clock * 2 + s.tw);
-      ctx.fillStyle = "rgba(230,229,211," + (0.25 + 0.55 * tw) + ")";
-      ctx.fillRect(px, s.y * H * 0.9, s.r * 1.3, s.r * 1.3);
-    }
+    ctx.drawImage(SPR.spaceBg, 0, 0, W, H);
+    // the starfield is part of the pre-drawn sky (distant stars barely move anyway)
     // the black hole: glow, back half of the disk, the dark core, photon ring, front half of the disk
     const scale = (0.55 + 0.45 * sc.grow) * (1 + sc.warp * 7);
     const cx = W * (0.68 - 0.18 * sc.warp), cy = H * (0.3 + 0.12 * sc.warp), r = H * 0.13 * scale;
-    const glow = ctx.createRadialGradient(cx, cy, r * 0.8, cx, cy, r * 4.2);
-    glow.addColorStop(0, "rgba(253,152,0,0.55)"); glow.addColorStop(0.4, "rgba(221,75,0,0.18)"); glow.addColorStop(1, "rgba(221,75,0,0)");
-    ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
     const spin = clock * (0.6 + sc.warp * 4);
-    const disk = (from, to) => {
-      const bands = [[2.35, 0.52, 0.42, "rgba(221,75,0,0.45)"], [2.05, 0.46, 0.3, "rgba(253,152,0,0.7)"], [1.75, 0.4, 0.18, "rgba(255,200,110,0.9)"], [1.5, 0.34, 0.08, "rgba(255,240,205,0.95)"]];
-      bands.forEach(([rx, ry, lw, col]) => {
-        ctx.beginPath(); ctx.ellipse(cx, cy, r * rx, r * ry, -0.16, from, to);
-        ctx.strokeStyle = col; ctx.lineWidth = r * lw; ctx.stroke();
-      });
-      ctx.beginPath(); ctx.ellipse(cx, cy, r * 1.9, r * 0.43, -0.16, from, to);
-      ctx.strokeStyle = "rgba(255,245,220,0.55)"; ctx.lineWidth = Math.max(1, r * 0.035);
-      ctx.setLineDash([r * 0.5, r * 0.9]); ctx.lineDashOffset = -spin * r * 1.6; ctx.stroke(); ctx.setLineDash([]);
-    };
-    disk(Math.PI, Math.PI * 2);
-    ctx.beginPath(); ctx.arc(cx, cy, r * 1.12, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(255,230,170,0.9)"; ctx.lineWidth = Math.max(1.5, r * 0.06); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(cx, cy - r * 0.08, r * 1.35, r * 1.05, 0, Math.PI * 1.08, Math.PI * 1.92);
-    ctx.strokeStyle = "rgba(255,180,71,0.55)"; ctx.lineWidth = r * 0.12; ctx.stroke();
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = "#000"; ctx.fill();
-    disk(0, Math.PI);
+    // the black hole itself is pre-drawn once; only the spinning streak across the front of the disk is live
+    const half = SPR.bhHalf * scale;
+    ctx.drawImage(SPR.bh, cx - half, cy - half, half * 2, half * 2);
+    ctx.beginPath(); ctx.ellipse(cx, cy, r * 1.9, r * 0.43, -0.16, 0, Math.PI);
+    ctx.strokeStyle = "rgba(255,245,220,0.55)"; ctx.lineWidth = Math.max(1, r * 0.035);
+    ctx.setLineDash([r * 0.5, r * 0.9]); ctx.lineDashOffset = -spin * r * 1.6; ctx.stroke(); ctx.setLineDash([]);
     // being pulled in: streaks spiral toward the center, then everything goes white
     if (sc.warp > 0) {
       ctx.strokeStyle = "rgba(255,214,150," + (0.15 + sc.warp * 0.45) + ")"; ctx.lineWidth = 1.5;
@@ -1538,27 +1628,29 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   function drawFourD(a, camX) {
     if (a <= 0) return;
     ctx.globalAlpha = a;
-    const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, "#0a0614"); bg.addColorStop(1, "#160c22");
-    ctx.fillStyle = bg; ctx.fillRect(-10, -10, W + 20, H + 20);
+    ctx.drawImage(SPR.fdBg, 0, 0, W, H);
     // an endless corridor of frames rushing past, with threads of light
     const vx = W * 0.62, vy = H * 0.4, N = 9, travel = camX * 0.22;
+    ctx.strokeStyle = "rgb(255,226,180)";
     for (let k = N; k >= 1; k--) {
       const d = ((k - travel) % N + N) % N + 0.35, sc = 1 / d;
-      const w = W * 0.9 * sc, h = H * 0.75 * sc, al = Math.min(1, sc * 0.9);
-      ctx.strokeStyle = "rgba(255,226,180," + (al * 0.55) + ")"; ctx.lineWidth = Math.max(0.6, 2.2 * sc);
-      ctx.strokeRect(vx - w / 2, vy - h / 2, w, h);
-      ctx.strokeStyle = "rgba(255,226,180," + (al * 0.18) + ")";
-      for (let j = 1; j < 4; j++) { ctx.beginPath(); ctx.moveTo(vx - w / 2 + w * j / 4, vy - h / 2); ctx.lineTo(vx - w / 2 + w * j / 4, vy + h / 2); ctx.stroke(); }
+      const w = W * 0.9 * sc, h = H * 0.75 * sc, al = Math.min(1, sc * 0.9), x0 = vx - w / 2, y0 = vy - h / 2;
+      ctx.globalAlpha = a * al * 0.55; ctx.lineWidth = Math.max(0.6, 2.2 * sc);
+      ctx.strokeRect(x0, y0, w, h);
+      ctx.globalAlpha = a * al * 0.18;
+      ctx.beginPath();
+      for (let j = 1; j < 4; j++) { ctx.moveTo(x0 + w * j / 4, y0); ctx.lineTo(x0 + w * j / 4, y0 + h); }
+      ctx.stroke();
     }
-    ctx.strokeStyle = "rgba(255,226,180,0.16)"; ctx.lineWidth = 1;
-    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([sx2, sy2]) => { ctx.beginPath(); ctx.moveTo(vx, vy); ctx.lineTo(vx + sx2 * W, vy + sy2 * H * 0.9); ctx.stroke(); });
-    const sg = ctx.createLinearGradient(0, 0, 0, H);
-    sg.addColorStop(0, "rgba(255,255,255,0)"); sg.addColorStop(0.5, "rgba(255,240,215,0.28)"); sg.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = sg;
+    ctx.globalAlpha = a * 0.16; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(vx - W, vy - H * 0.9); ctx.lineTo(vx + W, vy + H * 0.9);
+    ctx.moveTo(vx + W, vy - H * 0.9); ctx.lineTo(vx - W, vy + H * 0.9);
+    ctx.stroke();
+    ctx.globalAlpha = a;
     for (const s of strands) {
       const px = ((s.x * W * 1.3 - camX * U * 0.35) % (W * 1.3) + W * 1.3) % (W * 1.3) - W * 0.15;
-      ctx.fillRect(px, 0, s.w, H);
+      ctx.drawImage(SPR.strand, px, 0, s.w, H);
     }
     ctx.globalAlpha = 1;
   }
@@ -1566,9 +1658,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   function drawLimbo(a, camX) {
     if (a <= 0) return;
     ctx.globalAlpha = a;
-    const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, "#fbfaf6"); bg.addColorStop(1, "#ecebe4");
-    ctx.fillStyle = bg; ctx.fillRect(-10, -10, W + 20, H + 20);
+    ctx.drawImage(SPR.limboBg, 0, 0, W, H);
     ctx.fillStyle = "rgba(82,81,63,0.18)";
     for (const m of motes) {
       const px = ((m.x - camX * 0.12) % 60 + 60) % 60 * U * 0.6;
@@ -1580,7 +1670,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   function draw() {
     if (!W) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const px = player ? player.x : 0;
+    const px = player ? player.x + lead : 0;
     const camX = px - (W * 0.28) / U;
     const sx = x => (x - camX) * U, sy = y => groundY - (y - camY) * U;
     const sc = scene(px), st = styleFor(px);
@@ -1589,12 +1679,13 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     ctx.save(); ctx.translate(ox, oy);
 
     // backgrounds, cross-fading between worlds
-    const space = sc.fd ? 0 : sc.bh;
-    drawStage(1 - space, camX, sy);
-    drawSpace(space, sc, camX);
-    if (sc.fd) {
-      drawFourD(1 - sc.limbo, camX);
+    if (sc.fd) { // fourth dimension, cross-fading into limbo; nothing from earlier worlds is painted underneath
+      if (sc.limbo < 1) drawFourD(1, camX);
       drawLimbo(sc.limbo, camX);
+    } else {
+      const space = sc.bh;
+      drawStage(1 - space, camX, sy);
+      drawSpace(space, sc, camX);
     }
 
     // floor
@@ -1613,14 +1704,17 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       ctx.fillStyle = C.gold; ctx.fillRect(0, gy - 1, W, 2);
     } else if (st.name === "fourD") {
       ctx.fillStyle = "rgba(10,6,20,0.9)"; ctx.fillRect(0, gy, W, H - gy + 40);
-      ctx.save(); ctx.shadowColor = "#fff"; ctx.shadowBlur = 10; ctx.fillStyle = "#fff"; ctx.fillRect(0, gy - 1, W, 2); ctx.restore();
+      ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fillRect(0, gy - 6, W, 12);
+      ctx.fillStyle = "rgba(255,255,255,0.25)"; ctx.fillRect(0, gy - 3, W, 6);
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, gy - 1, W, 2);
     } else {
       ctx.fillStyle = "#e6e5d3"; ctx.fillRect(0, gy, W, H - gy + 40);
       ctx.fillStyle = C.black; ctx.fillRect(0, gy - 1, W, 2);
     }
 
     // obstacles, styled for each world
-    const objs = course ? course.near(camX - 2, camX + W / U + 2) : [];
+    const objs = course ? course.near(camX - 2, camX + W / U + 2, VIS) : VIS;
+    if (!course) VIS.length = 0;
     ctx.lineJoin = "round";
     const off = new Map();
     if (st.name === "fourD") for (const o of objs) { const v = riseOffset(o, objs, px); if (v !== 0) off.set(o, v); }
@@ -1634,11 +1728,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       if (st.name === "fourD") { // individual blocks; each column builds itself as you approach
         for (let i = 0; i < o.w; i++) {
           const cx = o.x + i, X = sx(cx), s = colState(o, cx, px);
-          const cell = bottom => {
-            const Y = sy(bottom + 1);
-            ctx.fillStyle = blockFill; ctx.fillRect(X + 1.5, Y + 1.5, U - 3, U - 3);
-            ctx.strokeStyle = blockLine; ctx.lineWidth = 1.6; ctx.strokeRect(X + 2.5, Y + 2.5, U - 5, U - 5);
-          };
+          const cell = bottom => { ctx.drawImage(SPR.cell, X, sy(bottom + 1), U, U); };
           if (!s) { for (let j = 0; j < o.h; j++) cell(o.y + j); continue; }
           if (s.stack) {
             // P blocks have popped up; the newest pushes the stack from underneath
@@ -1661,41 +1751,28 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
         for (let j = 1; j < o.h; j++) { ctx.beginPath(); ctx.moveTo(x + 3, y + j * U); ctx.lineTo(x + w - 3, y + j * U); ctx.stroke(); }
       }
     }
-    const spikeFill = { stage: C.black, bh: "#05060b", fourD: "rgba(255,255,255,0.16)", limbo: C.black }[st.name];
-    const spikeLine = { stage: C.bone, bh: C.ember, fourD: "#ffffff", limbo: C.black }[st.name];
-    if (st.name === "fourD") { ctx.save(); ctx.shadowColor = "#ffffff"; ctx.shadowBlur = 12; }
-    for (const o of objs) {
-      if (o.t !== "s" && o.t !== "v") continue;
-      const x = sx(o.x);
-      ctx.beginPath();
-      if (o.t === "s") { const y = sy(o.y - rise(o)); ctx.moveTo(x + 2, y - 1); ctx.lineTo(x + U - 2, y - 1); ctx.lineTo(x + U / 2, y - U + 2); }
-      else { const y = sy(o.y + 1 - rise(o)); ctx.moveTo(x + 2, y + 1); ctx.lineTo(x + U - 2, y + 1); ctx.lineTo(x + U / 2, y + U - 2); }
-      ctx.closePath();
-      ctx.fillStyle = spikeFill; ctx.fill();
-      ctx.strokeStyle = spikeLine; ctx.lineWidth = 2; ctx.stroke();
+    { // spikes are pre-drawn stamps (the fourth dimension's glow is baked in, no live blur)
+      const up = SPR.spike[st.name], down = SPR.hang[st.name], pd = SPR.pad;
+      for (const o of objs) {
+        if (o.t === "s") ctx.drawImage(up, sx(o.x) - pd, sy(o.y + 1 - rise(o)) - pd, U + pd * 2, U + pd * 2);
+        else if (o.t === "v") ctx.drawImage(down, sx(o.x) - pd, sy(o.y + 1 - rise(o)) - pd, U + pd * 2, U + pd * 2);
+      }
     }
     if (st.name === "fourD") {
-      ctx.restore(); // spike glow
       ctx.restore(); // floor clip
       // a seam of light where each block is breaking through the floor
-      ctx.save(); ctx.shadowColor = "#fff"; ctx.shadowBlur = 14;
       for (const [X, a] of seams) {
-        ctx.globalAlpha = a;
-        ctx.fillStyle = "#fff"; ctx.fillRect(X - 3, gy - 2, U + 6, 4);
+        ctx.globalAlpha = a * 0.35; ctx.fillStyle = "#fff"; ctx.fillRect(X - 6, gy - 6, U + 12, 12);
+        ctx.globalAlpha = a; ctx.fillRect(X - 3, gy - 2, U + 6, 4);
       }
-      ctx.restore(); ctx.globalAlpha = 1;
+      ctx.globalAlpha = 1;
     }
 
     // player
     if (player && mode !== "dead") {
-      const cx = sx(player.x + 0.5), cy = sy(player.y + 0.5), s = U;
-      ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot * Math.PI / 180);
-      if (st.name === "fourD") { ctx.shadowColor = C.gold; ctx.shadowBlur = 14; }
-      const g = ctx.createRadialGradient(0, 0, s * 0.05, 0, 0, s * 0.7);
-      g.addColorStop(0, C.gold); g.addColorStop(1, C.ember);
-      ctx.fillStyle = g; ctx.fillRect(-s / 2, -s / 2, s, s);
-      ctx.shadowBlur = 0;
-      ctx.strokeStyle = C.rust; ctx.lineWidth = Math.max(2, s * 0.08); ctx.strokeRect(-s / 2 + ctx.lineWidth / 2, -s / 2 + ctx.lineWidth / 2, s - ctx.lineWidth, s - ctx.lineWidth);
+      const cx = sx(px + 0.5), cy = sy(player.y + liftY + 0.5), spr = st.name === "fourD" ? SPR.playerGlow : SPR.player, half = U / 2 + SPR.pad;
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate((rot + rotLead) * Math.PI / 180);
+      ctx.drawImage(spr, -half, -half, half * 2, half * 2);
       ctx.restore();
     } else if (!player) {
       const cx = sx(0.5), cy = sy(0.5), s = U;
@@ -1766,9 +1843,10 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   // test hook for previewing each world (?arcadetest=1). Runs that use it never count toward the top score.
   if (/[?&]arcadetest=1/.test(location.search)) {
     window.HMNArcade.test = {
-      go(x) { if (!player) return; testRun = true; course.ensure(x + 60); player.x = x; player.y = 0; player.vy = 0; player.grounded = true; player.dead = false; camY = 0; particles = []; mode = "play"; banner = 0; },
+      go(x) { if (!player) return; testRun = true; simClock = performance.now(); course.ensure(x + 60); player.x = x; player.y = 0; player.vy = 0; player.grounded = true; player.dead = false; camY = 0; particles = []; mode = "play"; banner = 0; },
       freeze() { if (mode === "play") { pausedFrom = "play"; mode = "paused"; } },
-      thaw() { if (mode === "paused") { mode = "play"; last = 0; acc = 0; } }
+      thaw() { if (mode === "paused") { mode = "play"; last = 0; acc = 0; simClock = performance.now(); } },
+      god(on) { godMode = !!on; testRun = true; }
     };
   }
 })();
