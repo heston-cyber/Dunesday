@@ -457,7 +457,20 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     { id: "stairs",       tier: 2, w: 10, o: [["b", 0, 0, 3, 1], ["b", 3, 0, 3, 2], ["b", 6, 0, 4, 3], ["s", 10, 0], ["s", 11, 0]] },
     { id: "ledge-double", tier: 2, w: 8,  o: [["b", 0, 0, 8, 1], ["s", 3, 1], ["s", 4, 1]] },
     { id: "towers",       tier: 2, w: 9,  o: [["b", 0, 0, 2, 1], ["s", 2, 0], ["s", 3, 0], ["b", 4, 0, 2, 1], ["s", 6, 0], ["s", 7, 0], ["b", 8, 0, 1, 1]] },
-    { id: "double-double", tier: 2, w: 7,  o: [["s", 0, 0], ["s", 1, 0], ["s", 5, 0], ["s", 6, 0]] }
+    { id: "double-double", tier: 2, w: 7,  o: [["s", 0, 0], ["s", 1, 0], ["s", 5, 0], ["s", 6, 0]] },
+    // black hole: taller steps and blocks you run under
+    { id: "tall-steps",   tier: 3, w: 17, o: [["b", 0, 0, 3, 1], ["b", 3, 0, 3, 2], ["b", 6, 0, 3, 3], ["b", 9, 0, 4, 4]] },
+    { id: "tunnel",       tier: 3, w: 6,  o: [["b", 0, 1, 6, 1]] },
+    { id: "tunnel-exit",  tier: 3, w: 8,  o: [["b", 0, 1, 5, 1], ["s", 7, 0]] },
+    { id: "spike-tunnel", tier: 3, w: 9,  o: [["s", 0, 0], ["b", 5, 1, 4, 1]] },
+    { id: "high-walk",    tier: 3, w: 9,  o: [["b", 0, 0, 2, 1], ["b", 2, 0, 7, 2], ["s", 5, 2]] },
+    { id: "pit-steps",    tier: 3, w: 10, o: [["b", 0, 0, 2, 1], ["s", 2, 0], ["s", 3, 0], ["b", 4, 0, 2, 2], ["s", 6, 0], ["s", 7, 0], ["b", 8, 0, 2, 1]] },
+    { id: "stair-tunnel", tier: 3, w: 8,  o: [["b", 0, 0, 8, 1], ["b", 3, 2, 4, 1]] },
+    // fourth dimension: spikes hanging from ceilings, long high runs
+    { id: "hanging",      tier: 4, w: 6,  o: [["b", 0, 2, 6, 1], ["v", 2, 1], ["v", 3, 1]] },
+    { id: "triple-high",  tier: 4, w: 9,  o: [["b", 0, 0, 2, 1], ["b", 2, 0, 2, 2], ["s", 4, 0], ["s", 5, 0], ["s", 6, 0], ["b", 7, 0, 2, 2]] },
+    { id: "fang-walk",    tier: 4, w: 9,  o: [["b", 0, 0, 9, 1], ["b", 2, 3, 5, 1], ["v", 3, 2], ["v", 5, 2]] },
+    { id: "summit",       tier: 4, w: 16, o: [["b", 0, 0, 3, 1], ["b", 3, 0, 3, 2], ["b", 6, 0, 3, 3], ["b", 9, 0, 3, 4], ["s", 12, 0], ["s", 13, 0], ["s", 14, 0], ["s", 15, 0]] }
   ];
 
   function rng(seed) {
@@ -471,7 +484,10 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     };
   }
 
-  function tierAt(x) { return x < 120 ? 0 : x < 360 ? 1 : 2; }
+  function tierAt(x) { return x < 120 ? 0 : x < 360 ? 1 : x < 568 ? 2 : x < 826 ? 3 : 4; }
+  /* stretches with no obstacles, lined up with the music (1 bar = 12.9 m) */
+  const CLEAR = [[497, 567.6], [786, 825.6], [1186, 1212.6]];
+  function clearZoneHit(a, b) { for (const z of CLEAR) if (a < z[1] && b > z[0]) return z; return null; }
   function gapAt(x, r) {
     const min = x < 120 ? 5 : x < 360 ? 4 : 3.5;
     const span = x < 120 ? 5 : x < 360 ? 4 : 3;
@@ -500,7 +516,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
         }
       }
       states = Array.from(next.values());
-      if (states.length > 48) states = states.slice(0, 48);
+      if (states.length > 140) states = states.slice(0, 140);
     }
     return states;
   };
@@ -508,7 +524,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     const added = [];
     let right = 0;
     c.o.forEach(o => {
-      if (o[0] === "s") { added.push({ t: "s", x: base + o[1], y: o[2] }); right = Math.max(right, o[1] + 1); }
+      if (o[0] === "s" || o[0] === "v") { added.push({ t: o[0], x: base + o[1], y: o[2] }); right = Math.max(right, o[1] + 1); }
       else { added.push({ t: "b", x: base + o[1], y: o[2], w: o[3], h: o[4] }); right = Math.max(right, o[1] + o[3]); }
     });
     return { added: added, right: Math.max(c.w, right) };
@@ -517,21 +533,29 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     while (this.end < x) {
       const tier = tierAt(this.end);
       const pool = CHUNKS.filter(c => c.tier <= tier && (!this.allowed || this.allowed.indexOf(c.id) !== -1));
-      const weights = pool.map(c => c.tier === tier ? 3 : 1);
+      const weights = pool.map(c => c.tier === tier ? (tier >= 3 ? 6 : 3) : c.tier === tier - 1 && tier >= 3 ? 3 : 1);
       let pick = this.r() * weights.reduce((a, b) => a + b, 0), c = pool[0];
       for (let i = 0; i < pool.length; i++) { pick -= weights[i]; if (pick <= 0) { c = pool[i]; break; } }
+      if (this.retry) { c = this.retry; this.retry = null; } // a chunk that needed more runway gets its turn now
       const base = this.end;
       const pl = this.place(c, base);
+      const zone = clearZoneHit(base, base + pl.right + 1);
+      if (zone) {
+        // leave the stretch empty and pick up again after it
+        this.frontier = this.advance(this.frontier.slice(), zone[1] - 2);
+        this.end = zone[1];
+        continue;
+      }
       let gap = gapAt(this.end, this.r), kept = false;
       for (let tries = 0; tries < 6 && !kept; tries++) {
         const before = this.objs.length;
         Array.prototype.push.apply(this.objs, pl.added);
         this.objs.sort((a, b) => a.x - b.x);
         const survivors = this.advance(this.frontier.slice(), base + pl.right + gap - 2);
-        if (survivors.length) { this.frontier = survivors; this.end = base + pl.right + gap; kept = true; }
+        if (survivors.length) { this.frontier = survivors; this.end = base + pl.right + gap; kept = true; this.retried = false; }
         else {
           this.objs = this.objs.filter(o => pl.added.indexOf(o) === -1);
-          if (tries === 2) { /* give the player a longer runway before this chunk */ this.frontier = this.advance(this.frontier.slice(), base + 4); this.end = base + 6; break; }
+          if (tries === 2) { /* give the player a longer runway, then try this chunk again */ this.frontier = this.advance(this.frontier.slice(), base + 4); this.end = base + 6; if (!this.retried) { this.retry = c; this.retried = true; } else this.retried = false; break; }
           gap += 1;
         }
         if (!kept && this.objs.length !== before) this.objs.length = before;
@@ -552,7 +576,12 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   };
 
   function spikeTri(o) {
-    const cx = o.x + 0.5, cy = o.y + 1 / 3, k = P.spikeScale;
+    const k = P.spikeScale;
+    if (o.t === "v") { // hangs down from the top of its cell
+      const cx = o.x + 0.5, cy = o.y + 2 / 3;
+      return [[o.x, o.y + 1], [o.x + 1, o.y + 1], [o.x + 0.5, o.y]].map(p => [cx + (p[0] - cx) * k, cy + (p[1] - cy) * k]);
+    }
+    const cx = o.x + 0.5, cy = o.y + 1 / 3;
     return [[o.x, o.y], [o.x + 1, o.y], [o.x + 0.5, o.y + 1]].map(p => [cx + (p[0] - cx) * k, cy + (p[1] - cy) * k]);
   }
 
@@ -624,13 +653,13 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 
     const sh = P.shrink;
     for (const o of near) {
-      if (o.t !== "s") continue;
+      if (o.t !== "s" && o.t !== "v") continue;
       if (boxHitsTri(pl.x + sh, pl.y + sh, pl.x + S - sh, pl.y + S - sh, spikeTri(o))) { pl.dead = true; return pl; }
     }
     return pl;
   }
 
-  const api = { P: P, CHUNKS: CHUNKS, Course: Course, newPlayer: newPlayer, step: step, spikeTri: spikeTri, rng: rng };
+  const api = { P: P, CHUNKS: CHUNKS, CLEAR: CLEAR, Course: Course, newPlayer: newPlayer, step: step, spikeTri: spikeTri, rng: rng };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.HMNGame = api;
 })(this);
@@ -670,7 +699,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   const BASS_DROP = [1,0,1,1, 0,1,1,0, 1,0,1,1, 0,1,0,1];
   const BASS_OCT  = [0,0,0,1, 0,0,1,0, 0,0,0,1, 0,1,0,1];
 
-  /* sections by bar */
+  /* sections by bar (1 bar = 12.9 m): 490 m black hole, 568 m drop 3, 787 m pulled in, 826 m fourth dimension, 1200 m limbo */
   function sec(bar) {
     if (bar === 0) return "pickup";
     if (bar <= 4) return "intro";
@@ -678,8 +707,22 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     if (bar <= 16) return "drop1";
     if (bar <= 24) return "anthem";
     if (bar <= 27) return "build2";
-    return "drop2";
+    if (bar <= 37) return "drop2";
+    if (bar === 38) return "bhfill";
+    if (bar <= 43) return "cinematic";
+    if (bar <= 60) return "drop3";
+    if (bar <= 63) return "warp";
+    if (bar <= 91) return "fourD";
+    if (bar === 92) return "limbofill";
+    return "limbo";
   }
+  const FD = [ // fourth dimension: VI - VII - v - i
+    { pad: [55, 59, 62], root: 31 }, { pad: [57, 61, 64], root: 33 }, { pad: [54, 57, 61], root: 30 }, { pad: [59, 62, 66], root: 35 }
+  ];
+  const FD_LEAD = [[0, 78, 12], [16, 76, 12], [32, 73, 12], [48, 74, 16]];
+  const LIMBO = [ // slow, open chords, four bars each
+    { pad: [59, 62, 66, 73], root: 35 }, { pad: [55, 59, 62, 66], root: 31 }, { pad: [62, 66, 69, 73], root: 38 }, { pad: [57, 61, 64, 71], root: 33 }
+  ];
 
   let ctx = null, out = null, noise = null, timer = null, run = null, silentEl = null;
   const SILENT_WAV = "data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
@@ -800,6 +843,75 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     }
     return g;
   }
+  function tom(t, R, vol, pitch) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(pitch || 150, t); o.frequency.exponentialRampToValueAtTime((pitch || 150) * 0.45, t + 0.18);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    o.connect(g); g.connect(R.kick); o.start(t); o.stop(t + 0.37);
+    hit(t, 0.08, vol * 0.25, "bandpass", 900, R.bus, 1);
+  }
+  function braam(t, notes, R) { // huge low brass-like hit
+    const f = ctx.createBiquadFilter(), g = ctx.createGain();
+    f.type = "lowpass"; f.Q.value = 2; f.frequency.setValueAtTime(220, t); f.frequency.exponentialRampToValueAtTime(1900, t + 0.5); f.frequency.exponentialRampToValueAtTime(500, t + 2.6);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.32, t + 0.06); g.gain.exponentialRampToValueAtTime(0.001, t + 3);
+    f.connect(g); g.connect(R.bus);
+    notes.forEach(n => [-9, 0, 9].forEach(dt => { const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = hz(n); o.detune.value = dt; o.connect(f); o.start(t); o.stop(t + 3.05); }));
+    const so = ctx.createOscillator(), sg = ctx.createGain();
+    so.type = "sine"; so.frequency.value = hz(notes[0]); sg.gain.setValueAtTime(0.55, t); sg.gain.exponentialRampToValueAtTime(0.001, t + 2.6);
+    so.connect(sg); sg.connect(R.bus); so.start(t); so.stop(t + 2.65);
+  }
+  function swell(notes, t, dur, from, to, vol, dest) { // strings-like rising chord
+    notes.forEach(n => {
+      const f = ctx.createBiquadFilter(), g = ctx.createGain();
+      f.type = "lowpass"; f.frequency.setValueAtTime(from, t); f.frequency.exponentialRampToValueAtTime(to, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + dur * 0.85); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.08);
+      f.connect(g); g.connect(dest);
+      [-12, 0, 12].forEach(dt => { const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = hz(n); o.detune.value = dt; o.connect(f); o.start(t); o.stop(t + dur + 0.1); });
+    });
+  }
+  function bell(freq, t, vol, dest, decay) {
+    const d = decay || 0.9;
+    [[1, 1], [2.76, 0.35], [5.4, 0.12]].forEach(([mul, amp]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.value = freq * mul;
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol * amp, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0005, t + d / mul);
+      o.connect(g); g.connect(dest); o.start(t); o.stop(t + d / mul + 0.02);
+    });
+  }
+  function soft(notes, t, dur, vol, dest, attack, type) { // airy pad for the fourth dimension and limbo
+    notes.forEach(n => {
+      const g = ctx.createGain(), f = ctx.createBiquadFilter();
+      f.type = "lowpass"; f.frequency.value = 2200;
+      const a = attack || 0.3;
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + a);
+      g.gain.setValueAtTime(vol, t + Math.max(a, dur - a)); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+      f.connect(g); g.connect(dest);
+      [[type || "triangle", 0, 1], ["sine", 1200, 0.5], ["sine", -6, 0.7]].forEach(([ty, dt, lv]) => {
+        const o = ctx.createOscillator(), og = ctx.createGain(); o.type = ty; o.frequency.value = hz(n); o.detune.value = dt; og.gain.value = lv;
+        o.connect(og); og.connect(f); o.start(t); o.stop(t + dur + 0.05);
+      });
+    });
+  }
+  function dive(t, dur, R) { // getting pulled in: a chord sliding down two octaves
+    [71, 74, 78].forEach(n => {
+      const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      o.type = "sawtooth"; o.frequency.setValueAtTime(hz(n), t); o.frequency.exponentialRampToValueAtTime(hz(n - 24), t + dur);
+      f.type = "lowpass"; f.frequency.setValueAtTime(5000, t); f.frequency.exponentialRampToValueAtTime(300, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.07, t + dur * 0.3); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+      o.connect(f); f.connect(g); g.connect(R.bus); o.start(t); o.stop(t + dur + 0.05);
+    });
+    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noise; s.loop = true; f.type = "bandpass"; f.Q.value = 1.5;
+    f.frequency.setValueAtTime(9000, t); f.frequency.exponentialRampToValueAtTime(150, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.3, t + dur * 0.4); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(R.bus); s.start(t); s.stop(t + dur + 0.05);
+  }
+  function reverseSwell(t, dur, R, vol) {
+    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noise; s.loop = true; f.type = "highpass"; f.frequency.value = 3000;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.3, t + dur); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.02);
+    s.connect(f); f.connect(g); g.connect(R.bus); s.start(t); s.stop(t + dur + 0.05);
+  }
   function sub(freq, t, dur, vol, dest) {
     const o = ctx.createOscillator(), g = ctx.createGain();
     o.type = "sine"; o.frequency.value = freq;
@@ -812,24 +924,92 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     R.pump.gain.linearRampToValueAtTime(1, t + BEAT * 0.6);
   }
 
+  /* ---------- the new sections ---------- */
+  function special(S, bar, s, t, R) {
+    if (S === "bhfill") { // last bar before the black hole: the floor drops out
+      if (s === 0) { riser(t, BEAT * 4, R); R.bassLp.frequency.setTargetAtTime(500, t, 0.4); }
+      if (s % 4 === 0 && s < 8) { kick(t, R, 1); pump(R, t, 0.3); sub(hz(35), t, BEAT * 0.85, 0.5, R.pump); }
+      if (s >= 4) snare(t, R, 0.12 + (s - 4) * 0.03);
+      if (s % 2 === 1) hit(t, 0.025, 0.05, "highpass", 9500, R.bus);
+      return;
+    }
+    if (S === "cinematic") { // 503-568 m: no obstacles, the black hole fills the sky
+      const k = bar - 39;
+      if (s === 0 && (k === 0 || k === 2)) braam(t, k === 0 ? [35, 47, 54] : [31, 43, 50], R);
+      if (s === 0 && (k === 0 || k === 2)) swell(k === 0 ? [59, 62, 66] : [55, 59, 62], t, BEAT * 8, 300, 3200, 0.022, R.bus);
+      if (s === 0 && k === 4) swell([57, 61, 64, 69], t, BEAT * 4, 600, 5200, 0.026, R.bus);
+      if (k === 1 && (s === 0 || s === 8)) tom(t, R, 0.7, 110);
+      if (k === 2 && s % 4 === 0) tom(t, R, 0.75, 120);
+      if (k === 3 && s % 2 === 0) tom(t, R, 0.55 + s * 0.02, 130);
+      if (k === 4 && s < 12) tom(t, R, 0.45 + s * 0.04, 140 + s * 4);
+      if (k >= 3 && s % 4 === 0) snare(t, R, 0.1 + k * 0.03);
+      if (k === 3 && s === 0) riser(t, BEAT * 8, R);
+      if (k === 4 && s === 12) reverseSwell(t, BEAT, R, 0.35);
+      return;
+    }
+    if (S === "warp") { // 787-826 m: pulled into the black hole
+      const k = bar - 61;
+      if (k === 0 && s === 0) dive(t, BEAT * 12, R);
+      if (s === 0) tom(t, R, 0.6 - k * 0.12, 70);
+      if (s === 8 && k < 2) sub(hz(35 - k * 5), t, BEAT * 2, 0.35, R.bus);
+      if (k === 2 && s === 4) reverseSwell(t, BEAT * 3, R, 0.4);
+      return;
+    }
+    if (S === "fourD") { // 826-1187 m
+      const k = bar - 64, ch = FD[k % 4], cyc = (k % 4) * 16 + s;
+      if (s === 0) R.bassLp.frequency.setTargetAtTime(1500, t, 0.05);
+      if (s === 0 && k % 8 === 0 && k > 0) hit(t, 1.8, 0.16, "highpass", 6000, R.bus);
+      if (s % 4 === 0) { kick(t, R, 0.9); pump(R, t, 0.35); sub(hz(ch.root), t, BEAT * 0.85, 0.45, R.pump); }
+      if (s === 4 || s === 12) snare(t, R, 0.34);
+      if (s % 2 === 1) hit(t, 0.02, 0.045, "highpass", 10000, R.bus);
+      if (s % 4 === 2) { hit(t, 0.16, 0.07, "highpass", 7000, R.bus); voice("sawtooth", hz(ch.root + 12), t, STEP * 1.6, 0.13, 4000, R.bassIn, 2, 8, 1); }
+      const tones = [ch.pad[0] + 12, ch.pad[1] + 12, ch.pad[2] + 12, ch.pad[0] + 24];
+      const pat = [0, 1, 2, 3, 2, 1, 3, 2, 0, 2, 1, 3, 2, 3, 1, 2];
+      const b = ctx.createGain(); b.gain.value = 1; b.connect(R.pump); b.connect(R.send);
+      bell(hz(tones[pat[s]]), t, 0.06, b, 0.8);
+      if (s === 0) soft(ch.pad, t, BEAT * 4, 0.035, R.pump, 0.25, "square");
+      FD_LEAD.forEach(h => { if (h[0] === cyc) { const g = voice("triangle", hz(h[1]), t, STEP * h[2], 0.1, 6000, R.pump, 2, 6, 1); g.connect(R.send); } });
+      return;
+    }
+    if (S === "limbofill") { // drums fall away into white
+      if (s === 0) { soft([59, 66, 71, 74], t, BEAT * 8, 0.03, R.bus, 1.2); reverseSwell(t, BEAT * 4, R, 0.25); }
+      if (s === 0 || s === 4) { kick(t, R, 0.6 - s * 0.06); }
+      return;
+    }
+    if (S === "limbo") { // 1200 m and on: no beat, just space
+      const k = bar - 93, ch = LIMBO[Math.floor(k / 4) % 4];
+      if (s === 0 && k % 4 === 0) { soft(ch.pad, t, BEAT * 18, 0.03, R.bus, 1.6); sub(hz(ch.root + 12), t, BEAT * 16, 0.16, R.bus); }
+      const notes = ch.pad.map(n => n + 12);
+      if (k % 2 === 0 && (s === 0 || s === 6)) bell(hz(notes[(k + s) % notes.length]), t, 0.05, R.send, 2.4);
+      if (k % 2 === 1 && s === 8) bell(hz(notes[(k * 3) % notes.length] + 12), t, 0.035, R.send, 2.8);
+      return;
+    }
+  }
+
   /* ---------- the score ---------- */
   function playStep(i, t) {
     const bar = Math.floor(i / 16), s = i % 16, S = sec(bar), R = run;
     const ch = CH[bar % 4];
     const cyc = (bar % 8) * 16 + s;
-    const drop = S === "drop1" || S === "drop2";
+    const drop = S === "drop1" || S === "drop2" || S === "drop3";
     const building = S === "build" || S === "build2";
     const lastBuildBar = bar === 8 || bar === 27;
 
     // the whole mix steps up section by section so the drops land harder than everything before them
     if (s === 0) {
-      const lvl = { pickup: 0.55, intro: 0.58, build: 0.62 + (bar - 5) * 0.06, drop1: 1, anthem: 0.78, build2: 0.8 + (bar - 25) * 0.05, drop2: 1 }[S];
+      const lvl = { pickup: 0.55, intro: 0.58, build: 0.62 + (bar - 5) * 0.06, drop1: 1, anthem: 0.78, build2: 0.8 + (bar - 25) * 0.05, drop2: 1,
+        bhfill: 1, cinematic: 0.9 + (bar - 39) * 0.02, drop3: 1, warp: 0.95, fourD: 0.92, limbofill: 0.85, limbo: 0.8 }[S];
       R.bus.gain.setTargetAtTime(lvl, t, 0.03);
     }
     // the bass filter opens through each build
     if (s === 0) {
-      const open = { pickup: 500, intro: 700, build: 700 + (bar - 5) * 380, drop1: 2600, anthem: 1700, build2: 1400 + (bar - 25) * 500, drop2: 3400 }[S];
-      R.bassLp.frequency.setTargetAtTime(open, t, 0.05);
+      const open = { pickup: 500, intro: 700, build: 700 + (bar - 5) * 380, drop1: 2600, anthem: 1700, build2: 1400 + (bar - 25) * 500, drop2: 3400, drop3: 3000 }[S];
+      if (open) R.bassLp.frequency.setTargetAtTime(open, t, 0.05);
+    }
+    if (["bhfill", "cinematic", "warp", "fourD", "limbofill", "limbo"].indexOf(S) !== -1) {
+      if (s === 0 && bar === 64) boom(t, R);
+      special(S, bar, s, t, R);
+      return;
     }
 
     // pickup bar: a snare roll that launches the run
@@ -839,7 +1019,11 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
       if (s === 8) riser(t, BEAT * 2, R);
       return;
     }
-    if (s === 0 && (bar === 1 || bar === 9 || bar === 28)) boom(t, R);
+    if (s === 0 && (bar === 1 || bar === 9 || bar === 28 || bar === 44)) boom(t, R);
+    // drop 3 growls: the bass filter swings open and shut on the eighths
+    if (S === "drop3" && s % 2 === 0) R.bassLp.frequency.setValueAtTime(s % 4 === 0 ? 3600 : 800, t);
+    // roll into the pull of the black hole
+    if (bar === 60 && s >= 8) snare(t, R, 0.12 + (s - 8) * 0.04);
     if (s === 0 && drop && bar % 4 === 0 && bar !== 28) hit(t, 1.8, 0.18, "highpass", 5000, R.bus);
     if (s === 0 && (bar === 7 || bar === 26)) riser(t, BEAT * 8, R);
 
@@ -879,13 +1063,13 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 
     // the riff in the drops; doubled up an octave and fattened in drop 2
     if (drop) {
-      const offs = (S === "drop2" && Math.floor((bar - 28) / 8) % 2 === 1) ? 12 : 0;
+      const offs = (S === "drop2" && Math.floor((bar - 28) / 8) % 2 === 1) || (S === "drop3" && Math.floor((bar - 44) / 4) % 2 === 1) ? 12 : 0;
       RIFF.forEach(h => {
         if (h[0] !== cyc) return;
         const dur = STEP * h[2] * 0.92;
         voice("sawtooth", hz(h[1] + offs), t, dur, 0.085, 5200, R.pump, 3, 14, 2).connect(R.send);
         voice("square", hz(h[1] + offs - 12), t, dur, 0.03, 2600, R.pump, 1).connect(R.send);
-        if (S === "drop2") voice("sawtooth", hz(h[1] + offs + 12), t, dur, 0.035, 7000, R.pump, 2, 18, 1);
+        if (S !== "drop1") voice("sawtooth", hz(h[1] + offs + 12), t, dur, 0.035, 7000, R.pump, 2, 18, 1);
       });
     }
     // the anthem melody in the middle section
@@ -1044,13 +1228,13 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   function startAttempt() {
     attempts++; LS.set(K_ATTEMPTS, String(attempts));
     player = G.newPlayer(0);
-    rot = 0; acc = 0; buffer = 0; banner = 1.4; newTop = false; particles = [];
+    rot = 0; acc = 0; buffer = 0; banner = 1.4; newTop = false; particles = []; camY = 0; zoneBanner = null;
     mode = "play";
     music.start();
     hud();
   }
 
-  let pending = 0;
+  let pending = 0, testRun = false;
   function submit(score) {
     if (!API) return;
     pending = Math.max(pending, score);
@@ -1073,7 +1257,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     mode = "dead"; deadT = 0.85; shake = reduceMotion ? 0 : 0.22;
     music.stop(); music.crash();
     const d = Math.floor(player.x);
-    if (!top || d > top.score) {
+    if (!testRun && (!top || d > top.score)) {
       if (d > 0) { top = { name: name, score: d }; LS.set(K_TOP, JSON.stringify(top)); newTop = true; submit(d); }
     }
     const cx = player.x + 0.5, cy = player.y + 0.5;
@@ -1169,6 +1353,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   function frame(t) {
     const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
     last = t;
+    if (mode !== "paused") clock += dt;
     if (mode === "play") {
       acc += dt;
       while (acc >= P.dt && mode === "play") {
@@ -1184,6 +1369,12 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
         if (player.dead) die();
       }
       banner = Math.max(0, banner - dt);
+      const want = Math.max(0, player.y - 2.4);
+      camY += (want - camY) * Math.min(1, dt * 5);
+      for (const zb of ZONE_BANNERS) {
+        if (player.x >= zb[0] && player.x - P.speed * dt * 1.5 < zb[0]) zoneBanner = { text: zb[1], t: 2.6 };
+      }
+      if (zoneBanner) zoneBanner.t -= dt;
       hud();
     } else if (mode === "dead") {
       deadT -= dt;
@@ -1201,22 +1392,76 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   /* ---------- drawing ---------- */
   const C = { black: "#12110f", coal: "#262221", olive: "#52513f", khaki: "#aeac94", bone: "#e6e5d3", ember: "#fd9800", rust: "#dd4b00", gold: "#ffb447", signal: "#ffdf00" };
   const motes = Array.from({ length: 18 }, (_, i) => ({ x: (i * 37.3) % 60, y: 1.5 + (i * 2.17) % 5, r: i % 3 ? 1.2 : 2 }));
+  const stars = Array.from({ length: 110 }, (_, i) => ({ x: (i * 97.13) % 1, y: (i * 61.7) % 1, r: (i % 7 === 0) ? 1.6 : (i % 3 ? 0.7 : 1.1), tw: (i * 1.7) % 6.28 }));
+  const strands = Array.from({ length: 14 }, (_, i) => ({ x: (i * 0.0714 + (i * 37) % 7 * 0.011), w: 0.6 + (i % 4) * 0.4 }));
+  let camY = 0, clock = 0;
 
-  function draw() {
-    if (!W) return;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const camX = (player ? player.x : 0) - (W * 0.28) / U;
-    const sx = x => (x - camX) * U, sy = y => groundY - y * U;
-    let ox = 0, oy = 0;
-    if (shake > 0) { ox = (Math.random() - 0.5) * 8 * shake / 0.22; oy = (Math.random() - 0.5) * 8 * shake / 0.22; }
-    ctx.save(); ctx.translate(ox, oy);
+  /* where the run is: 0 stage, then black hole from 490 m, pulled in 787-826, fourth dimension, limbo from 1200 m */
+  const Z = { bh: 490.2, bhIn: 503.1, bhCalmEnd: 567.6, warp: 786.9, fourD: 825.6, limboIn: 1186.8, limbo: 1199.7 };
+  function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function scene(x) {
+    return {
+      bh: clamp01((x - Z.bh) / (Z.bhIn - Z.bh)),                 // black hole fades in
+      grow: clamp01((x - Z.bhIn) / (Z.bhCalmEnd - Z.bhIn)),       // and looms closer through the calm
+      warp: clamp01((x - Z.warp) / (Z.fourD - Z.warp)),           // then swallows the screen
+      fd: x >= Z.fourD ? 1 : 0,
+      fdIn: clamp01((x - Z.fourD) / 8),
+      limbo: clamp01((x - Z.limboIn) / (Z.limbo - Z.limboIn))
+    };
+  }
+  function styleFor(x) {
+    const sc = scene(x);
+    if (sc.limbo >= 1) return { name: "limbo", ink: C.black, banner: C.black };
+    if (sc.fd) return { name: "fourD", ink: "#ffffff", banner: "#ffffff" };
+    if (sc.bh >= 0.5) return { name: "bh", ink: C.gold, banner: C.bone };
+    return { name: "stage", ink: C.bone, banner: C.bone };
+  }
+  /* Fourth dimension: blocks wait under the floor and pop up one at a time, stacking from the bottom,
+     so each column is finished exactly one jump ahead of you. Purely visual; collisions always use the
+     final positions, which are set before you can reach them. */
+  const RISE_TO = 4.6;
+  function snapUp(p) { const c1 = 1.5, c3 = c1 + 1, q = p - 1; return 1 + c3 * q * q * q + c1 * q * q; } // quick, with a small overshoot
+  function inFourD(x) { return x >= Z.fourD && x < Z.limboIn; }
+  /* For one column of a block: null when it's in place; otherwise how it's drawn right now.
+     Ground columns stack ("stack": P blocks have popped up, fractional); floating ones shoot up whole ("shift"). */
+  function colState(o, cx, px) {
+    if (!inFourD(cx)) return null;
+    const d = cx - px;
+    if (o.y === 0) {
+      const win = 0.9 + 0.45 * o.h, p = clamp01((RISE_TO + win - d) / win);
+      if (p >= 1) return null;
+      const raw = p * o.h, n = Math.floor(raw);
+      return { stack: true, P: n >= o.h ? o.h : n + snapUp(raw - n), f: raw - n };
+    }
+    const win = 1.2, p = clamp01((RISE_TO + win - d) / win);
+    if (p >= 1) return null;
+    return { stack: false, v: (1 - snapUp(p)) * (o.y + o.h + 0.3) };
+  }
+  function riseOffset(o, objs, px) { // spikes ride with the column they sit on or hang from
+    if (o.t === "b" || !inFourD(o.x)) return 0;
+    if (o.t === "s" && o.y === 0) return 0;
+    for (const b of objs) {
+      if (b.t !== "b" || o.x < b.x || o.x >= b.x + b.w) continue;
+      if ((o.t === "s" && Math.abs(b.y + b.h - o.y) < 1e-6) || (o.t === "v" && Math.abs(b.y - (o.y + 1)) < 1e-6)) {
+        const s = colState(b, o.x, px);
+        return !s ? 0 : s.stack ? b.h - s.P : s.v;
+      }
+    }
+    const win = 1.2, p = clamp01((RISE_TO + win - (o.x - px)) / win);
+    return p >= 1 ? 0 : (1 - snapUp(p)) * (o.y + 1.3);
+  }
+  const ZONE_BANNERS = [[Z.bhIn, "Black hole"], [Z.fourD + 2, "Fourth dimension"], [Z.limbo, "Limbo"]];
+  let zoneBanner = null;
 
-    // stage: projector beam from the top right
+  function drawStage(a, camX, sy) {
+    if (a <= 0) return;
+    ctx.globalAlpha = a;
     ctx.fillStyle = C.black; ctx.fillRect(-10, -10, W + 20, H + 20);
-    const beam = ctx.createLinearGradient(W, 0, W * 0.35, groundY);
+    const gy = sy(0);
+    const beam = ctx.createLinearGradient(W, 0, W * 0.35, gy);
     beam.addColorStop(0, "rgba(255,223,0,0.30)"); beam.addColorStop(0.55, "rgba(253,152,0,0.08)"); beam.addColorStop(1, "rgba(253,152,0,0)");
     ctx.fillStyle = beam;
-    ctx.beginPath(); ctx.moveTo(W, 0); ctx.lineTo(W, H * 0.12); ctx.lineTo(W * 0.42, groundY); ctx.lineTo(W * 0.12, groundY); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(W, 0); ctx.lineTo(W, H * 0.12); ctx.lineTo(W * 0.42, gy); ctx.lineTo(W * 0.12, gy); ctx.closePath(); ctx.fill();
     const lamp = ctx.createRadialGradient(W, 0, 0, W, 0, H * 0.7);
     lamp.addColorStop(0, "rgba(255,180,71,0.45)"); lamp.addColorStop(1, "rgba(255,180,71,0)");
     ctx.fillStyle = lamp; ctx.fillRect(0, 0, W, H);
@@ -1225,46 +1470,217 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
       const px = ((m.x - camX * 0.25) % 60 + 60) % 60 * U * 0.6;
       if (px < W) { ctx.beginPath(); ctx.arc(px, sy(m.y), m.r, 0, Math.PI * 2); ctx.fill(); }
     }
+    ctx.globalAlpha = 1;
+  }
 
-    // floor: a film strip running under the course
-    ctx.fillStyle = C.coal; ctx.fillRect(0, groundY, W, H - groundY);
-    ctx.fillStyle = C.black;
-    const hole = U * 0.34, pitch = U * 0.8, offs = ((-camX * U) % pitch + pitch) % pitch;
-    for (let x = offs - pitch; x < W; x += pitch) {
-      ctx.fillRect(x, groundY + U * 0.28, hole, hole * 0.75);
-      ctx.fillRect(x, H - U * 0.28 - hole * 0.75, hole, hole * 0.75);
+  function drawSpace(a, sc, camX) {
+    if (a <= 0) return;
+    ctx.globalAlpha = a;
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, "#04050a"); bg.addColorStop(1, "#0c0f1c");
+    ctx.fillStyle = bg; ctx.fillRect(-10, -10, W + 20, H + 20);
+    for (const s of stars) {
+      const px = ((s.x * W * 1.6 - camX * U * 0.06) % (W * 1.6) + W * 1.6) % (W * 1.6) - W * 0.3;
+      const tw = 0.55 + 0.45 * Math.sin(clock * 2 + s.tw);
+      ctx.fillStyle = "rgba(230,229,211," + (0.25 + 0.55 * tw) + ")";
+      ctx.fillRect(px, s.y * H * 0.9, s.r * 1.3, s.r * 1.3);
     }
-    ctx.fillStyle = C.bone; ctx.fillRect(0, groundY - 1, W, 2);
+    // the black hole: glow, back half of the disk, the dark core, photon ring, front half of the disk
+    const scale = (0.55 + 0.45 * sc.grow) * (1 + sc.warp * 7);
+    const cx = W * (0.68 - 0.18 * sc.warp), cy = H * (0.3 + 0.12 * sc.warp), r = H * 0.13 * scale;
+    const glow = ctx.createRadialGradient(cx, cy, r * 0.8, cx, cy, r * 4.2);
+    glow.addColorStop(0, "rgba(253,152,0,0.55)"); glow.addColorStop(0.4, "rgba(221,75,0,0.18)"); glow.addColorStop(1, "rgba(221,75,0,0)");
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+    const spin = clock * (0.6 + sc.warp * 4);
+    const disk = (from, to) => {
+      const bands = [[2.35, 0.52, 0.42, "rgba(221,75,0,0.45)"], [2.05, 0.46, 0.3, "rgba(253,152,0,0.7)"], [1.75, 0.4, 0.18, "rgba(255,200,110,0.9)"], [1.5, 0.34, 0.08, "rgba(255,240,205,0.95)"]];
+      bands.forEach(([rx, ry, lw, col]) => {
+        ctx.beginPath(); ctx.ellipse(cx, cy, r * rx, r * ry, -0.16, from, to);
+        ctx.strokeStyle = col; ctx.lineWidth = r * lw; ctx.stroke();
+      });
+      ctx.beginPath(); ctx.ellipse(cx, cy, r * 1.9, r * 0.43, -0.16, from, to);
+      ctx.strokeStyle = "rgba(255,245,220,0.55)"; ctx.lineWidth = Math.max(1, r * 0.035);
+      ctx.setLineDash([r * 0.5, r * 0.9]); ctx.lineDashOffset = -spin * r * 1.6; ctx.stroke(); ctx.setLineDash([]);
+    };
+    disk(Math.PI, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(cx, cy, r * 1.12, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(255,230,170,0.9)"; ctx.lineWidth = Math.max(1.5, r * 0.06); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx, cy - r * 0.08, r * 1.35, r * 1.05, 0, Math.PI * 1.08, Math.PI * 1.92);
+    ctx.strokeStyle = "rgba(255,180,71,0.55)"; ctx.lineWidth = r * 0.12; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = "#000"; ctx.fill();
+    disk(0, Math.PI);
+    // being pulled in: streaks spiral toward the center, then everything goes white
+    if (sc.warp > 0) {
+      ctx.strokeStyle = "rgba(255,214,150," + (0.15 + sc.warp * 0.45) + ")"; ctx.lineWidth = 1.5;
+      for (let i = 0; i < 26; i++) {
+        const ang = i * 0.97 + spin * 0.8, d0 = Math.max(W, H) * (0.9 - ((clock * 0.6 + i * 0.13) % 1) * 0.8);
+        ctx.beginPath(); ctx.moveTo(cx + Math.cos(ang) * d0, cy + Math.sin(ang) * d0);
+        ctx.lineTo(cx + Math.cos(ang + 0.5) * d0 * 0.6, cy + Math.sin(ang + 0.5) * d0 * 0.6); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
 
-    // course
+  function drawFourD(a, camX) {
+    if (a <= 0) return;
+    ctx.globalAlpha = a;
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, "#0a0614"); bg.addColorStop(1, "#160c22");
+    ctx.fillStyle = bg; ctx.fillRect(-10, -10, W + 20, H + 20);
+    // an endless corridor of frames rushing past, with threads of light
+    const vx = W * 0.62, vy = H * 0.4, N = 9, travel = camX * 0.22;
+    for (let k = N; k >= 1; k--) {
+      const d = ((k - travel) % N + N) % N + 0.35, sc = 1 / d;
+      const w = W * 0.9 * sc, h = H * 0.75 * sc, al = Math.min(1, sc * 0.9);
+      ctx.strokeStyle = "rgba(255,226,180," + (al * 0.55) + ")"; ctx.lineWidth = Math.max(0.6, 2.2 * sc);
+      ctx.strokeRect(vx - w / 2, vy - h / 2, w, h);
+      ctx.strokeStyle = "rgba(255,226,180," + (al * 0.18) + ")";
+      for (let j = 1; j < 4; j++) { ctx.beginPath(); ctx.moveTo(vx - w / 2 + w * j / 4, vy - h / 2); ctx.lineTo(vx - w / 2 + w * j / 4, vy + h / 2); ctx.stroke(); }
+    }
+    ctx.strokeStyle = "rgba(255,226,180,0.16)"; ctx.lineWidth = 1;
+    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([sx2, sy2]) => { ctx.beginPath(); ctx.moveTo(vx, vy); ctx.lineTo(vx + sx2 * W, vy + sy2 * H * 0.9); ctx.stroke(); });
+    const sg = ctx.createLinearGradient(0, 0, 0, H);
+    sg.addColorStop(0, "rgba(255,255,255,0)"); sg.addColorStop(0.5, "rgba(255,240,215,0.28)"); sg.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = sg;
+    for (const s of strands) {
+      const px = ((s.x * W * 1.3 - camX * U * 0.35) % (W * 1.3) + W * 1.3) % (W * 1.3) - W * 0.15;
+      ctx.fillRect(px, 0, s.w, H);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawLimbo(a, camX) {
+    if (a <= 0) return;
+    ctx.globalAlpha = a;
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, "#fbfaf6"); bg.addColorStop(1, "#ecebe4");
+    ctx.fillStyle = bg; ctx.fillRect(-10, -10, W + 20, H + 20);
+    ctx.fillStyle = "rgba(82,81,63,0.18)";
+    for (const m of motes) {
+      const px = ((m.x - camX * 0.12) % 60 + 60) % 60 * U * 0.6;
+      if (px < W) { ctx.beginPath(); ctx.arc(px, H * 0.12 + (m.y * 37 % 1) * H * 0.5 + Math.sin(clock + m.x) * 4, m.r * 1.4, 0, Math.PI * 2); ctx.fill(); }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function draw() {
+    if (!W) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const px = player ? player.x : 0;
+    const camX = px - (W * 0.28) / U;
+    const sx = x => (x - camX) * U, sy = y => groundY - (y - camY) * U;
+    const sc = scene(px), st = styleFor(px);
+    let ox = 0, oy = 0;
+    if (shake > 0) { ox = (Math.random() - 0.5) * 8 * shake / 0.22; oy = (Math.random() - 0.5) * 8 * shake / 0.22; }
+    ctx.save(); ctx.translate(ox, oy);
+
+    // backgrounds, cross-fading between worlds
+    const space = sc.fd ? 0 : sc.bh;
+    drawStage(1 - space, camX, sy);
+    drawSpace(space, sc, camX);
+    if (sc.fd) {
+      drawFourD(1 - sc.limbo, camX);
+      drawLimbo(sc.limbo, camX);
+    }
+
+    // floor
+    const gy = sy(0);
+    if (st.name === "stage") {
+      ctx.fillStyle = C.coal; ctx.fillRect(0, gy, W, H - gy + 40);
+      ctx.fillStyle = C.black;
+      const hole = U * 0.34, pitch = U * 0.8, offs = ((-camX * U) % pitch + pitch) % pitch;
+      for (let x = offs - pitch; x < W; x += pitch) {
+        ctx.fillRect(x, gy + U * 0.28, hole, hole * 0.75);
+        ctx.fillRect(x, gy + U * 1.22 - hole * 0.75, hole, hole * 0.75);
+      }
+      ctx.fillStyle = C.bone; ctx.fillRect(0, gy - 1, W, 2);
+    } else if (st.name === "bh") {
+      ctx.fillStyle = "rgba(6,7,12,0.92)"; ctx.fillRect(0, gy, W, H - gy + 40);
+      ctx.fillStyle = C.gold; ctx.fillRect(0, gy - 1, W, 2);
+    } else if (st.name === "fourD") {
+      ctx.fillStyle = "rgba(10,6,20,0.9)"; ctx.fillRect(0, gy, W, H - gy + 40);
+      ctx.save(); ctx.shadowColor = "#fff"; ctx.shadowBlur = 10; ctx.fillStyle = "#fff"; ctx.fillRect(0, gy - 1, W, 2); ctx.restore();
+    } else {
+      ctx.fillStyle = "#e6e5d3"; ctx.fillRect(0, gy, W, H - gy + 40);
+      ctx.fillStyle = C.black; ctx.fillRect(0, gy - 1, W, 2);
+    }
+
+    // obstacles, styled for each world
     const objs = course ? course.near(camX - 2, camX + W / U + 2) : [];
     ctx.lineJoin = "round";
+    const off = new Map();
+    if (st.name === "fourD") for (const o of objs) { const v = riseOffset(o, objs, px); if (v !== 0) off.set(o, v); }
+    const rise = o => off.get(o) || 0;
+    if (st.name === "fourD") { ctx.save(); ctx.beginPath(); ctx.rect(-20, -20, W + 40, gy + 21); ctx.clip(); }
+    const blockFill = { stage: C.coal, bh: "#0d0f18", fourD: "rgba(255,255,255,0.05)", limbo: C.black }[st.name];
+    const blockLine = { stage: C.bone, bh: C.gold, fourD: "rgba(255,255,255,0.9)", limbo: C.black }[st.name];
+    const seams = [];
     for (const o of objs) {
-      if (o.t === "b") {
-        const x = sx(o.x), y = sy(o.y + o.h), w = o.w * U, h = o.h * U;
-        ctx.fillStyle = C.coal; ctx.fillRect(x, y, w, h);
-        ctx.strokeStyle = C.bone; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
-        ctx.strokeStyle = "rgba(230,229,211,0.18)"; ctx.lineWidth = 1;
+      if (o.t !== "b") continue;
+      if (st.name === "fourD") { // individual blocks; each column builds itself as you approach
+        for (let i = 0; i < o.w; i++) {
+          const cx = o.x + i, X = sx(cx), s = colState(o, cx, px);
+          const cell = bottom => {
+            const Y = sy(bottom + 1);
+            ctx.fillStyle = blockFill; ctx.fillRect(X + 1.5, Y + 1.5, U - 3, U - 3);
+            ctx.strokeStyle = blockLine; ctx.lineWidth = 1.6; ctx.strokeRect(X + 2.5, Y + 2.5, U - 5, U - 5);
+          };
+          if (!s) { for (let j = 0; j < o.h; j++) cell(o.y + j); continue; }
+          if (s.stack) {
+            // P blocks have popped up; the newest pushes the stack from underneath
+            const shown = Math.min(o.h, Math.ceil(s.P - 1e-6) + 1);
+            for (let k = 0; k < shown; k++) cell(s.P - 1 - k);
+            if (s.P < o.h) seams.push([X, 0.35 + 0.65 * (1 - s.f)]);
+          } else {
+            for (let j = 0; j < o.h; j++) cell(o.y + j - s.v);
+            if (s.v > o.y) seams.push([X, Math.min(1, s.v / (o.y + o.h + 0.3) * 1.6)]);
+          }
+        }
+        continue;
+      }
+      const x = sx(o.x), y = sy(o.y + o.h), w = o.w * U, h = o.h * U;
+      ctx.fillStyle = blockFill; ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = blockLine; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+      if (st.name !== "limbo") {
+        ctx.strokeStyle = st.name === "fourD" ? "rgba(255,255,255,0.2)" : "rgba(230,229,211,0.18)"; ctx.lineWidth = 1;
         for (let i = 1; i < o.w; i++) { ctx.beginPath(); ctx.moveTo(x + i * U, y + 3); ctx.lineTo(x + i * U, y + h - 3); ctx.stroke(); }
         for (let j = 1; j < o.h; j++) { ctx.beginPath(); ctx.moveTo(x + 3, y + j * U); ctx.lineTo(x + w - 3, y + j * U); ctx.stroke(); }
       }
     }
+    const spikeFill = { stage: C.black, bh: "#05060b", fourD: "rgba(255,255,255,0.16)", limbo: C.black }[st.name];
+    const spikeLine = { stage: C.bone, bh: C.ember, fourD: "#ffffff", limbo: C.black }[st.name];
+    if (st.name === "fourD") { ctx.save(); ctx.shadowColor = "#ffffff"; ctx.shadowBlur = 12; }
     for (const o of objs) {
-      if (o.t === "s") {
-        const x = sx(o.x), y = sy(o.y);
-        ctx.beginPath(); ctx.moveTo(x + 2, y - 1); ctx.lineTo(x + U - 2, y - 1); ctx.lineTo(x + U / 2, y - U + 2); ctx.closePath();
-        ctx.fillStyle = C.black; ctx.fill();
-        ctx.strokeStyle = C.bone; ctx.lineWidth = 2; ctx.stroke();
+      if (o.t !== "s" && o.t !== "v") continue;
+      const x = sx(o.x);
+      ctx.beginPath();
+      if (o.t === "s") { const y = sy(o.y - rise(o)); ctx.moveTo(x + 2, y - 1); ctx.lineTo(x + U - 2, y - 1); ctx.lineTo(x + U / 2, y - U + 2); }
+      else { const y = sy(o.y + 1 - rise(o)); ctx.moveTo(x + 2, y + 1); ctx.lineTo(x + U - 2, y + 1); ctx.lineTo(x + U / 2, y + U - 2); }
+      ctx.closePath();
+      ctx.fillStyle = spikeFill; ctx.fill();
+      ctx.strokeStyle = spikeLine; ctx.lineWidth = 2; ctx.stroke();
+    }
+    if (st.name === "fourD") {
+      ctx.restore(); // spike glow
+      ctx.restore(); // floor clip
+      // a seam of light where each block is breaking through the floor
+      ctx.save(); ctx.shadowColor = "#fff"; ctx.shadowBlur = 14;
+      for (const [X, a] of seams) {
+        ctx.globalAlpha = a;
+        ctx.fillStyle = "#fff"; ctx.fillRect(X - 3, gy - 2, U + 6, 4);
       }
+      ctx.restore(); ctx.globalAlpha = 1;
     }
 
     // player
     if (player && mode !== "dead") {
       const cx = sx(player.x + 0.5), cy = sy(player.y + 0.5), s = U;
       ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot * Math.PI / 180);
+      if (st.name === "fourD") { ctx.shadowColor = C.gold; ctx.shadowBlur = 14; }
       const g = ctx.createRadialGradient(0, 0, s * 0.05, 0, 0, s * 0.7);
       g.addColorStop(0, C.gold); g.addColorStop(1, C.ember);
       ctx.fillStyle = g; ctx.fillRect(-s / 2, -s / 2, s, s);
+      ctx.shadowBlur = 0;
       ctx.strokeStyle = C.rust; ctx.lineWidth = Math.max(2, s * 0.08); ctx.strokeRect(-s / 2 + ctx.lineWidth / 2, -s / 2 + ctx.lineWidth / 2, s - ctx.lineWidth, s - ctx.lineWidth);
       ctx.restore();
     } else if (!player) {
@@ -1279,14 +1695,23 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     }
     ctx.globalAlpha = 1;
 
-    // attempt banner, the way the original greets every retry
+    // the white-out when you're pulled through, and again into limbo
+    const flash = sc.fd ? 1 - sc.fdIn : (sc.warp > 0.82 ? (sc.warp - 0.82) / 0.18 : 0);
+    if (flash > 0) { ctx.fillStyle = "rgba(255,255,255," + Math.min(1, flash) + ")"; ctx.fillRect(-10, -10, W + 20, H + 20); }
+
+    // banners: attempt number, world names, run result
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = "600 " + Math.round(U * 1.1) + "px Teko, 'Arial Narrow', sans-serif";
     if (player && (banner > 0 || mode === "dead")) {
-      const a = mode === "dead" ? 1 : Math.min(1, banner / 0.4);
-      ctx.globalAlpha = a;
-      ctx.fillStyle = C.bone; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.font = "600 " + Math.round(U * 1.1) + "px Teko, 'Arial Narrow', sans-serif";
+      ctx.globalAlpha = mode === "dead" ? 1 : Math.min(1, banner / 0.4);
+      ctx.fillStyle = st.banner;
       const msg = mode === "dead" ? (newTop ? "New top score" : Math.floor(player.x) + " m") : "Attempt " + attempts;
       ctx.fillText(msg.toUpperCase(), W / 2, H * 0.28);
+      ctx.globalAlpha = 1;
+    } else if (zoneBanner && zoneBanner.t > 0) {
+      ctx.globalAlpha = Math.min(1, zoneBanner.t / 0.5, (2.6 - zoneBanner.t) / 0.3 + 0.0001);
+      ctx.fillStyle = st.banner;
+      ctx.fillText(zoneBanner.text.toUpperCase(), W / 2, H * 0.24);
       ctx.globalAlpha = 1;
     }
     ctx.restore();
@@ -1313,6 +1738,14 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!root.hidden) draw(); });
   name = LS.get(K_NAME) || "";
   window.HMNArcade = { show: show, hide: hide, setTop: setTop };
+  // test hook for previewing each world (?arcadetest=1). Runs that use it never count toward the top score.
+  if (/[?&]arcadetest=1/.test(location.search)) {
+    window.HMNArcade.test = {
+      go(x) { if (!player) return; testRun = true; course.ensure(x + 60); player.x = x; player.y = 0; player.vy = 0; player.grounded = true; player.dead = false; camY = 0; particles = []; mode = "play"; banner = 0; },
+      freeze() { if (mode === "play") { pausedFrom = "play"; mode = "paused"; } },
+      thaw() { if (mode === "paused") { mode = "play"; last = 0; acc = 0; } }
+    };
+  }
 })();
 
 </script>
