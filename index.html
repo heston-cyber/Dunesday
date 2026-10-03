@@ -752,7 +752,7 @@ function payHTML(m){
   const held = seatIds(m).filter(s => mine(m, s));
   const note = m.title + ", " + n + (n === 1 ? " ticket" : " tickets") + (held.length ? " (" + held.join(", ") + ")" : "");
   const amt = total ? amount(total) : "";
-  const venmoUrl = "https://venmo.com/" + encodeURIComponent(VENMO) + "?txn=pay" + (amt ? "&amount=" + amt : "") + "&note=" + encodeURIComponent(note);
+  const venmoUrl = "https://venmo.com/u/" + encodeURIComponent(VENMO) + "?txn=pay" + (amt ? "&amount=" + amt : "") + "&note=" + encodeURIComponent(note);
   const cashUrl = "https://cash.app/$" + encodeURIComponent(CASHTAG) + (amt ? "/" + amt : "");
   const totalTxt = total ? " " + money(total) : "";
   let s = '<div id="pay" class="pay">';
@@ -767,12 +767,12 @@ function payHTML(m){
       '<i class="perf perf-t"></i><i class="perf perf-b"></i></div>';
   }
   s += '<div class="paybtns">' +
-    (VENMO ? '<a class="btn" href="' + esc(venmoUrl) + '" target="_blank" rel="noopener">Pay' + totalTxt + ' with Venmo</a>' : '') +
-    (CASHTAG ? '<a class="btnq" href="' + esc(cashUrl) + '" target="_blank" rel="noopener">Pay' + totalTxt + ' with Cash App</a>' : '') + '</div>';
+    (VENMO ? '<a class="btn" href="' + esc(venmoUrl) + '">Pay' + totalTxt + ' with Venmo</a>' : '') +
+    (CASHTAG ? '<a class="btnq" href="' + esc(cashUrl) + '">Pay' + totalTxt + ' with Cash App</a>' : '') + '</div>';
   s += '<p class="handles">' +
     (VENMO ? '<span>Venmo <button type="button" class="handle" data-act="copy" data-text="@' + esc(VENMO) + '">@' + esc(VENMO) + '</button></span>' : '') +
     (CASHTAG ? '<span>Cash App <button type="button" class="handle" data-act="copy" data-text="$' + esc(CASHTAG) + '">$' + esc(CASHTAG) + '</button></span>' : '') + '</p>' +
-    '<p class="ed-meta">' + (VENMO ? 'Venmo fills in a note for you. ' : '') + (CASHTAG ? 'On Cash App, add your name and seat to the note.' : '') + '</p>';
+    '<p class="ed-meta">' + (total ? 'If the amount isn\u2019t filled in, enter ' + money(total) + '. ' : '') + 'Put your name and seat in the note.</p>';
   if (QR && (QR.venmo || QR.cash)) {
     s += '<details class="qr" id="qr"><summary>On a computer? Scan to pay</summary><div class="qr-grid">' +
       (VENMO && QR.venmo ? '<figure>' + QR.venmo + '<figcaption>Venmo</figcaption></figure>' : '') +
