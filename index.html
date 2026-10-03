@@ -357,10 +357,24 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 #ar-top-line{margin:12px 0 0;font-weight:600;font-size:14px}
 .ar-how{margin:6px 0 0;font-size:13px;color:var(--olive);line-height:1.45}
 .ar-jump{display:block;width:100%;margin-top:14px;height:88px;border:0;border-radius:4px;background:var(--ember);color:var(--black);font-family:var(--site-display);font-weight:600;font-size:44px;line-height:1;padding-top:6px;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;box-shadow:inset 0 -6px 0 var(--rust)}
-.ar-jump.down{background:var(--gold);box-shadow:inset 0 -2px 0 var(--rust);transform:translateY(3px)}
+.ar-jump.down{filter:brightness(.94)}
 .ar-jump:disabled{opacity:.35;cursor:default}
-.ar-foot{display:flex;justify-content:space-between;gap:12px;margin:10px 2px 0;font-size:13px;color:var(--muted)}
+.ar-player{display:flex;justify-content:space-between;align-items:baseline;gap:12px;min-height:22px;margin:0 2px 10px;font-size:13px;color:var(--muted)}
+.ar-link[hidden]{display:none}
 .ar-link{background:none;border:0;padding:0;font:inherit;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.ar-pause{position:absolute;top:10px;left:10px;z-index:2;width:44px;height:44px;display:grid;place-items:center;border:1.5px solid rgba(230,229,211,.45);border-radius:4px;background:rgba(18,17,15,.55);color:var(--bone);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ar-pause[hidden]{display:none}
+.ar-pause svg{width:20px;height:20px;fill:currentColor}
+.ar-paused-line{margin:10px 0 0;font-weight:600;font-size:14px}
+.ar-go-main,.ar-go-alt{height:46px;flex:1}
+.ar-go-alt{background:none;color:var(--black);border:1.5px solid var(--black)}
+.ar-sound{position:absolute;top:10px;right:10px;z-index:4;width:44px;height:44px;display:grid;place-items:center;border:1.5px solid rgba(230,229,211,.45);border-radius:4px;background:rgba(18,17,15,.55);color:var(--bone);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ar-sound svg{width:22px;height:22px}
+.ar-sound .spk{fill:currentColor}
+.ar-sound .wave,.ar-sound .mute{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.ar-sound .mute{display:none}
+.ar-sound.off .wave{display:none}
+.ar-sound.off .mute{display:block}
 
 </style>
 </head>
@@ -375,6 +389,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
       <div class="ar-wrap">
         <header class="sec-h"><h2 id="ar-h">Play while you wait</h2></header>
         <p class="ar-intro">Jump the spikes and land on the blocks. The farthest run holds the top score.</p>
+        <p class="ar-player"><span id="ar-who"></span><button id="ar-change" class="ar-link" type="button">Change player</button></p>
         <div class="ar-ticket ar-hud" aria-label="Score">
           <div class="ar-cells">
             <div><small>Attempt</small><b id="ar-attempt">1</b></div>
@@ -385,6 +400,15 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
         </div>
         <div class="ar-stage" id="ar-stage">
           <canvas id="ar-cv" aria-label="Game: an orange square runs right; jump over spikes and onto blocks"></canvas>
+          <button id="ar-sound" class="ar-sound" type="button" aria-label="Turn sound off" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4z"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="mute" d="M16 9.5l5 5M21 9.5l-5 5"/></svg></button>
+          <button id="ar-pause" class="ar-pause" type="button" aria-label="Pause" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/></svg></button>
+          <div class="ar-start" id="ar-paused" hidden>
+            <div class="ar-ticket ar-card">
+              <h3>Paused</h3>
+              <p id="ar-paused-line" class="ar-paused-line"></p>
+              <div class="ar-row"><button id="ar-resume" class="ar-go ar-go-main" type="button">Resume</button><button id="ar-restart" class="ar-go ar-go-alt" type="button">Restart</button></div>
+            </div>
+          </div>
           <div class="ar-start" id="ar-start">
             <div class="ar-ticket ar-card">
               <h3>Who&rsquo;s playing?</h3>
@@ -395,7 +419,6 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
           </div>
         </div>
         <button id="ar-jump" class="ar-jump" type="button" disabled>Jump</button>
-        <p class="ar-foot"><span id="ar-who"></span><button id="ar-change" class="ar-link" type="button">Change player</button></p>
       </div>
     </section>
   </div>
@@ -614,6 +637,316 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 
 </script>
 <script>
+/* Hill Movie Nights arcade: an original 160 BPM electro score in the spirit of 2010-era Newgrounds game music.
+   The game runs at a constant speed, so every bar is ~12.9 m. Drop 1 hits at bar 9 (~116 m) and
+   drop 2 at bar 28 (~361 m), where the course gets harder. */
+(function (root) {
+  "use strict";
+  const LSK = "hmn.arcade.sound";
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  const BPM = 160, BEAT = 60 / BPM, STEP = BEAT / 4;
+  const hz = n => 440 * Math.pow(2, (n - 69) / 12);
+
+  // i - VI - III - VII in B minor, one chord per bar
+  const CH = [
+    { pad: [59, 62, 66], root: 35 }, // Bm
+    { pad: [59, 62, 67], root: 31 }, // G
+    { pad: [62, 66, 69], root: 38 }, // D
+    { pad: [61, 64, 69], root: 33 }  // A
+  ];
+  // drop riff: [step in 8-bar cycle, midi, length in sixteenths]
+  const RIFF_A = [[0,78,2],[2,83,2],[4,78,2],[6,74,2],[8,71,2],[10,74,2],[12,78,2],[14,81,2],
+    [16,83,3],[19,81,3],[22,79,2],[24,78,2],[26,79,2],[28,74,4],
+    [32,78,2],[34,81,2],[36,85,2],[38,81,2],[40,78,2],[42,74,2],[44,73,2],[46,74,2],
+    [48,76,3],[51,78,3],[54,76,2],[56,73,4],[60,69,2],[62,73,2]];
+  const RIFF = RIFF_A.concat(RIFF_A.slice(0, 22).map(n => [n[0] + 64, n[1], n[2]]),
+    [[112,76,2],[114,78,2],[116,81,2],[118,83,2],[120,85,2],[122,86,2],[124,88,4]]);
+  // anthem melody for the middle section
+  const ANTHEM_A = [[0,74,6],[6,73,2],[8,71,8],[16,74,4],[20,78,4],[24,76,8],[32,78,6],[38,76,2],[40,74,8],[48,73,4],[52,74,4],[56,76,8]];
+  const ANTHEM = ANTHEM_A.concat(ANTHEM_A.slice(0, 9).map(n => [n[0] + 64, n[1], n[2]]), [[112,78,4],[116,81,4],[120,83,8]]);
+  const GATE = [1,0,1,1, 0,1,0,1, 1,0,1,1, 0,1,1,0]; // trance gate on the chords
+  const BASS_DROP = [1,0,1,1, 0,1,1,0, 1,0,1,1, 0,1,0,1];
+  const BASS_OCT  = [0,0,0,1, 0,0,1,0, 0,0,0,1, 0,1,0,1];
+
+  /* sections by bar */
+  function sec(bar) {
+    if (bar === 0) return "pickup";
+    if (bar <= 4) return "intro";
+    if (bar <= 8) return "build";
+    if (bar <= 16) return "drop1";
+    if (bar <= 24) return "anthem";
+    if (bar <= 27) return "build2";
+    return "drop2";
+  }
+
+  let ctx = null, out = null, noise = null, timer = null, run = null;
+  let step = 0, nextTime = 0, playing = false;
+  let muted = lsGet(LSK) === "off";
+  const LEVEL = 0.52;
+
+  function shaperCurve(k) {
+    const n = 1024, c = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const x = i * 2 / n - 1; c[i] = (1 + k) * x / (1 + k * Math.abs(x)); }
+    return c;
+  }
+  function init() {
+    if (ctx) return true;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    ctx = new AC();
+    build(ctx);
+    return true;
+  }
+  function build(c) {
+    const comp = c.createDynamicsCompressor();
+    comp.threshold.value = -9; comp.knee.value = 6; comp.ratio.value = 3; comp.attack.value = 0.002; comp.release.value = 0.12;
+    out = c.createGain(); out.gain.value = muted ? 0 : LEVEL;
+    out.connect(comp); comp.connect(c.destination);
+    const len = Math.floor(c.sampleRate * 1.5);
+    noise = c.createBuffer(1, len, c.sampleRate);
+    const d = noise.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  }
+  function newRun() {
+    const bus = ctx.createGain(); bus.connect(out);
+    const pump = ctx.createGain(); pump.connect(bus);
+    // grit for the bass
+    const drive = ctx.createWaveShaper(); drive.curve = shaperCurve(18); drive.oversample = "2x";
+    const bassLp = ctx.createBiquadFilter(); bassLp.type = "lowpass"; bassLp.frequency.value = 900; bassLp.Q.value = 3;
+    const bassIn = ctx.createGain(); bassIn.gain.value = 1;
+    bassIn.connect(drive); drive.connect(bassLp); bassLp.connect(pump);
+    // punch for the kick
+    const kdrive = ctx.createWaveShaper(); kdrive.curve = shaperCurve(4); kdrive.connect(bus);
+    // echo for leads
+    const delay = ctx.createDelay(1.5), fb = ctx.createGain(), tone = ctx.createBiquadFilter(), send = ctx.createGain();
+    delay.delayTime.value = BEAT * 0.75; fb.gain.value = 0.3; tone.type = "lowpass"; tone.frequency.value = 4000; send.gain.value = 0.3;
+    send.connect(delay); delay.connect(tone); tone.connect(fb); fb.connect(delay); tone.connect(bus);
+    return { bus: bus, pump: pump, bassIn: bassIn, bassLp: bassLp, kick: kdrive, send: send };
+  }
+
+  /* ---------- instruments ---------- */
+  function kick(t, R, vol) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(190, t); o.frequency.exponentialRampToValueAtTime(46, t + 0.07);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.26);
+    o.connect(g); g.connect(R.kick); o.start(t); o.stop(t + 0.28);
+    hit(t, 0.01, 0.4 * vol, "highpass", 2500, R.bus);
+  }
+  function boom(t, R) { // sub drop on the downbeat of each drop
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(70, t); o.frequency.exponentialRampToValueAtTime(30, t + 1.4);
+    g.gain.setValueAtTime(0.7, t); g.gain.exponentialRampToValueAtTime(0.001, t + 1.6);
+    o.connect(g); g.connect(R.bus); o.start(t); o.stop(t + 1.65);
+    hit(t, 2.4, 0.25, "highpass", 4500, R.bus);
+    hit(t, 0.9, 0.22, "bandpass", 700, R.bus, 0.5);
+  }
+  function hit(t, dur, vol, type, freq, dest, q) {
+    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noise; f.type = type; f.frequency.value = freq; if (q) f.Q.value = q;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    s.connect(f); f.connect(g); g.connect(dest); s.start(t, Math.random() * 0.8); s.stop(t + dur + 0.02);
+  }
+  function snare(t, R, vol) {
+    hit(t, 0.17, vol, "bandpass", 1800, R.bus, 0.7);
+    hit(t, 0.08, vol * 0.7, "highpass", 5000, R.bus);
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "triangle"; o.frequency.setValueAtTime(240, t); o.frequency.exponentialRampToValueAtTime(160, t + 0.06);
+    g.gain.setValueAtTime(vol * 0.7, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+    o.connect(g); g.connect(R.bus); o.start(t); o.stop(t + 0.1);
+  }
+  function riser(t, dur, R) {
+    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noise; s.loop = true; f.type = "bandpass"; f.Q.value = 3;
+    f.frequency.setValueAtTime(250, t); f.frequency.exponentialRampToValueAtTime(10000, t + dur);
+    g.gain.setValueAtTime(0.001, t); g.gain.exponentialRampToValueAtTime(0.35, t + dur * 0.97); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(R.bus); s.start(t); s.stop(t + dur + 0.05);
+    const o = ctx.createOscillator(), og = ctx.createGain(), of = ctx.createBiquadFilter();
+    o.type = "sawtooth"; o.frequency.setValueAtTime(hz(47), t); o.frequency.exponentialRampToValueAtTime(hz(83), t + dur);
+    of.type = "lowpass"; of.frequency.setValueAtTime(400, t); of.frequency.exponentialRampToValueAtTime(6000, t + dur);
+    og.gain.setValueAtTime(0.001, t); og.gain.exponentialRampToValueAtTime(0.07, t + dur * 0.97); og.gain.linearRampToValueAtTime(0.0001, t + dur);
+    o.connect(of); of.connect(og); og.connect(R.bus); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function voice(type, freq, t, dur, vol, cutoff, dest, voices, spread, res, pluck) {
+    const f = ctx.createBiquadFilter(), g = ctx.createGain();
+    f.type = "lowpass"; f.Q.value = res || 1;
+    if (pluck) { f.frequency.setValueAtTime(cutoff, t); f.frequency.exponentialRampToValueAtTime(Math.max(200, cutoff * 0.18), t + Math.min(dur, 0.18)); }
+    else f.frequency.value = cutoff;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.004);
+    g.gain.setValueAtTime(vol, t + Math.max(0.005, dur - 0.03)); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    f.connect(g); g.connect(dest);
+    const n = voices || 1;
+    for (let i = 0; i < n; i++) {
+      const o = ctx.createOscillator(); o.type = type; o.frequency.value = freq;
+      if (n > 1) o.detune.value = (i / (n - 1) - 0.5) * 2 * (spread || 12);
+      o.connect(f); o.start(t); o.stop(t + dur + 0.03);
+    }
+    return g;
+  }
+  function sub(freq, t, dur, vol, dest) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.008);
+    g.gain.setValueAtTime(vol, t + dur - 0.03); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + 0.03);
+  }
+  function pump(R, t, depth) {
+    R.pump.gain.setValueAtTime(depth, t);
+    R.pump.gain.linearRampToValueAtTime(1, t + BEAT * 0.6);
+  }
+
+  /* ---------- the score ---------- */
+  function playStep(i, t) {
+    const bar = Math.floor(i / 16), s = i % 16, S = sec(bar), R = run;
+    const ch = CH[bar % 4];
+    const cyc = (bar % 8) * 16 + s;
+    const drop = S === "drop1" || S === "drop2";
+    const building = S === "build" || S === "build2";
+    const lastBuildBar = bar === 8 || bar === 27;
+
+    // the whole mix steps up section by section so the drops land harder than everything before them
+    if (s === 0) {
+      const lvl = { pickup: 0.55, intro: 0.58, build: 0.62 + (bar - 5) * 0.06, drop1: 1, anthem: 0.78, build2: 0.8 + (bar - 25) * 0.05, drop2: 1 }[S];
+      R.bus.gain.setTargetAtTime(lvl, t, 0.03);
+    }
+    // the bass filter opens through each build
+    if (s === 0) {
+      const open = { pickup: 500, intro: 700, build: 700 + (bar - 5) * 380, drop1: 2600, anthem: 1700, build2: 1400 + (bar - 25) * 500, drop2: 3400 }[S];
+      R.bassLp.frequency.setTargetAtTime(open, t, 0.05);
+    }
+
+    // pickup bar: a snare roll that launches the run
+    if (S === "pickup") {
+      if (s === 0) kick(t, R, 1);
+      if (s >= 8) snare(t, R, 0.12 + (s - 8) * 0.04);
+      if (s === 8) riser(t, BEAT * 2, R);
+      return;
+    }
+    if (s === 0 && (bar === 1 || bar === 9 || bar === 28)) boom(t, R);
+    if (s === 0 && drop && bar % 4 === 0 && bar !== 28) hit(t, 1.8, 0.18, "highpass", 5000, R.bus);
+    if (s === 0 && (bar === 7 || bar === 26)) riser(t, BEAT * 8, R);
+
+    // kick: four on the floor; drops out for the last half of the bar before each drop
+    if (s % 4 === 0 && !(lastBuildBar && s >= 8)) { kick(t, R, drop ? 1 : 0.9); pump(R, t, drop ? 0.22 : 0.45); }
+    // backbeat, then the build-up roll
+    if (!building || bar < 7) { if (s === 4 || s === 12) snare(t, R, drop ? 0.5 : 0.42); }
+    if (building && bar >= 7) {
+      const every = lastBuildBar ? (s < 8 ? 2 : 1) : 4;
+      if (s % every === 0) snare(t, R, 0.16 + (lastBuildBar ? s * 0.022 : 0.02));
+    }
+    if (S === "anthem" && bar === 24 && s >= 8) snare(t, R, 0.12 + (s - 8) * 0.035);
+    // hats
+    if (s % 4 === 2) hit(t, drop ? 0.12 : 0.07, drop ? 0.13 : 0.1, "highpass", 7000, R.bus);
+    if ((drop || S === "anthem" || building) && s % 2 === 1) hit(t, 0.025, 0.06, "highpass", 9500, R.bus);
+
+    // bass
+    if (s % 4 === 0 && !(lastBuildBar && s >= 8)) sub(hz(ch.root), t, BEAT * 0.85, 0.5, R.pump);
+    if (drop) {
+      if (BASS_DROP[s]) voice("sawtooth", hz(ch.root + 12 + (BASS_OCT[s] ? 12 : 0)), t, STEP * 0.9, 0.17, 4000, R.bassIn, 2, 10, 1);
+    } else if (s % 4 !== 0 && !(lastBuildBar && s >= 8)) {
+      voice("sawtooth", hz(ch.root + 12), t, STEP * 0.85, 0.15, 4000, R.bassIn, 2, 8, 1);
+    }
+
+    // pluck arpeggio in the intro and builds
+    if (S === "intro" || building || S === "anthem") {
+      const tones = [ch.pad[0] + 12, ch.pad[1] + 12, ch.pad[2] + 12, ch.pad[0] + 24];
+      const pat = [0, 2, 1, 3, 2, 1, 0, 2, 1, 3, 2, 3, 1, 2, 0, 3];
+      const cut = S === "intro" ? 1600 : building ? 1600 + (bar % 4) * 700 : 2600;
+      const g = voice("sawtooth", hz(tones[pat[s]]), t, STEP * 0.9, 0.06, cut, R.pump, 2, 8, 4, true);
+      g.connect(R.send);
+    }
+
+    // gated supersaw chords in the drops, wide held chords in the anthem
+    if (drop && GATE[s]) ch.pad.forEach(n => voice("sawtooth", hz(n + 12), t, STEP * 0.8, S === "drop2" ? 0.03 : 0.026, S === "drop2" ? 5200 : 4200, R.pump, 3, 16, 1));
+    if (S === "anthem" && s === 0) ch.pad.forEach(n => voice("sawtooth", hz(n + 12), t, BEAT * 4, 0.022, 2600, R.pump, 3, 16, 1));
+
+    // the riff in the drops; doubled up an octave and fattened in drop 2
+    if (drop) {
+      const offs = (S === "drop2" && Math.floor((bar - 28) / 8) % 2 === 1) ? 12 : 0;
+      RIFF.forEach(h => {
+        if (h[0] !== cyc) return;
+        const dur = STEP * h[2] * 0.92;
+        voice("sawtooth", hz(h[1] + offs), t, dur, 0.085, 5200, R.pump, 3, 14, 2).connect(R.send);
+        voice("square", hz(h[1] + offs - 12), t, dur, 0.03, 2600, R.pump, 1).connect(R.send);
+        if (S === "drop2") voice("sawtooth", hz(h[1] + offs + 12), t, dur, 0.035, 7000, R.pump, 2, 18, 1);
+      });
+    }
+    // the anthem melody in the middle section
+    if (S === "anthem") {
+      ANTHEM.forEach(h => {
+        if (h[0] !== cyc) return;
+        voice("sawtooth", hz(h[1]), t, STEP * h[2] * 0.95, 0.09, 3600, R.pump, 3, 14, 2).connect(R.send);
+      });
+    }
+  }
+
+  function schedule() {
+    if (!playing || !ctx) return;
+    while (nextTime < ctx.currentTime + 0.15) { playStep(step, nextTime); nextTime += STEP; step++; }
+  }
+  function endRun() {
+    if (!run || !ctx) return;
+    const r = run; run = null;
+    r.bus.gain.setTargetAtTime(0, ctx.currentTime, 0.02);
+    setTimeout(() => { try { r.bus.disconnect(); r.send.disconnect(); } catch (e) {} }, 400);
+  }
+
+  const Music = {
+    start() {
+      if (!init()) return;
+      if (ctx.state === "suspended") ctx.resume();
+      this.stop();
+      run = newRun();
+      playing = true; step = 0; nextTime = ctx.currentTime + 0.06;
+      schedule();
+      timer = setInterval(schedule, 25);
+    },
+    stop() {
+      playing = false;
+      if (timer) { clearInterval(timer); timer = null; }
+      endRun();
+    },
+    pause() { if (ctx && ctx.state === "running") ctx.suspend(); },
+    resume() { if (ctx && ctx.state === "suspended") ctx.resume(); },
+    crash() {
+      if (!ctx || muted) return;
+      const g = ctx.createGain(); g.connect(out);
+      const t = ctx.currentTime + 0.01;
+      hit(t, 0.45, 0.55, "lowpass", 1400, g);
+      const o = ctx.createOscillator(), og = ctx.createGain();
+      o.type = "sine"; o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(32, t + 0.35);
+      og.gain.setValueAtTime(0.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+      o.connect(og); og.connect(g); o.start(t); o.stop(t + 0.42);
+      setTimeout(() => { try { g.disconnect(); } catch (e) {} }, 800);
+    },
+    get muted() { return muted; },
+    setMuted(m) {
+      muted = !!m; lsSet(LSK, muted ? "off" : "on");
+      if (out && ctx) out.gain.setTargetAtTime(muted ? 0 : LEVEL, ctx.currentTime, 0.02);
+    },
+    get state() { return ctx ? ctx.state : "none"; },
+    get playing() { return playing; }
+  };
+
+  /* Offline render for previews and tests: same score, same instruments. */
+  Music.render = async function (bars, fromBar) {
+    const sr = 44100, secs = bars * 16 * STEP + 2.5, first = (fromBar || 0) * 16;
+    const saved = { ctx: ctx, out: out, noise: noise, run: run };
+    ctx = new OfflineAudioContext(2, Math.ceil(sr * secs), sr);
+    const wasMuted = muted; muted = false;
+    build(ctx); run = newRun();
+    for (let i = 0; i < bars * 16; i++) playStep(first + i, 0.05 + i * STEP);
+    const buf = await ctx.startRendering();
+    muted = wasMuted; ctx = saved.ctx; out = saved.out; noise = saved.noise; run = saved.run;
+    return buf;
+  };
+
+  root.HMNMusic = Music;
+})(this);
+
+</script>
+<script>
 (function () {
   "use strict";
   const G = window.HMNGame, P = G.P;
@@ -631,6 +964,16 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   const startCard = $("ar-start"), nameIn = $("ar-name"), topLine = $("ar-top-line");
   const hudAttempt = $("ar-attempt"), hudDist = $("ar-dist"), hudTop = $("ar-top"), hudTopName = $("ar-top-name");
   const fill = $("ar-fill"), trackNote = $("ar-note"), jumpBtn = $("ar-jump"), whoLine = $("ar-who");
+  const pauseBtn = $("ar-pause"), pauseCard = $("ar-paused"), pauseLine = $("ar-paused-line"), changeBtn = $("ar-change");
+  const soundBtn = $("ar-sound");
+  const music = window.HMNMusic || { start() {}, stop() {}, pause() {}, resume() {}, crash() {}, setMuted() {}, muted: true };
+  function paintSound() {
+    soundBtn.setAttribute("aria-pressed", music.muted ? "false" : "true");
+    soundBtn.setAttribute("aria-label", music.muted ? "Turn sound on" : "Turn sound off");
+    soundBtn.classList.toggle("off", !!music.muted);
+  }
+  soundBtn.addEventListener("click", () => { music.setMuted(!music.muted); paintSound(); });
+  paintSound();
   const API = String((window.SITE_CONFIG || {}).apiUrl || "").trim();
   const reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
@@ -640,7 +983,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   try { top = JSON.parse(LS.get(K_TOP) || "null"); } catch (e) { top = null; }
   if (!top || typeof top.score !== "number") top = null;
   let attempts = parseInt(LS.get(K_ATTEMPTS) || "0", 10) || 0;
-  let player = null, name = "", mode = "name"; // name | play | dead
+  let player = null, name = "", mode = "name", pausedFrom = null; // name | play | dead | paused
   let held = false, buffer = 0, acc = 0, last = 0, deadT = 0, rot = 0, shake = 0, banner = 0, newTop = false;
   let particles = [];
   let W = 0, H = 0, U = 32, groundY = 0, dpr = 1;
@@ -686,6 +1029,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     player = G.newPlayer(0);
     rot = 0; acc = 0; buffer = 0; banner = 1.4; newTop = false; particles = [];
     mode = "play";
+    music.start();
     hud();
   }
 
@@ -710,6 +1054,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 
   function die() {
     mode = "dead"; deadT = 0.85; shake = reduceMotion ? 0 : 0.22;
+    music.stop(); music.crash();
     const d = Math.floor(player.x);
     if (!top || d > top.score) {
       if (d > 0) { top = { name: name, score: d }; LS.set(K_TOP, JSON.stringify(top)); newTop = true; submit(d); }
@@ -728,24 +1073,61 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     nameIn.removeAttribute("aria-invalid");
     name = n; LS.set(K_NAME, n);
     setText(whoLine, "Playing as " + n);
+    changeBtn.hidden = false;
     startCard.hidden = true;
+    pauseCard.hidden = true;
+    pauseBtn.hidden = false;
     jumpBtn.disabled = false;
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     startAttempt();
   }
 
   function showStart() {
-    mode = "name"; held = false;
+    mode = "name"; held = false; pausedFrom = null;
+    music.stop(); music.resume();
     startCard.hidden = false;
+    pauseCard.hidden = true;
+    pauseBtn.hidden = true;
     jumpBtn.disabled = true;
+    jumpBtn.classList.remove("down");
+    setText(whoLine, name ? "Last played as " + name : "Enter your name to play");
+    changeBtn.hidden = true;
     nameIn.value = name || LS.get(K_NAME) || LS.get("seats.myname") || "";
     topLine.textContent = top ? "Top score: " + top.score + " m by " + top.name : "No top score yet. Set the first one.";
   }
 
+  /* ---------- pause ---------- */
+  function pause() {
+    if (mode !== "play" && mode !== "dead") return;
+    release();
+    pausedFrom = mode; mode = "paused";
+    pauseLine.textContent = "Run paused at " + (player ? Math.max(0, Math.floor(player.x)) : 0) + " m.";
+    pauseCard.hidden = false;
+    pauseBtn.hidden = true;
+    music.pause();
+    const r = $("ar-resume"); if (r) r.focus({ preventScroll: true });
+  }
+  function resume() {
+    if (mode !== "paused") return;
+    mode = pausedFrom || "play"; pausedFrom = null;
+    pauseCard.hidden = true;
+    pauseBtn.hidden = false;
+    acc = 0; last = 0;
+    music.resume();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  }
+  pauseBtn.addEventListener("click", () => { if (mode === "paused") resume(); else pause(); });
+  $("ar-resume").addEventListener("click", resume);
+  $("ar-restart").addEventListener("click", () => { pauseCard.hidden = true; pausedFrom = null; pauseBtn.hidden = false; startAttempt(); });
+
   /* ---------- input: one button, tap to jump, hold to keep jumping ---------- */
-  function press() { if (mode === "name") return; held = true; buffer = 0.12; jumpBtn.classList.add("down"); }
+  function press() {
+    if (mode === "name") return;
+    if (mode === "paused") { resume(); return; }
+    held = true; buffer = 0.12; jumpBtn.classList.add("down");
+  }
   function release() { held = false; jumpBtn.classList.remove("down"); }
-  jumpBtn.addEventListener("pointerdown", e => { e.preventDefault(); jumpBtn.setPointerCapture && jumpBtn.setPointerCapture(e.pointerId); press(); });
+  jumpBtn.addEventListener("pointerdown", e => { e.preventDefault(); try { jumpBtn.setPointerCapture(e.pointerId); } catch (err) {} press(); });
   jumpBtn.addEventListener("pointerup", release);
   jumpBtn.addEventListener("pointercancel", release);
   jumpBtn.addEventListener("lostpointercapture", release);
@@ -756,12 +1138,13 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   window.addEventListener("keydown", e => {
     if (root.hidden) return;
     if (mode === "name") { if (e.key === "Enter" && document.activeElement === nameIn) { e.preventDefault(); begin(); } return; }
+    if (e.key === "p" || e.key === "P" || e.key === "Escape") { e.preventDefault(); if (mode === "paused") resume(); else pause(); return; }
     if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w" || e.key === "W") { e.preventDefault(); if (!e.repeat) press(); }
   });
   window.addEventListener("keyup", e => { if (root.hidden) return; if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w" || e.key === "W") release(); });
   $("ar-go").addEventListener("click", begin);
   $("ar-change").addEventListener("click", showStart);
-  document.addEventListener("visibilitychange", () => { if (document.hidden) { release(); if (mode !== "name") showStart(); } last = 0; });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) { release(); pause(); } last = 0; });
 
   /* ---------- loop ---------- */
   function frame(t) {
@@ -787,9 +1170,11 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
       deadT -= dt;
       if (deadT <= 0) startAttempt();
     }
-    particles.forEach(p => { p.vy -= 22 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; });
-    particles = particles.filter(p => p.life > 0);
-    shake = Math.max(0, shake - dt);
+    if (mode !== "paused") {
+      particles.forEach(p => { p.vy -= 22 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; });
+      particles = particles.filter(p => p.life > 0);
+      shake = Math.max(0, shake - dt);
+    }
     draw();
     if (running) requestAnimationFrame(frame); else last = 0;
   }
@@ -900,6 +1285,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   }
   function hide() {
     if (mode !== "name") showStart();
+    music.stop();
     running = false;
     root.hidden = true;
   }
