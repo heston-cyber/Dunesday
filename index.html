@@ -10,8 +10,16 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Hill Movie Nights">
 <meta property="og:title" content="Movie night! Select your seat.">
-<meta name="twitter:card" content="summary">
+<meta property="og:url" content="https://dunesdayweekend.wranglerportal.com/">
+<meta property="og:image" content="https://dunesdayweekend.wranglerportal.com/preview.jpg">
+<meta property="og:image:secure_url" content="https://dunesdayweekend.wranglerportal.com/preview.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Hill Movie Nights ticket">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Movie night! Select your seat.">
+<meta name="twitter:image" content="https://dunesdayweekend.wranglerportal.com/preview.jpg">
 <meta property="og:description" content="Pick your seat for the next Hill Movie Night.">
 
 <!-- ================= SETTINGS =================
@@ -158,7 +166,9 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 .hero-bg{position:absolute;inset:0 0 26% 0}
 .hero-bg .art{display:block;width:100%;height:100%}
 .hero::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(to top,var(--bg) 28%,rgba(18,17,15,.78) 46%,rgba(18,17,15,.12) 72%,rgba(18,17,15,.45))}
-.ghost{position:absolute;z-index:2;left:-.04em;top:10%;font-family:var(--display);font-weight:var(--dweight);text-transform:uppercase;letter-spacing:var(--dtrack);font-size:var(--ghost);line-height:.8;white-space:nowrap;color:transparent;-webkit-text-stroke:1.2px rgba(230,229,211,.17);pointer-events:none;user-select:none}
+.ghost{position:absolute;z-index:2;left:16px;top:10%;font-family:var(--display);font-weight:var(--dweight);text-transform:uppercase;letter-spacing:var(--dtrack);font-size:var(--ghost);line-height:.86;white-space:nowrap;color:transparent;-webkit-text-stroke:1.2px rgba(230,229,211,.17);pointer-events:none;user-select:none;visibility:hidden}
+.ghost.fit{visibility:visible}
+.ghost .gl{display:block;width:max-content}
 .hero-in{position:relative;z-index:3;padding:32px 20px 48px;max-width:860px}
 .kicker{display:flex;flex-wrap:wrap;gap:6px 24px;margin:0 0 12px;font-weight:600;font-size:14px}
 .title{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dcase);letter-spacing:var(--dtrack);line-height:var(--dline);font-size:var(--h1);margin:0;overflow-wrap:anywhere}
@@ -185,7 +195,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   .hero-movie::after{background:linear-gradient(to right,var(--bg) 32%,rgba(18,17,15,.6) 52%,rgba(18,17,15,0) 78%),linear-gradient(to top,var(--bg) 4%,rgba(18,17,15,0) 40%)}
   .hero-home::after{background:linear-gradient(to right,var(--bg) 18%,rgba(18,17,15,.5) 50%,rgba(18,17,15,0) 80%),linear-gradient(to top,var(--bg) 4%,rgba(18,17,15,0) 40%)}
   .hero-in{padding:48px 40px 64px}
-  .ghost{top:16%}
+  .ghost{top:12%;left:24px}
 }
 
 /* ---------- sections ---------- */
@@ -557,6 +567,35 @@ function ghostWord(m){
   const w = m.title.split(/[\s:]+/).filter(Boolean);
   return w[w.length - 1] || m.title;
 }
+function ghostHTML(word){
+  return '<div class="ghost" aria-hidden="true">' + String(word).split(/\s+/).filter(Boolean).map(w => '<span class="gl">' + esc(w) + '</span>').join("") + '</div>';
+}
+
+/* Size the outlined background word so every line fits inside the hero instead of running off the edge. */
+function fitGhost(){
+  const g = document.querySelector("#hero-slot .ghost");
+  if (!g) return;
+  const hero = g.parentElement;
+  const left = parseFloat(getComputedStyle(g).left) || 0;
+  const avail = hero.clientWidth - left * 2;
+  if (avail <= 0) return;
+  g.style.fontSize = "100px";
+  let widest = 0;
+  g.querySelectorAll(".gl").forEach(l => { widest = Math.max(widest, l.getBoundingClientRect().width); });
+  if (!widest) return;
+  const lines = g.querySelectorAll(".gl").length || 1;
+  const byHeight = (hero.clientHeight * 0.72) / (lines * 0.86);
+  const max = window.innerWidth >= 900 ? 420 : 240;
+  g.style.fontSize = Math.max(40, Math.floor(Math.min(max, 100 * avail / widest, byHeight))) + "px";
+  g.classList.add("fit");
+}
+let fitTimer = 0;
+window.addEventListener("resize", () => { clearTimeout(fitTimer); fitTimer = setTimeout(fitGhost, 120); });
+if (document.fonts) {
+  if (document.fonts.ready) document.fonts.ready.then(fitGhost);
+  if (document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", fitGhost);
+}
+
 function nextUp(){ return MOVIES.filter(m => !isPast(m)).sort((a, b) => when(a) - when(b))[0] || null; }
 function siteTitleHTML(){
   const words = SITE.split(/\s+/);
@@ -617,7 +656,7 @@ function homeHeroHTML(){
   const nx = nextUp();
   let s = '<section class="hero hero-home" aria-labelledby="home-h">' +
     '<div class="hero-bg">' + art("classic", "hero", "home") + '</div>' +
-    '<div class="ghost" aria-hidden="true">' + esc(ghostWord(null)) + '</div>' +
+    ghostHTML(ghostWord(null)) +
     '<div class="hero-in"><h1 id="home-h" class="title">' + siteTitleHTML() + '</h1>' +
     '<p class="tagline">Pick a seat. First come, first served.</p>' +
     (nx ? '<p class="meta"><span>Next showing</span><b>' + esc(nx.title) + '</b><b class="acc">' + dayLabel(nx) + '</b></p>' +
@@ -841,7 +880,7 @@ function movieHeroHTML(m){
   const kicker = [m.format, m.theater.name].filter(Boolean);
   return '<section class="hero hero-movie" aria-labelledby="m-h">' +
     '<div class="hero-bg">' + art(theme, "hero", m.id) + '</div>' +
-    '<div class="ghost" aria-hidden="true">' + esc(ghostWord(m)) + '</div>' +
+    ghostHTML(ghostWord(m)) +
     '<div class="hero-in">' +
     (kicker.length ? '<p class="kicker">' + kicker.map(k => '<span>' + esc(k) + '</span>').join("") + '</p>' : '') +
     '<h1 id="m-h" class="title">' + esc(m.title) + '</h1>' +
@@ -881,6 +920,7 @@ function render(){
     viewEl.innerHTML = '<main class="page ' + (m ? 'movie' : 'home') + '"><div id="hero-slot">' + (missing ? notFoundHTML() : m ? movieHeroHTML(m) : homeHeroHTML()) + '</div><div id="body-slot"></div></main>';
     viewEl.setAttribute("data-key", key);
   }
+  fitGhost();
   const body = document.getElementById("body-slot");
   if (body) body.innerHTML = missing ? '' : m ? movieBodyHTML(m) : homeBodyHTML();
   ["prev", "qr"].forEach(id => { const d = document.getElementById(id); if (d && open[id]) d.open = true; });
