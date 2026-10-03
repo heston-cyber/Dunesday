@@ -323,6 +323,45 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
 
+/* ---------- arcade ---------- */
+.arcade{max-width:1180px;margin:0 auto;padding:24px 20px 90px}
+.arcade[hidden]{display:none}
+@media (min-width:1180px){ .arcade{padding-left:40px;padding-right:40px} }
+.ar-wrap{max-width:760px}
+.ar-intro{margin:-6px 0 18px;color:var(--muted);max-width:52ch}
+.ar-ticket{--notch:9px;position:relative;background:var(--bone);color:var(--black);font-family:var(--site-body);
+  -webkit-mask:radial-gradient(circle var(--notch) at top left,#0000 98%,#000) top left/51% 51% no-repeat,radial-gradient(circle var(--notch) at top right,#0000 98%,#000) top right/51% 51% no-repeat,radial-gradient(circle var(--notch) at bottom left,#0000 98%,#000) bottom left/51% 51% no-repeat,radial-gradient(circle var(--notch) at bottom right,#0000 98%,#000) bottom right/51% 51% no-repeat;
+  mask:radial-gradient(circle var(--notch) at top left,#0000 98%,#000) top left/51% 51% no-repeat,radial-gradient(circle var(--notch) at top right,#0000 98%,#000) top right/51% 51% no-repeat,radial-gradient(circle var(--notch) at bottom left,#0000 98%,#000) bottom left/51% 51% no-repeat,radial-gradient(circle var(--notch) at bottom right,#0000 98%,#000) bottom right/51% 51% no-repeat}
+.ar-cells{display:grid;grid-template-columns:.8fr 1fr 1.3fr}
+.ar-cells > div{padding:10px 12px 8px;border-right:1.5px solid var(--black);min-width:0}
+.ar-cells > div:last-child{border-right:0}
+.ar-hud small{display:block;font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--olive)}
+.ar-hud b{display:block;font-family:var(--site-display);font-weight:600;font-size:clamp(30px,8vw,40px);line-height:.9;margin-top:4px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ar-hud .ar-topcell span{display:block;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ar-track{display:flex;align-items:center;gap:12px;padding:9px 12px 10px;border-top:1.5px dashed var(--black)}
+.ar-bar{position:relative;flex:1;height:10px;background:#d3d1bb;border:1.5px solid var(--black);border-radius:2px;overflow:hidden}
+.ar-bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--ember);transition:width .1s linear}
+.ar-bar::after{content:"";position:absolute;right:0;top:-2px;bottom:-2px;width:3px;background:var(--rust)}
+#ar-note{flex:none;font-weight:700;font-size:11px;letter-spacing:.06em;max-width:48%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arcade.beating .ar-bar i{background:var(--signal)}
+.ar-stage{position:relative;margin-top:14px;height:clamp(250px,58vw,420px);border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--black);touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.ar-stage canvas{display:block;width:100%;height:100%;touch-action:none}
+.ar-start{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(18,17,15,.72)}
+.ar-start[hidden]{display:none}
+.ar-card{width:100%;max-width:420px;padding:16px 16px 14px}
+.ar-card h3{margin:0;font-family:var(--site-display);font-weight:600;font-size:40px;line-height:.9;text-transform:uppercase}
+.ar-row{display:flex;gap:8px;margin-top:12px}
+.ar-row input{flex:1;min-width:0;font:inherit;font-size:17px;padding:11px 12px;border:1.5px solid var(--black);border-radius:2px;background:#f4f3e8;color:var(--black)}
+.ar-row input[aria-invalid="true"]{border-color:var(--rust)}
+.ar-go{font-family:var(--site-body);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;padding:0 18px;border:0;border-radius:2px;background:var(--black);color:var(--bone);cursor:pointer}
+#ar-top-line{margin:12px 0 0;font-weight:600;font-size:14px}
+.ar-how{margin:6px 0 0;font-size:13px;color:var(--olive);line-height:1.45}
+.ar-jump{display:block;width:100%;margin-top:14px;height:88px;border:0;border-radius:4px;background:var(--ember);color:var(--black);font-family:var(--site-display);font-weight:600;font-size:44px;line-height:1;padding-top:6px;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;box-shadow:inset 0 -6px 0 var(--rust)}
+.ar-jump.down{background:var(--gold);box-shadow:inset 0 -2px 0 var(--rust);transform:translateY(3px)}
+.ar-jump:disabled{opacity:.35;cursor:default}
+.ar-foot{display:flex;justify-content:space-between;gap:12px;margin:10px 2px 0;font-size:13px;color:var(--muted)}
+.ar-link{background:none;border:0;padding:0;font:inherit;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
 </style>
 </head>
 <body>
@@ -332,9 +371,546 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   <div class="main">
     <header id="topbar" class="topbar"></header>
     <div id="view"></div>
+    <section id="arcade" class="arcade" hidden aria-labelledby="ar-h">
+      <div class="ar-wrap">
+        <header class="sec-h"><h2 id="ar-h">Play while you wait</h2></header>
+        <p class="ar-intro">Jump the spikes and land on the blocks. The farthest run holds the top score.</p>
+        <div class="ar-ticket ar-hud" aria-label="Score">
+          <div class="ar-cells">
+            <div><small>Attempt</small><b id="ar-attempt">1</b></div>
+            <div><small>Distance</small><b id="ar-dist">0 m</b></div>
+            <div class="ar-topcell"><small>Top score</small><b id="ar-top">&ndash;</b><span id="ar-top-name">No score yet</span></div>
+          </div>
+          <div class="ar-track"><div class="ar-bar" aria-hidden="true"><i id="ar-fill"></i></div><span id="ar-note">Set the first top score</span></div>
+        </div>
+        <div class="ar-stage" id="ar-stage">
+          <canvas id="ar-cv" aria-label="Game: an orange square runs right; jump over spikes and onto blocks"></canvas>
+          <div class="ar-start" id="ar-start">
+            <div class="ar-ticket ar-card">
+              <h3>Who&rsquo;s playing?</h3>
+              <div class="ar-row"><input id="ar-name" type="text" maxlength="20" placeholder="Your name" autocomplete="name" autocapitalize="words" spellcheck="false" enterkeyhint="go" aria-label="Your name"><button id="ar-go" class="ar-go" type="button">Start</button></div>
+              <p id="ar-top-line"></p>
+              <p class="ar-how">Tap Jump to hop. Hold it to keep jumping. Land on top of blocks, but running into their sides or touching a spike ends the run.</p>
+            </div>
+          </div>
+        </div>
+        <button id="ar-jump" class="ar-jump" type="button" disabled>Jump</button>
+        <p class="ar-foot"><span id="ar-who"></span><button id="ar-change" class="ar-link" type="button">Change player</button></p>
+      </div>
+    </section>
   </div>
   <div id="toast" class="toast" role="status"></div>
 </div>
+<script>
+/* Hill Movie Nights arcade: core rules shared by the page and the test solver. */
+(function (root) {
+  "use strict";
+
+  const P = {
+    speed: 8.6,        // units per second, constant like the original
+    gravity: 52,       // units per second^2
+    jumpV: 13.8,       // initial jump velocity
+    dt: 1 / 240,       // fixed physics step
+    size: 1,           // player is a 1x1 square
+    stepTol: 0.16,     // forgiving lip: clip a block corner by this much and you land on it
+    shrink: 0.06,      // player hitbox inset against spikes
+    spikeScale: 0.78   // spike hitbox scaled toward its centre
+  };
+
+  /* Obstacle chunks. x and y are in units from the chunk start; y=0 is the floor.
+     s = spike sitting on (x,y); b = solid block (x,y,w,h). tier gates when a chunk can appear. */
+  const CHUNKS = [
+    { id: "spike",        tier: 0, w: 1,  o: [["s", 0, 0]] },
+    { id: "double",       tier: 0, w: 2,  o: [["s", 0, 0], ["s", 1, 0]] },
+    { id: "block",        tier: 0, w: 1,  o: [["b", 0, 0, 1, 1]] },
+    { id: "ledge",        tier: 0, w: 4,  o: [["b", 0, 0, 4, 1]] },
+    { id: "pair",         tier: 0, w: 5,  o: [["s", 0, 0], ["s", 4, 0]] },
+    { id: "ledge-drop",   tier: 1, w: 5,  o: [["b", 0, 0, 3, 1], ["s", 3, 0], ["s", 4, 0]] },
+    { id: "hop",          tier: 1, w: 4,  o: [["s", 0, 0], ["s", 3, 0]] },
+    { id: "block-moat",   tier: 1, w: 4,  o: [["b", 0, 0, 1, 1], ["s", 1, 0], ["s", 2, 0], ["b", 3, 0, 1, 1]] },
+    { id: "ledge-spike",  tier: 1, w: 7,  o: [["b", 0, 0, 7, 1], ["s", 3, 1]] },
+    { id: "step-up",      tier: 1, w: 7,  o: [["b", 0, 0, 3, 1], ["b", 3, 0, 4, 2]] },
+    { id: "triple",       tier: 2, w: 3,  o: [["s", 0, 0], ["s", 1, 0], ["s", 2, 0]] },
+    { id: "stairs",       tier: 2, w: 10, o: [["b", 0, 0, 3, 1], ["b", 3, 0, 3, 2], ["b", 6, 0, 4, 3], ["s", 10, 0], ["s", 11, 0]] },
+    { id: "ledge-double", tier: 2, w: 8,  o: [["b", 0, 0, 8, 1], ["s", 3, 1], ["s", 4, 1]] },
+    { id: "towers",       tier: 2, w: 9,  o: [["b", 0, 0, 2, 1], ["s", 2, 0], ["s", 3, 0], ["b", 4, 0, 2, 1], ["s", 6, 0], ["s", 7, 0], ["b", 8, 0, 1, 1]] },
+    { id: "double-double", tier: 2, w: 7,  o: [["s", 0, 0], ["s", 1, 0], ["s", 5, 0], ["s", 6, 0]] }
+  ];
+
+  function rng(seed) {
+    let s = seed >>> 0;
+    return function () {
+      s += 0x6D2B79F5;
+      let t = s;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function tierAt(x) { return x < 120 ? 0 : x < 360 ? 1 : 2; }
+  function gapAt(x, r) {
+    const min = x < 120 ? 5 : x < 360 ? 4 : 3.5;
+    const span = x < 120 ? 5 : x < 360 ? 4 : 3;
+    return min + Math.floor(r() * (span + 1));
+  }
+
+  /* Builds the course ahead of x. Same seed gives the same course every attempt, for every player.
+     Each new chunk is checked with a small solver before it is kept, so the course can always be beaten. */
+  function Course(seed, allowed) {
+    this.r = rng(seed);
+    this.objs = [];
+    this.end = 14; // empty runway at the start
+    this.allowed = allowed || null;
+    this.frontier = [newPlayer(0)];
+  }
+  function stateKey(p) { return Math.round(p.y * 200) + "," + Math.round(p.vy * 20) + "," + (p.grounded ? 1 : 0); }
+  Course.prototype.advance = function (states, toX) {
+    // run every reachable state forward (jump or not, whenever grounded) until x reaches toX
+    while (states.length && states[0].x < toX) {
+      const next = new Map();
+      for (const s of states) {
+        const opts = s.grounded ? [false, true] : [false];
+        for (const j of opts) {
+          const n = step({ x: s.x, y: s.y, vy: s.vy, grounded: s.grounded, dead: false }, this, j);
+          if (!n.dead) next.set(stateKey(n), n);
+        }
+      }
+      states = Array.from(next.values());
+      if (states.length > 48) states = states.slice(0, 48);
+    }
+    return states;
+  };
+  Course.prototype.place = function (c, base) {
+    const added = [];
+    let right = 0;
+    c.o.forEach(o => {
+      if (o[0] === "s") { added.push({ t: "s", x: base + o[1], y: o[2] }); right = Math.max(right, o[1] + 1); }
+      else { added.push({ t: "b", x: base + o[1], y: o[2], w: o[3], h: o[4] }); right = Math.max(right, o[1] + o[3]); }
+    });
+    return { added: added, right: Math.max(c.w, right) };
+  };
+  Course.prototype.ensure = function (x) {
+    while (this.end < x) {
+      const tier = tierAt(this.end);
+      const pool = CHUNKS.filter(c => c.tier <= tier && (!this.allowed || this.allowed.indexOf(c.id) !== -1));
+      const weights = pool.map(c => c.tier === tier ? 3 : 1);
+      let pick = this.r() * weights.reduce((a, b) => a + b, 0), c = pool[0];
+      for (let i = 0; i < pool.length; i++) { pick -= weights[i]; if (pick <= 0) { c = pool[i]; break; } }
+      const base = this.end;
+      const pl = this.place(c, base);
+      let gap = gapAt(this.end, this.r), kept = false;
+      for (let tries = 0; tries < 6 && !kept; tries++) {
+        const before = this.objs.length;
+        Array.prototype.push.apply(this.objs, pl.added);
+        this.objs.sort((a, b) => a.x - b.x);
+        const survivors = this.advance(this.frontier.slice(), base + pl.right + gap - 2);
+        if (survivors.length) { this.frontier = survivors; this.end = base + pl.right + gap; kept = true; }
+        else {
+          this.objs = this.objs.filter(o => pl.added.indexOf(o) === -1);
+          if (tries === 2) { /* give the player a longer runway before this chunk */ this.frontier = this.advance(this.frontier.slice(), base + 4); this.end = base + 6; break; }
+          gap += 1;
+        }
+        if (!kept && this.objs.length !== before) this.objs.length = before;
+      }
+      if (!kept && this.end === base) { this.frontier = this.advance(this.frontier.slice(), base + 4); this.end = base + 6; }
+    }
+  };
+  Course.prototype.near = function (x0, x1) {
+    const a = this.objs, out = [];
+    let lo = 0, hi = a.length;
+    const from = x0 - 10;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid].x < from) lo = mid + 1; else hi = mid; }
+    for (let i = lo; i < a.length && a[i].x < x1; i++) { const o = a[i]; if (o.x + (o.w || 1) > x0) out.push(o); }
+    return out;
+  };
+  Course.prototype.trim = function (x) {
+    if (this.objs.length > 400) this.objs = this.objs.filter(o => o.x + (o.w || 1) > x - 20);
+  };
+
+  function spikeTri(o) {
+    const cx = o.x + 0.5, cy = o.y + 1 / 3, k = P.spikeScale;
+    return [[o.x, o.y], [o.x + 1, o.y], [o.x + 0.5, o.y + 1]].map(p => [cx + (p[0] - cx) * k, cy + (p[1] - cy) * k]);
+  }
+
+  function boxHitsTri(bx0, by0, bx1, by1, tri) {
+    const box = [[bx0, by0], [bx1, by0], [bx1, by1], [bx0, by1]];
+    const axes = [[1, 0], [0, 1]];
+    for (let i = 0; i < 3; i++) {
+      const a = tri[i], b = tri[(i + 1) % 3];
+      axes.push([-(b[1] - a[1]), b[0] - a[0]]);
+    }
+    for (const ax of axes) {
+      let bmin = Infinity, bmax = -Infinity, tmin = Infinity, tmax = -Infinity;
+      for (const p of box) { const d = p[0] * ax[0] + p[1] * ax[1]; bmin = Math.min(bmin, d); bmax = Math.max(bmax, d); }
+      for (const p of tri) { const d = p[0] * ax[0] + p[1] * ax[1]; tmin = Math.min(tmin, d); tmax = Math.max(tmax, d); }
+      if (bmax <= tmin || tmax <= bmin) return false;
+    }
+    return true;
+  }
+
+  function newPlayer(x) { return { x: x, y: 0, vy: 0, grounded: true, dead: false }; }
+
+  /* One fixed physics step. jump = true means "jump now if you can". Returns the player (mutated). */
+  function step(pl, course, jump) {
+    const dt = P.dt, S = P.size;
+    if (pl.dead) return pl;
+    if (pl.grounded && jump) { pl.vy = P.jumpV; pl.grounded = false; }
+
+    const prevY = pl.y;
+    pl.x += P.speed * dt;
+    const near = course.near(pl.x - 1, pl.x + 2);
+    const blocks = near.filter(o => o.t === "b");
+
+    // walking or flying into a block's side
+    for (const b of blocks) {
+      const top = b.y + b.h;
+      const overlapX = pl.x + S > b.x + 1e-6 && pl.x < b.x + b.w - 1e-6;
+      const overlapY = pl.y < top - 1e-6 && pl.y + S > b.y + 1e-6;
+      if (overlapX && overlapY) {
+        if (top - pl.y <= P.stepTol && pl.vy <= 0.5) { pl.y = top; pl.vy = 0; pl.grounded = true; }
+        else { pl.dead = true; return pl; }
+      }
+    }
+
+    // support check: walk off an edge and you fall
+    if (pl.grounded) {
+      let support = pl.y <= 1e-6;
+      if (!support) for (const b of blocks) {
+        if (Math.abs(b.y + b.h - pl.y) < 1e-4 && pl.x + S > b.x + 0.04 && pl.x < b.x + b.w - 0.04) { support = true; break; }
+      }
+      if (!support) { pl.grounded = false; pl.vy = 0; }
+    }
+
+    if (!pl.grounded) {
+      pl.vy -= P.gravity * dt;
+      pl.y += pl.vy * dt;
+      if (pl.vy <= 0) {
+        let land = pl.y <= 0 ? 0 : null;
+        for (const b of blocks) {
+          const top = b.y + b.h;
+          if (pl.x + S > b.x + 0.04 && pl.x < b.x + b.w - 0.04 && prevY >= top - 1e-6 && pl.y <= top) land = Math.max(land === null ? -1 : land, top);
+        }
+        if (land !== null) { pl.y = land; pl.vy = 0; pl.grounded = true; }
+      } else {
+        for (const b of blocks) {
+          if (pl.x + S > b.x + 0.04 && pl.x < b.x + b.w - 0.04 && prevY + S <= b.y + 1e-6 && pl.y + S > b.y) { pl.dead = true; return pl; }
+        }
+      }
+    }
+
+    const sh = P.shrink;
+    for (const o of near) {
+      if (o.t !== "s") continue;
+      if (boxHitsTri(pl.x + sh, pl.y + sh, pl.x + S - sh, pl.y + S - sh, spikeTri(o))) { pl.dead = true; return pl; }
+    }
+    return pl;
+  }
+
+  const api = { P: P, CHUNKS: CHUNKS, Course: Course, newPlayer: newPlayer, step: step, spikeTri: spikeTri, rng: rng };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.HMNGame = api;
+})(this);
+
+</script>
+<script>
+(function () {
+  "use strict";
+  const G = window.HMNGame, P = G.P;
+  const SEED = 2026;
+  const LS = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+  const K_NAME = "hmn.arcade.name", K_TOP = "hmn.arcade.top", K_ATTEMPTS = "hmn.arcade.attempts";
+
+  const $ = id => document.getElementById(id);
+  const root = $("arcade");
+  if (!root) return;
+  const stage = $("ar-stage"), cv = $("ar-cv"), ctx = cv.getContext("2d");
+  const startCard = $("ar-start"), nameIn = $("ar-name"), topLine = $("ar-top-line");
+  const hudAttempt = $("ar-attempt"), hudDist = $("ar-dist"), hudTop = $("ar-top"), hudTopName = $("ar-top-name");
+  const fill = $("ar-fill"), trackNote = $("ar-note"), jumpBtn = $("ar-jump"), whoLine = $("ar-who");
+  const API = String((window.SITE_CONFIG || {}).apiUrl || "").trim();
+  const reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+  let course = null;
+
+  let top = null;
+  try { top = JSON.parse(LS.get(K_TOP) || "null"); } catch (e) { top = null; }
+  if (!top || typeof top.score !== "number") top = null;
+  let attempts = parseInt(LS.get(K_ATTEMPTS) || "0", 10) || 0;
+  let player = null, name = "", mode = "name"; // name | play | dead
+  let held = false, buffer = 0, acc = 0, last = 0, deadT = 0, rot = 0, shake = 0, banner = 0, newTop = false;
+  let particles = [];
+  let W = 0, H = 0, U = 32, groundY = 0, dpr = 1;
+
+  /* ---------- course builds itself a little at a time so play never stutters ---------- */
+  function buildAhead() {
+    if (!course) return;
+    const want = Math.max(player ? player.x + 160 : 160, (top ? top.score : 0) + 120);
+    if (course.end < want) course.ensure(course.end + 1);
+    setTimeout(buildAhead, course.end < want ? 0 : 400);
+  }
+
+  /* ---------- sizing ---------- */
+  function resize() {
+    const r = stage.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = Math.round(r.width); H = Math.round(r.height);
+    cv.width = W * dpr; cv.height = H * dpr;
+    cv.style.width = W + "px"; cv.style.height = H + "px";
+    U = H / 7.4;
+    groundY = H - U * 1.5;
+    draw();
+  }
+
+  /* ---------- HUD ---------- */
+  function setText(el, t) { if (el.textContent !== t) el.textContent = t; }
+  function hud() {
+    const d = player ? Math.max(0, Math.floor(player.x)) : 0;
+    setText(hudAttempt, String(Math.max(attempts, 1)));
+    setText(hudDist, d + " m");
+    setText(hudTop, top ? top.score + " m" : "\u2013");
+    setText(hudTopName, top ? top.name : "No score yet");
+    const goal = top ? Math.max(top.score, 50) : 200;
+    fill.style.width = Math.min(100, d / goal * 100) + "%";
+    const beating = top && d > top.score;
+    root.classList.toggle("beating", !!beating);
+    setText(trackNote, beating ? "New top score" : top ? (Math.max(0, top.score - d)) + " m to beat " + top.name : "Set the first top score");
+  }
+
+  /* ---------- game flow ---------- */
+  function startAttempt() {
+    attempts++; LS.set(K_ATTEMPTS, String(attempts));
+    player = G.newPlayer(0);
+    rot = 0; acc = 0; buffer = 0; banner = 1.4; newTop = false; particles = [];
+    mode = "play";
+    hud();
+  }
+
+  let pending = 0;
+  function submit(score) {
+    if (!API) return;
+    pending = Math.max(pending, score);
+    const token = LS.get("seats.key") || "";
+    fetch(API, { method: "POST", body: JSON.stringify({ action: "score", name: name, score: score, token: token }) })
+      .then(r => r.json())
+      .then(data => { pending = 0; if (data && "arcade" in data) setTop(data.arcade); })
+      .catch(() => { setTimeout(() => { if (pending === score) { pending = 0; submit(score); } }, 6000); });
+  }
+  function setTop(t) {
+    const valid = t && typeof t.score === "number" && t.name;
+    if (pending && (!valid || t.score < pending)) return; // our new top is still on its way to the sheet
+    top = valid ? { name: String(t.name), score: Math.floor(t.score) } : null;
+    LS.set(K_TOP, JSON.stringify(top));
+    if (!startCard.hidden) topLine.textContent = top ? "Top score: " + top.score + " m by " + top.name : "No top score yet. Set the first one.";
+    hud();
+  }
+
+  function die() {
+    mode = "dead"; deadT = 0.85; shake = reduceMotion ? 0 : 0.22;
+    const d = Math.floor(player.x);
+    if (!top || d > top.score) {
+      if (d > 0) { top = { name: name, score: d }; LS.set(K_TOP, JSON.stringify(top)); newTop = true; submit(d); }
+    }
+    const cx = player.x + 0.5, cy = player.y + 0.5;
+    for (let i = 0; i < (reduceMotion ? 0 : 14); i++) {
+      const a = Math.random() * Math.PI * 2, s = 3 + Math.random() * 7;
+      particles.push({ x: cx, y: cy, vx: Math.cos(a) * s, vy: Math.sin(a) * s + 3, life: 0.7, size: 0.12 + Math.random() * 0.18 });
+    }
+    hud();
+  }
+
+  function begin() {
+    const n = nameIn.value.trim().slice(0, 20);
+    if (!n) { nameIn.focus(); nameIn.setAttribute("aria-invalid", "true"); return; }
+    nameIn.removeAttribute("aria-invalid");
+    name = n; LS.set(K_NAME, n);
+    setText(whoLine, "Playing as " + n);
+    startCard.hidden = true;
+    jumpBtn.disabled = false;
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    startAttempt();
+  }
+
+  function showStart() {
+    mode = "name"; held = false;
+    startCard.hidden = false;
+    jumpBtn.disabled = true;
+    nameIn.value = name || LS.get(K_NAME) || LS.get("seats.myname") || "";
+    topLine.textContent = top ? "Top score: " + top.score + " m by " + top.name : "No top score yet. Set the first one.";
+  }
+
+  /* ---------- input: one button, tap to jump, hold to keep jumping ---------- */
+  function press() { if (mode === "name") return; held = true; buffer = 0.12; jumpBtn.classList.add("down"); }
+  function release() { held = false; jumpBtn.classList.remove("down"); }
+  jumpBtn.addEventListener("pointerdown", e => { e.preventDefault(); jumpBtn.setPointerCapture && jumpBtn.setPointerCapture(e.pointerId); press(); });
+  jumpBtn.addEventListener("pointerup", release);
+  jumpBtn.addEventListener("pointercancel", release);
+  jumpBtn.addEventListener("lostpointercapture", release);
+  jumpBtn.addEventListener("contextmenu", e => e.preventDefault());
+  cv.addEventListener("pointerdown", e => { e.preventDefault(); press(); });
+  cv.addEventListener("pointerup", release);
+  cv.addEventListener("pointercancel", release);
+  window.addEventListener("keydown", e => {
+    if (root.hidden) return;
+    if (mode === "name") { if (e.key === "Enter" && document.activeElement === nameIn) { e.preventDefault(); begin(); } return; }
+    if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w" || e.key === "W") { e.preventDefault(); if (!e.repeat) press(); }
+  });
+  window.addEventListener("keyup", e => { if (root.hidden) return; if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w" || e.key === "W") release(); });
+  $("ar-go").addEventListener("click", begin);
+  $("ar-change").addEventListener("click", showStart);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) { release(); if (mode !== "name") showStart(); } last = 0; });
+
+  /* ---------- loop ---------- */
+  function frame(t) {
+    const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
+    last = t;
+    if (mode === "play") {
+      acc += dt;
+      while (acc >= P.dt && mode === "play") {
+        acc -= P.dt;
+        if (course.end < player.x + 30) course.ensure(player.x + 30);
+        const wasGrounded = player.grounded;
+        const want = held || buffer > 0;
+        G.step(player, course, want);
+        if (wasGrounded && !player.grounded && player.vy > 0) buffer = 0;
+        buffer = Math.max(0, buffer - P.dt);
+        if (!player.grounded) rot += (90 / (2 * P.jumpV / P.gravity)) * P.dt;
+        else rot = Math.round(rot / 90) * 90;
+        if (player.dead) die();
+      }
+      banner = Math.max(0, banner - dt);
+      hud();
+    } else if (mode === "dead") {
+      deadT -= dt;
+      if (deadT <= 0) startAttempt();
+    }
+    particles.forEach(p => { p.vy -= 22 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; });
+    particles = particles.filter(p => p.life > 0);
+    shake = Math.max(0, shake - dt);
+    draw();
+    if (running) requestAnimationFrame(frame); else last = 0;
+  }
+
+  /* ---------- drawing ---------- */
+  const C = { black: "#12110f", coal: "#262221", olive: "#52513f", khaki: "#aeac94", bone: "#e6e5d3", ember: "#fd9800", rust: "#dd4b00", gold: "#ffb447", signal: "#ffdf00" };
+  const motes = Array.from({ length: 18 }, (_, i) => ({ x: (i * 37.3) % 60, y: 1.5 + (i * 2.17) % 5, r: i % 3 ? 1.2 : 2 }));
+
+  function draw() {
+    if (!W) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const camX = (player ? player.x : 0) - (W * 0.28) / U;
+    const sx = x => (x - camX) * U, sy = y => groundY - y * U;
+    let ox = 0, oy = 0;
+    if (shake > 0) { ox = (Math.random() - 0.5) * 8 * shake / 0.22; oy = (Math.random() - 0.5) * 8 * shake / 0.22; }
+    ctx.save(); ctx.translate(ox, oy);
+
+    // stage: projector beam from the top right
+    ctx.fillStyle = C.black; ctx.fillRect(-10, -10, W + 20, H + 20);
+    const beam = ctx.createLinearGradient(W, 0, W * 0.35, groundY);
+    beam.addColorStop(0, "rgba(255,223,0,0.30)"); beam.addColorStop(0.55, "rgba(253,152,0,0.08)"); beam.addColorStop(1, "rgba(253,152,0,0)");
+    ctx.fillStyle = beam;
+    ctx.beginPath(); ctx.moveTo(W, 0); ctx.lineTo(W, H * 0.12); ctx.lineTo(W * 0.42, groundY); ctx.lineTo(W * 0.12, groundY); ctx.closePath(); ctx.fill();
+    const lamp = ctx.createRadialGradient(W, 0, 0, W, 0, H * 0.7);
+    lamp.addColorStop(0, "rgba(255,180,71,0.45)"); lamp.addColorStop(1, "rgba(255,180,71,0)");
+    ctx.fillStyle = lamp; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "rgba(255,223,0,0.35)";
+    for (const m of motes) {
+      const px = ((m.x - camX * 0.25) % 60 + 60) % 60 * U * 0.6;
+      if (px < W) { ctx.beginPath(); ctx.arc(px, sy(m.y), m.r, 0, Math.PI * 2); ctx.fill(); }
+    }
+
+    // floor: a film strip running under the course
+    ctx.fillStyle = C.coal; ctx.fillRect(0, groundY, W, H - groundY);
+    ctx.fillStyle = C.black;
+    const hole = U * 0.34, pitch = U * 0.8, offs = ((-camX * U) % pitch + pitch) % pitch;
+    for (let x = offs - pitch; x < W; x += pitch) {
+      ctx.fillRect(x, groundY + U * 0.28, hole, hole * 0.75);
+      ctx.fillRect(x, H - U * 0.28 - hole * 0.75, hole, hole * 0.75);
+    }
+    ctx.fillStyle = C.bone; ctx.fillRect(0, groundY - 1, W, 2);
+
+    // course
+    const objs = course ? course.near(camX - 2, camX + W / U + 2) : [];
+    ctx.lineJoin = "round";
+    for (const o of objs) {
+      if (o.t === "b") {
+        const x = sx(o.x), y = sy(o.y + o.h), w = o.w * U, h = o.h * U;
+        ctx.fillStyle = C.coal; ctx.fillRect(x, y, w, h);
+        ctx.strokeStyle = C.bone; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+        ctx.strokeStyle = "rgba(230,229,211,0.18)"; ctx.lineWidth = 1;
+        for (let i = 1; i < o.w; i++) { ctx.beginPath(); ctx.moveTo(x + i * U, y + 3); ctx.lineTo(x + i * U, y + h - 3); ctx.stroke(); }
+        for (let j = 1; j < o.h; j++) { ctx.beginPath(); ctx.moveTo(x + 3, y + j * U); ctx.lineTo(x + w - 3, y + j * U); ctx.stroke(); }
+      }
+    }
+    for (const o of objs) {
+      if (o.t === "s") {
+        const x = sx(o.x), y = sy(o.y);
+        ctx.beginPath(); ctx.moveTo(x + 2, y - 1); ctx.lineTo(x + U - 2, y - 1); ctx.lineTo(x + U / 2, y - U + 2); ctx.closePath();
+        ctx.fillStyle = C.black; ctx.fill();
+        ctx.strokeStyle = C.bone; ctx.lineWidth = 2; ctx.stroke();
+      }
+    }
+
+    // player
+    if (player && mode !== "dead") {
+      const cx = sx(player.x + 0.5), cy = sy(player.y + 0.5), s = U;
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot * Math.PI / 180);
+      const g = ctx.createRadialGradient(0, 0, s * 0.05, 0, 0, s * 0.7);
+      g.addColorStop(0, C.gold); g.addColorStop(1, C.ember);
+      ctx.fillStyle = g; ctx.fillRect(-s / 2, -s / 2, s, s);
+      ctx.strokeStyle = C.rust; ctx.lineWidth = Math.max(2, s * 0.08); ctx.strokeRect(-s / 2 + ctx.lineWidth / 2, -s / 2 + ctx.lineWidth / 2, s - ctx.lineWidth, s - ctx.lineWidth);
+      ctx.restore();
+    } else if (!player) {
+      const cx = sx(0.5), cy = sy(0.5), s = U;
+      ctx.fillStyle = C.ember; ctx.fillRect(cx - s / 2, cy - s / 2, s, s);
+      ctx.strokeStyle = C.rust; ctx.lineWidth = Math.max(2, s * 0.08); ctx.strokeRect(cx - s / 2 + 1.5, cy - s / 2 + 1.5, s - 3, s - 3);
+    }
+    for (const p of particles) {
+      ctx.globalAlpha = Math.max(0, p.life / 0.7);
+      ctx.fillStyle = Math.random() < 0.5 ? C.ember : C.rust;
+      ctx.fillRect(sx(p.x) - p.size * U / 2, sy(p.y) - p.size * U / 2, p.size * U, p.size * U);
+    }
+    ctx.globalAlpha = 1;
+
+    // attempt banner, the way the original greets every retry
+    if (player && (banner > 0 || mode === "dead")) {
+      const a = mode === "dead" ? 1 : Math.min(1, banner / 0.4);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = C.bone; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.font = "600 " + Math.round(U * 1.1) + "px Teko, 'Arial Narrow', sans-serif";
+      const msg = mode === "dead" ? (newTop ? "New top score" : Math.floor(player.x) + " m") : "Attempt " + attempts;
+      ctx.fillText(msg.toUpperCase(), W / 2, H * 0.28);
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  }
+
+  let running = false;
+  function show() {
+    if (root.hidden === false && running) return;
+    root.hidden = false;
+    if (!course) { course = new G.Course(SEED); course.ensure(60); buildAhead(); }
+    resize();
+    if (mode === "name") showStart();
+    hud();
+    if (!running) { running = true; last = 0; requestAnimationFrame(frame); }
+  }
+  function hide() {
+    if (mode !== "name") showStart();
+    running = false;
+    root.hidden = true;
+  }
+
+  window.addEventListener("resize", () => { if (!root.hidden) resize(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!root.hidden) draw(); });
+  name = LS.get(K_NAME) || "";
+  window.HMNArcade = { show: show, hide: hide, setTop: setTop };
+})();
+
+</script>
 <script>
 (function(){
 "use strict";
@@ -482,6 +1058,7 @@ async function loadSeats(){
       if (!data || !data.ok) throw new Error("bad");
       applyList(data.seats);
       cacheSeats(data.seats);
+      if ("arcade" in data && window.HMNArcade) window.HMNArcade.setTop(data.arcade);
       haveSeatData = true;
     } else {
       let u = CSV;
@@ -508,6 +1085,7 @@ async function send(payload, okMsg){
     const res = await fetch(API, { method: "POST", body: JSON.stringify(Object.assign({ token: TOKEN, film: m.id }, payload)) });
     const data = await res.json();
     if (data && data.seats) { applyList(data.seats); cacheSeats(data.seats); haveSeatData = true; seatStatus = "ok"; lastLoad = Date.now(); }
+    if (data && "arcade" in data && window.HMNArcade) window.HMNArcade.setTop(data.arcade);
     if (data && data.ok) { ok = true; if (okMsg) toast(okMsg); }
     else toast((data && data.message) || "That didn\u2019t go through. Try again.");
   } catch(e) {
@@ -932,6 +1510,7 @@ function render(){
   fitGhost();
   const body = document.getElementById("body-slot");
   if (body) body.innerHTML = missing ? '' : m ? movieBodyHTML(m) : homeBodyHTML();
+  if (window.HMNArcade) { if (!m && !missing) window.HMNArcade.show(); else window.HMNArcade.hide(); }
   ["prev", "qr"].forEach(id => { const d = document.getElementById(id); if (d && open[id]) d.open = true; });
 }
 
