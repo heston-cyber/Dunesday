@@ -487,13 +487,13 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     };
   }
 
-  function tierAt(x) { return x < 112 ? 0 : x < 288 ? 1 : x < 464 ? 2 : x < 608 ? 3 : 4; }
+  function tierAt(x) { return x < 80 ? 0 : x < 208 ? 1 : x < 352 ? 2 : x < 448 ? 3 : 4; }
   /* stretches with no obstacles, lined up with the music (1 bar = 12.9 m) */
-  const CLEAR = [[407, 464], [576, 608], [783, 816]]; // black hole calm, pull-in, white-out into limbo (16 m music bars)
+  const CLEAR = [[311, 352], [416, 448], [575, 608]]; // black hole calm, pull-in, white-out into limbo (16 m music bars)
   function clearZoneHit(a, b) { for (const z of CLEAR) if (a < z[1] && b > z[0]) return z; return null; }
   function gapAt(x, r) {
-    const min = x < 112 ? 5 : x < 288 ? 4 : 3.5;
-    const span = x < 112 ? 5 : x < 288 ? 4 : 3;
+    const min = x < 80 ? 5 : x < 208 ? 4 : 3.5;
+    const span = x < 80 ? 5 : x < 208 ? 4 : 3;
     return min + Math.floor(r() * (span + 1));
   }
 
@@ -501,7 +501,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
      Each new chunk is checked with a small solver before it is kept, so the course can always be beaten. */
   /* The fixed course (seed 2026) comes pre-built out to ~3,000 m, so phones never generate it mid-run.
      Past that, the builder below carries on from a clear runway. */
-  const BAKED = {"seed": 2026, "end": 3014.5, "data": "b140,0,1,1;b70,0,4,1;s120,0;b70,0,4,1;s130,0;s10,0;s60,0;s90,0;s10,0;s60,0;b70,0,1,1;b110,0,1,1;s60,0;s10,0;b70,0,4,1;b140,0,3,1;b30,0,4,2;b110,0,3,1;s30,0;s10,0;s60,0;s30,0;b60,0,1,1;s10,0;s10,0;b10,0,1,1;b90,0,3,1;s30,0;s10,0;s90,0;s10,0;b50,0,3,1;s30,0;s10,0;b80,0,7,1;s30,1;b90,0,3,1;b30,0,4,2;b110,0,1,1;s10,0;s10,0;b10,0,1,1;s60,0;b90,0,4,1;b120,0,7,1;s30,1;s90,0;s30,0;b110,0,3,1;b30,0,4,2;b110,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;s55,0;s10,0;s10,0;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b65,0,8,1;s30,1;s10,1;b105,0,3,1;b30,0,4,2;s75,0;s40,0;s45,0;s10,0;s40,0;s10,0;s75,0;s40,0;s45,0;s10,0;s10,0;b65,0,1,1;s10,0;s10,0;b10,0,1,1;s625,0;s10,0;b75,1,5,1;s70,0;b75,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b65,1,6,1;b95,0,8,1;b30,2,4,1;b115,0,8,1;b30,2,4,1;s115,0;s10,0;b75,0,8,1;b30,2,4,1;s535,0;b45,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,8,1;b30,2,4,1;b85,0,3,1;s30,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b55,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b85,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b65,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b45,0,8,1;b30,2,4,1;b85,2,6,1;v20,1;v10,1;b85,0,8,1;s30,1;s10,1;b75,1,6,1;b440,1,5,1;s70,0;b45,1,5,1;s70,0;b115,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,1,5,1;s70,0;b105,0,2,1;b20,0,7,2;s30,2;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;s30,0;s45,0;s10,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,2,6,1;v20,1;v10,1;b95,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,2,6,1;v20,1;v10,1;b85,0,7,1;s30,1;s85,0;b50,1,4,1;b85,0,1,1;s10,0;s10,0;b10,0,1,1;b45,1,6,1;s95,0;b50,1,4,1;s85,0;s10,0;s10,0;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;s125,0;s30,0;b45,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,9,1;b20,3,5,1;v10,2;v20,2;s95,0;s10,0;s10,0;b55,1,5,1;s70,0;b75,0,8,1;b30,2,4,1;b95,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s55,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b85,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b75,0,7,1;s30,1;b75,1,6,1;b95,0,1,1;s10,0;s10,0;b10,0,1,1;b45,1,6,1;b95,2,6,1;v20,1;v10,1;b75,0,4,1;b95,0,4,1;s85,0;s40,0;b55,1,6,1;b105,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,0,9,1;b20,3,5,1;v10,2;v20,2;s85,0;b50,1,4,1;b135,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,1,6,1;b115,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,0,8,1;b30,2,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,1,5,1;s70,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s65,0;s10,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,2,6,1;v20,1;v10,1;b65,1,6,1;s115,0;b50,1,4,1;b105,1,6,1;b95,2,6,1;v20,1;v10,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,9,1;b20,3,5,1;v10,2;v20,2;b95,2,6,1;v20,1;v10,1;b85,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s55,0;b50,1,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;s10,0;b45,0,8,1;b30,2,4,1;s85,0;s30,0;b55,0,1,1;s10,0;s10,0;b10,0,1,1;s65,0;s30,0;b75,0,8,1;b30,2,4,1;b95,0,8,1;b30,2,4,1;b85,0,3,1;b30,0,4,2;b95,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,9,1;b20,3,5,1;v10,2;v20,2;s85,0;b50,1,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,1,5,1;s70,0;b115,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b45,0,3,1;s30,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,2,6,1;v20,1;v10,1;b95,0,1,1;b65,2,6,1;v20,1;v10,1;s65,0;s30,0;b55,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,2,1;b20,0,7,2;s30,2;b75,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,3,1;b30,0,4,2;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b45,2,6,1;v20,1;v10,1;b95,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,0,4,1;b105,1,5,1;s70,0;s55,0;b50,1,4,1;s85,0;s10,0;s40,0;s10,0;s65,0;b50,1,4,1;b95,0,3,1;b30,0,4,2;b85,0,9,1;b20,3,5,1;v10,2;v20,2;s105,0;b50,1,4,1;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,2,1;b20,0,7,2;s30,2;s75,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,1,6,1;b125,1,5,1;s70,0;b55,1,6,1;b95,0,8,1;b30,2,4,1;b95,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b65,0,4,1;s85,0;b50,1,4,1;b85,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,3,1;s30,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,0,1,1;b45,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b105,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s45,0;s10,0;s10,0;b65,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,3,1;s30,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b115,0,2,1;b20,0,7,2;s30,2;b165,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;b50,1,4,1;s105,0;b50,1,4,1;b105,0,8,1;b30,2,4,1;b95,0,3,1;s30,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b85,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,1,5,1;s70,0;b45,0,9,1;b20,3,5,1;v10,2;v20,2;b85,0,1,1;s10,0;s10,0;b10,0,1,1;s45,0;b50,1,4,1;b135,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0"};
+  const BAKED = {"seed": 2026, "end": 3011.5, "data": "b140,0,1,1;b70,0,4,1;s120,0;b70,0,4,1;s130,0;s10,0;s60,0;s90,0;s10,0;s60,0;s70,0;s30,0;b90,0,1,1;s10,0;s10,0;b10,0,1,1;s50,0;s40,0;b60,0,7,1;s30,1;b120,0,3,1;b30,0,4,2;b110,0,3,1;s30,0;s10,0;s60,0;s30,0;b60,0,1,1;s10,0;s10,0;b10,0,1,1;b90,0,3,1;s30,0;s10,0;s90,0;s10,0;b50,0,3,1;s30,0;s10,0;b80,0,7,1;s30,1;s90,0;s10,0;s40,0;s10,0;b65,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;s55,0;s75,0;s40,0;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;s55,0;s10,0;s10,0;s45,0;s10,0;s40,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b475,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,0,2,1;b20,0,7,2;s30,2;b105,1,5,1;s70,0;b65,0,8,1;b30,2,4,1;s415,0;s10,0;s10,0;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b105,0,2,1;b20,0,7,2;s30,2;b105,0,9,1;b20,3,5,1;v10,2;v20,2;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b75,0,8,1;b30,2,4,1;s105,0;s10,0;b455,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,0,2,1;b20,0,7,2;s30,2;s75,0;s10,0;s40,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b45,0,2,1;b20,0,7,2;s30,2;b105,0,9,1;b20,3,5,1;v10,2;v20,2;b75,1,6,1;b115,0,9,1;b20,3,5,1;v10,2;v20,2;b75,2,6,1;v20,1;v10,1;b95,0,1,1;b65,0,1,1;s10,0;s10,0;b10,0,1,1;b65,2,6,1;v20,1;v10,1;b65,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b55,0,3,1;b30,0,4,2;b105,1,5,1;s70,0;b45,1,5,1;s70,0;b115,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,1,5,1;s70,0;b105,0,2,1;b20,0,7,2;s30,2;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;s30,0;s45,0;s10,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,2,6,1;v20,1;v10,1;b95,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,2,6,1;v20,1;v10,1;b85,0,7,1;s30,1;s85,0;b50,1,4,1;b85,0,1,1;s10,0;s10,0;b10,0,1,1;b45,1,6,1;s95,0;b50,1,4,1;s85,0;s10,0;s10,0;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;s125,0;s30,0;b45,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,9,1;b20,3,5,1;v10,2;v20,2;s95,0;s10,0;s10,0;b55,1,5,1;s70,0;b75,0,8,1;b30,2,4,1;b95,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s55,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b85,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b75,0,7,1;s30,1;b75,1,6,1;b95,0,1,1;s10,0;s10,0;b10,0,1,1;b45,1,6,1;b95,2,6,1;v20,1;v10,1;b75,0,4,1;b95,0,4,1;s85,0;s40,0;b55,1,6,1;b105,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,0,9,1;b20,3,5,1;v10,2;v20,2;s85,0;b50,1,4,1;b135,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,1,6,1;b115,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,0,8,1;b30,2,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,1,5,1;s70,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s65,0;s10,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,2,6,1;v20,1;v10,1;b65,1,6,1;s115,0;b50,1,4,1;b105,1,6,1;b95,2,6,1;v20,1;v10,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,9,1;b20,3,5,1;v10,2;v20,2;b95,2,6,1;v20,1;v10,1;b85,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s55,0;b50,1,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;s10,0;b45,0,8,1;b30,2,4,1;s85,0;s30,0;b55,0,1,1;s10,0;s10,0;b10,0,1,1;s65,0;s30,0;b75,0,8,1;b30,2,4,1;b95,0,8,1;b30,2,4,1;b85,0,3,1;b30,0,4,2;b95,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,9,1;b20,3,5,1;v10,2;v20,2;s85,0;b50,1,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,1,5,1;s70,0;b115,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b45,0,3,1;s30,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,2,6,1;v20,1;v10,1;b95,0,1,1;b65,2,6,1;v20,1;v10,1;s65,0;s30,0;b55,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,2,1;b20,0,7,2;s30,2;b75,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,3,1;b30,0,4,2;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b45,2,6,1;v20,1;v10,1;b95,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,0,4,1;b105,1,5,1;s70,0;s55,0;b50,1,4,1;s85,0;s10,0;s40,0;s10,0;s65,0;b50,1,4,1;b95,0,3,1;b30,0,4,2;b85,0,9,1;b20,3,5,1;v10,2;v20,2;s105,0;b50,1,4,1;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,2,1;b20,0,7,2;s30,2;s75,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,1,6,1;b125,1,5,1;s70,0;b55,1,6,1;b95,0,8,1;b30,2,4,1;b95,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b65,0,4,1;s85,0;b50,1,4,1;b85,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,3,1;s30,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,0,1,1;b45,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b105,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s45,0;s10,0;s10,0;b65,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,3,1;s30,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b115,0,2,1;b20,0,7,2;s30,2;b165,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;b50,1,4,1;s105,0;b50,1,4,1;b105,0,8,1;b30,2,4,1;b95,0,3,1;s30,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b85,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,1,5,1;s70,0;b45,0,9,1;b20,3,5,1;v10,2;v20,2;b85,0,1,1;s10,0;s10,0;b10,0,1,1;s45,0;b50,1,4,1;b135,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2"};
   function decodeBaked(B) {
     const out = []; let x10 = 0;
     B.data.split(";").forEach(tok => {
@@ -710,7 +710,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
-  const BPM = 129, BEAT = 60 / BPM, STEP = BEAT / 4, BAR = BEAT * 4;
+  const BPM = 129, BEAT = 60 / BPM, STEP = BEAT / 4, BAR = BEAT * 4;   // one bar = 16 m: light speed 208 m, black hole 304 m, 4th dimension 448 m, limbo 592 m
   const hz = n => 440 * Math.pow(2, (n - 69) / 12);
 
   /* ---------- harmony (A minor); open voicings so stacked saws stay clean ---------- */
@@ -740,24 +740,30 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   const ANTHEM = [[0, 69, 8], [8, 72, 4], [12, 76, 4], [16, 77, 12], [28, 76, 4], [32, 74, 8], [40, 76, 4], [44, 79, 4], [48, 76, 16],
                   [64, 81, 8], [72, 79, 4], [76, 76, 4], [80, 77, 8], [88, 81, 8], [96, 79, 8], [104, 74, 8], [112, 76, 12], [124, 71, 4]];   // light speed, 8 bars
   const ASCENT = [[0, 84, 8], [8, 81, 8], [16, 83, 8], [24, 79, 8], [32, 84, 4], [36, 83, 4], [40, 81, 8], [48, 76, 16]];   // fourth dimension, 4 bars
-  const LIMBO = [{ chord: [57, 64, 72, 76], root: 45 }, { chord: [53, 60, 69, 76], root: 41 }, { chord: [55, 64, 72, 79], root: 48 }, { chord: [55, 62, 71, 74], root: 43 }];
+  // limbo leaves A minor behind: open D major colors, four bars each
+  const SPA = [
+    { pad: [50, 57, 62, 66, 69, 76], bowl: 62, hi: 78 },   // D add9
+    { pad: [47, 54, 59, 62, 66, 73], bowl: 59, hi: 74 },   // B minor 9
+    { pad: [43, 50, 55, 59, 62, 69], bowl: 55, hi: 71 },   // G major 9
+    { pad: [45, 52, 57, 61, 64, 71], bowl: 57, hi: 76 }    // A add9
+  ];
 
   /* sections by bar (16 m each) */
-  function sec(bar) {
+  function sec(bar) {          // bar n starts at n x 16 m
     if (bar === 0) return "pickup";
-    if (bar <= 4) return "intro";
-    if (bar <= 6) return "build";
-    if (bar <= 12) return "drop1";
-    if (bar <= 15) return "breakdown";
-    if (bar <= 17) return "build2";
-    if (bar <= 24) return "drop2";
-    if (bar === 25) return "dropout";
-    if (bar <= 28) return "cinematic";
-    if (bar <= 35) return "drop3";
-    if (bar <= 37) return "warp";
-    if (bar <= 48) return "fourD";
-    if (bar === 49) return "limbofill";
-    return "limbo";
+    if (bar <= 3) return "intro";
+    if (bar === 4) return "build";
+    if (bar <= 8) return "drop1";      // 80 m
+    if (bar <= 10) return "breakdown";
+    if (bar <= 12) return "build2";
+    if (bar <= 18) return "drop2";     // light speed, 208 m
+    if (bar === 19) return "dropout";  // black hole, 304 m
+    if (bar <= 21) return "cinematic";
+    if (bar <= 25) return "drop3";     // 352 m
+    if (bar <= 27) return "warp";      // pulled in, 416 m
+    if (bar <= 35) return "fourD";     // 448 m
+    if (bar === 36) return "limbofill";
+    return "limbo";                    // 592 m
   }
 
   let ctx = null, out = null, verbIn = null, noise = null, timer = null, run = null, silentEl = null;
@@ -843,8 +849,12 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     const wob = ctx.createOscillator(), wobAmt = ctx.createGain(); wob.type = "sine"; wob.frequency.value = 2 / BEAT; wobAmt.gain.value = 0;
     wob.connect(wobAmt); wobAmt.connect(gLp.frequency); wob.start();
     growlIn.connect(gDrive); gDrive.connect(gLp); gLp.connect(pump);
+    // gritty lead: overdriven saws, tamed by a lowpass
+    const leadIn = ctx.createGain(), lDrive = ctx.createWaveShaper(); lDrive.curve = shaperCurve(6); lDrive.oversample = "2x";
+    const lLp = ctx.createBiquadFilter(); lLp.type = "lowpass"; lLp.frequency.value = 4200; lLp.Q.value = 0.8;
+    leadIn.connect(lDrive); lDrive.connect(lLp); lLp.connect(pump); lLp.connect(send); lLp.connect(verb);
     return { bus: bus, pump: pump, verb: verb, send: send, arpIn: arpIn, arpLp: arpLp, bassIn: bassIn, bassLp: bassLp, acidIn: acidIn, acidLp: acidLp, kick: kick,
-      growlIn: growlIn, gLp: gLp, wob: wob, wobAmt: wobAmt };
+      growlIn: growlIn, gLp: gLp, wob: wob, wobAmt: wobAmt, leadIn: leadIn };
   }
 
   /* ---------- drums ---------- */
@@ -992,6 +1002,39 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     saws(hz(note), t, dur, vol, R.bassIn, 2, 14, { from: cutoff * (accent ? 3 : 1.8), to: cutoff, env: Math.min(dur, STEP * 1.4), q: 4 });
     if (withSub) sub(hz(note - 12), t, dur * 0.95, vol * 3, R.pump);
   }
+  function hold(freqs, t, dur, vol, dest, voices, detune, attack) { // a sustained saw stack, no pluck: steady until the end of the note
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + (attack || 0.012));
+    g.gain.setValueAtTime(vol, t + dur - 0.05); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    g.connect(dest);
+    const n = voices || 1;
+    freqs.forEach(fr => { for (let i = 0; i < n; i++) {
+      const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = fr;
+      if (n > 1) o.detune.value = (i / (n - 1) - 0.5) * 2 * (detune || 10);
+      o.connect(g); o.start(t); o.stop(t + dur + 0.03);
+    } });
+    return g;
+  }
+  function bassHold(note, t, dur, R, vol) { // the big held bass: detuned saws plus one an octave down, driven, filter-swept per bar
+    hold([hz(note)], t, dur, vol, R.bassIn, 3, 16);
+    hold([hz(note - 12)], t, dur, vol * 0.8, R.bassIn, 1);
+    sub(hz(note - 12), t, dur * 0.98, 0.3, R.pump);
+  }
+  function reeseHold(note, t, dur, R) { // black hole: two saws rubbing against each other, ground through heavy drive
+    hold([hz(note)], t, dur, 0.09, R.growlIn, 2, 24);
+    hold([hz(note - 12)], t, dur, 0.06, R.growlIn, 1);
+    sub(hz(note - 12), t, dur * 0.98, 0.32, R.pump);
+  }
+  function chordHold(notes, t, dur, vol, R) { hold(notes.map(hz), t, dur, vol, R.arpIn, 3, 14, 0.03).connect(R.verb); }
+  function leadHold(note, t, dur, vol, R) { hold([hz(note)], t, dur, vol, R.leadIn, 4, 18, 0.04); }
+  function brassHold(notes, t, dur, vol, R) { // swelling low brass
+    const f = ctx.createBiquadFilter(), g = ctx.createGain();
+    f.type = "lowpass"; f.Q.value = 1.5; f.frequency.setValueAtTime(300, t); f.frequency.linearRampToValueAtTime(1400, t + dur * 0.7);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + dur * 0.5);
+    g.gain.setValueAtTime(vol, t + dur - 0.08); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    f.connect(g); g.connect(R.pump); g.connect(R.verb);
+    notes.forEach(n => [-9, 0, 9].forEach(dt => { const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = hz(n); o.detune.value = dt; o.connect(f); o.start(t); o.stop(t + dur + 0.03); }));
+  }
   function driveBass(note, t, R, vol, cutoff) { // one sixteenth of the relentless bass
     saws(hz(note), t, STEP * 0.9, vol * 1.3, R.bassIn, 1, 0, { from: cutoff * 2.2, to: cutoff, env: STEP * 0.8, q: 2.5 });
   }
@@ -1025,6 +1068,32 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     f.connect(g); g.connect(R.bus); g.connect(R.verb);
     notes.forEach(n => [-10, 0, 10].forEach(dt => { const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = hz(n); o.detune.value = dt; o.connect(f); o.start(t); o.stop(t + 3.25); }));
   }
+  function bowl(freq, t, vol, R, decay) { // singing bowl: a soft strike that rings and slowly beats against itself
+    const d = decay || 9;
+    [[1, 1, 0], [1, 0.8, 0.9], [2.71, 0.22, 0], [5.13, 0.06, 0]].forEach(([mul, lv, offHz]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.value = freq * mul + offHz;
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol * lv, t + 0.06); g.gain.exponentialRampToValueAtTime(0.0003, t + d / Math.sqrt(mul));
+      o.connect(g); g.connect(R.bus); g.connect(R.verb); o.start(t); o.stop(t + d / Math.sqrt(mul) + 0.05);
+    });
+  }
+  function spaPad(notes, t, dur, vol, R) { // pure, warm tones that breathe in and out; no saws, no filter bite
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + Math.min(3.2, dur * 0.4));
+    g.gain.setValueAtTime(vol, t + dur * 0.62); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    g.connect(R.bus); g.connect(R.verb);
+    notes.forEach((n, i) => [["sine", 0, 1], ["triangle", 1200, 0.12], ["sine", i % 2 ? 4 : -4, 0.55]].forEach(([ty, dt, lv]) => {
+      const o = ctx.createOscillator(), og = ctx.createGain(); o.type = ty; o.frequency.value = hz(n); o.detune.value = dt; og.gain.value = lv / notes.length;
+      o.connect(og); og.connect(g); o.start(t); o.stop(t + dur + 0.05);
+    }));
+  }
+  function ocean(t, dur, R, vol) { // a slow wave of soft water
+    const s2 = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    s2.buffer = noise; s2.loop = true; f.type = "lowpass"; f.Q.value = 0.5;
+    f.frequency.setValueAtTime(350, t); f.frequency.linearRampToValueAtTime(1100, t + dur * 0.45); f.frequency.linearRampToValueAtTime(300, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol || 0.05, t + dur * 0.45); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    s2.connect(f); f.connect(g); g.connect(R.bus); g.connect(R.verb); s2.start(t, Math.random()); s2.stop(t + dur + 0.05);
+  }
   function pump(R, t, depth) { R.pump.gain.setValueAtTime(depth, t); R.pump.gain.linearRampToValueAtTime(1, t + BEAT * 0.62); }
 
   /* ---------- the score, one sixteenth at a time ---------- */
@@ -1033,81 +1102,71 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     const drop1 = S === "drop1", drop2 = S === "drop2", drop3 = S === "drop3", fd = S === "fourD";
     const groove = drop1 || drop2 || drop3 || fd;
     const building = S === "build" || S === "build2";
-    const lastBeat = (bar === 6 || bar === 17 || bar === 28 || bar === 37) && s >= 12;
+    const lastBeat = (bar === 4 || bar === 12 || bar === 21 || bar === 27) && s >= 12;
+    const phase = bar % 4; // where we are in each four-bar phrase
 
-    // once per bar: mix level and the long filter sweep on the ostinato
+    // once per bar: mix level and the slow filter sweeps that give the held sounds their movement
     if (s === 0) {
-      const lvl = { pickup: 0.55, intro: 0.62, build: 0.74 + (bar - 5) * 0.08, drop1: 0.96, breakdown: 0.84, build2: 0.86 + (bar - 16) * 0.07, drop2: 1,
-        dropout: 1, cinematic: 0.9 + (bar - 26) * 0.03, drop3: 1, warp: 0.95, fourD: 1, limbofill: 0.85, limbo: 0.8 }[S];
+      const lvl = { pickup: 0.55, intro: 0.62, build: 0.84, drop1: 0.97, breakdown: 0.84, build2: 0.86 + (bar - 11) * 0.07, drop2: 1,
+        dropout: 1, cinematic: 0.9 + (bar - 20) * 0.04, drop3: 1, warp: 0.95, fourD: 1, limbofill: 0.85, limbo: 0.9 }[S];
       R.bus.gain.setTargetAtTime(lvl, t, 0.04);
-      const sweep = { pickup: 300, intro: 360 + (bar - 1) * 180, build: 1200 + (bar - 5) * 1100, drop1: 2600, breakdown: 800 + (bar - 13) * 300,
-        build2: 1600 + (bar - 16) * 1500, drop2: 4600, cinematic: 500 + (bar - 26) * 350, drop3: 1800, fourD: 3800, limbofill: 900, limbo: 650 }[S];
-      if (sweep) R.arpLp.frequency.setTargetAtTime(sweep, t, BAR * 0.5);
-      R.arpLp.Q.setTargetAtTime(building ? 8 : 4, t, BAR * 0.5);
-      R.bassLp.frequency.setTargetAtTime(drop3 ? 1300 : 1800, t, 0.1);
+      // the bass filter climbs through each four-bar phrase, then snaps back
+      const bassCut = building ? 380 + (bar % 2) * 500 : drop2 ? 900 + phase * 450 : fd ? 800 + phase * 400 : 650 + phase * 300;
+      R.bassLp.frequency.setTargetAtTime(bassCut, t, BAR * 0.3);
+      // the chord filter: dark in the intro, opening into the drops
+      const chordCut = { pickup: 400, intro: 500 + (bar - 1) * 300, build: 2200, drop1: 3000, breakdown: 1400, build2: 1800 + (bar - 11) * 1800,
+        drop2: 5200, cinematic: 600 + (bar - 20) * 600, drop3: 2000, fourD: 4600, limbofill: 1200, limbo: 900 }[S];
+      if (chordCut) R.arpLp.frequency.setTargetAtTime(chordCut, t, BAR * 0.4);
+      R.arpLp.Q.setTargetAtTime(building ? 6 : 1.5, t, BAR * 0.4);
+      // the black hole's grinding bass opens and closes over two bars
+      R.gLp.frequency.setTargetAtTime(drop3 ? (bar % 2 ? 1600 : 500) : 650, t, BAR * 0.45);
     }
 
     // impacts, hits, risers
-    if (s === 0 && (bar === 7 || bar === 18 || bar === 29 || bar === 38)) impact(t, R);
-    if (s === 0 && (bar === 18 || bar === 25 || bar === 29 || bar === 38)) hitBrass(t, bar === 38 ? [29, 41, 48] : bar === 29 ? [34, 46, 53] : [33, 45, 52], R);
-    if (s === 0 && (bar === 6 || bar === 17 || bar === 28)) { riser(t, BAR, R); pitchRiser(t, BAR, R); }
-    if (s === 0 && groove && bar % 8 === 0 && bar !== 18 && bar !== 38) hit(t, 2.2, 0.15, "highpass", 4500, R.bus);
-    if (s === 8 && (bar === 12 || bar === 35 || bar === 48)) reverseCymbal(t, BEAT * 2, R, 0.28);
+    if (s === 0 && (bar === 5 || bar === 13 || bar === 22 || bar === 28)) impact(t, R);
+    if (s === 0 && (bar === 13 || bar === 19 || bar === 22 || bar === 28)) hitBrass(t, bar === 28 ? [29, 41, 48] : bar === 22 ? [34, 46, 53] : [33, 45, 52], R);
+    if (s === 0 && (bar === 4 || bar === 12 || bar === 21)) { riser(t, BAR, R); pitchRiser(t, BAR, R); }
+    if (s === 0 && groove && bar % 8 === 0 && bar !== 13 && bar !== 28) hit(t, 2.2, 0.15, "highpass", 4500, R.bus);
+    if (s === 8 && (bar === 8 || bar === 25 || bar === 35)) reverseCymbal(t, BEAT * 2, R, 0.28);
 
-    // ---------- drums: steady and straight ----------
-    const kickOn = (S === "intro" && bar >= 3) || building || groove || (S === "cinematic" && bar === 28);
-    if (kickOn && s % 4 === 0 && !lastBeat) { kick(t, R, drop3 ? 1 : S === "intro" ? 0.72 : 0.96); pump(R, t, drop2 ? 0.12 : 0.2); }
-    if (groove && (s === 4 || s === 12)) snare(t, R, drop3 ? 0.4 : 0.34);
+    // ---------- drums ----------
+    const kickOn = (S === "intro" && bar >= 2) || building || groove || (S === "cinematic" && bar === 21);
+    if (kickOn && s % 4 === 0 && !lastBeat) { kick(t, R, drop3 ? 1.05 : S === "intro" ? 0.75 : 1); pump(R, t, groove ? 0.07 : 0.2); }
+    if (groove && (s === 4 || s === 12)) snare(t, R, drop3 ? 0.42 : 0.36);
     if ((groove || building) && s % 4 === 2) hat(t, R, groove ? 0.1 : 0.07, true);
     if (groove && s % 2 === 1) hat(t, R, 0.03, false);
     if ((drop2 || fd) && s % 4 === 0) ride(t, R, 0.05);
-    // snare rolls into every drop: quarters, eighths, then sixteenths
-    if ((building && (bar === 6 || bar === 17)) || (S === "cinematic" && bar === 28)) { const every = s < 8 ? 4 : s < 12 ? 2 : 1; if (s % every === 0) snare(t, R, 0.06 + s * 0.016); }
+    if ((building && (bar === 4 || bar === 12)) || (S === "cinematic" && bar === 21)) { const every = s < 8 ? 4 : s < 12 ? 2 : 1; if (s % every === 0) snare(t, R, 0.06 + s * 0.016); }
 
-    // ---------- bass: a sub on the beat and a relentless sixteenth drive on the root ----------
-    const bassOn = groove || building || (S === "intro" && bar >= 3);
-    if (bassOn && s % 4 === 0 && !lastBeat) sub(hz(ch.root - 12), t, BEAT * 0.9, groove ? 0.36 : 0.3, R.pump);
-    if (bassOn && s % 4 !== 0 && !lastBeat) {
-      const cutoff = building ? 450 + (bar % 2) * 350 : drop3 ? 520 : drop2 ? 900 : 700;
-      driveBass(ch.root, t, R, groove ? 0.1 : 0.065, cutoff);
-    }
+    // ---------- the held bass: one huge note per bar, pumped by the kick ----------
+    if (s === 0 && (drop1 || drop2 || fd || building || (S === "intro" && bar >= 2)))
+      bassHold(ch.root, t, (bar === 4 || bar === 12) ? BEAT * 3 : BAR, R, groove ? 0.07 : 0.05);
+    if (drop3 && s === 0) reeseHold(ch.root, t, BAR, R);
 
-    // ---------- the ostinato: a steady climbing arpeggio through its slowly opening filter ----------
-    const ostOn = S === "pickup" || S === "intro" || building || S === "breakdown" || drop1 || drop2 || fd || (S === "cinematic" && bar >= 27);
-    if (ostOn) {
-      const tones = [ch.chord[0], ch.chord[1], ch.chord[2], ch.chord[0] + 12];
-      saws(hz(tones[s % 4]), t, STEP * 0.92, S === "pickup" ? 0.05 : 0.07, R.arpIn, S === "pickup" || S === "intro" || S === "breakdown" ? 2 : 1, 6, { from: 8000, to: 1400, env: STEP * 0.85 });
-    }
+    // ---------- held chords ----------
+    if (s === 0 && (drop1 || drop2 || fd || building)) chordHold(ch.chord, t, BAR, drop2 ? 0.026 : 0.022, R);
+    if (s === 0 && (S === "pickup" || S === "intro" || S === "breakdown") && ((S === "breakdown" ? bar - 9 : bar - 1) % 2 === 0 || S === "pickup")) pad(ch.chord, t, BAR * 2, S === "breakdown" ? 0.034 : 0.024, S === "breakdown" ? 1600 : 1000, R, 3);
+    if (s === 0 && drop3) chordHold(ch.chord.map(x => x - 12), t, BAR, 0.022, R);
 
-    // ---------- chords ----------
-    if ((drop1 || drop2 || fd) && s % 2 === 0) pulseChord(ch.chord, t, (s % 4 === 0 ? 1 : 0.8) * (drop2 ? 0.032 : fd ? 0.034 : 0.027), R, drop2 ? 3600 : 2600, fd ? 1 : 2);
-    if ((S === "pickup" || S === "intro" || S === "breakdown" || S === "build2" || fd) && s === 0 && (bar % 2 === 1 || S === "pickup" || S === "build2" || fd))
-      pad(fd ? ch.chord.concat([ch.chord[0] + 12]) : ch.chord, t, fd ? BAR : BAR * 2, S === "breakdown" ? 0.032 : fd ? 0.02 : 0.022, S === "breakdown" ? 1600 : fd ? 3600 : 1000, R, 3);
-
-    // ---------- themes ----------
-    if (S === "breakdown") { const cyc = ((bar - 13) % 4) * 16 + s; STRINGS.forEach(m => { if (m[0] === cyc) heldLead(m[1], t, STEP * m[2] * 0.98, 0.04, R, 4); }); }
-    if (drop2) { const cyc = ((bar - 18) % 8) * 16 + s; ANTHEM.forEach(m => { if (m[0] === cyc) { heldLead(m[1], t, STEP * m[2] * 0.96, 0.05, R, 5); heldLead(m[1] - 12, t, STEP * m[2] * 0.96, 0.025, R, 3); } }); }
-    if (fd) { const cyc = ((bar - 38) % 4) * 16 + s; ASCENT.forEach(m => { if (m[0] === cyc) heldLead(m[1], t, STEP * m[2] * 0.96, 0.045, R, 5); }); }
+    // ---------- themes: gritty held leads ----------
+    if (S === "breakdown") { const cyc = ((bar - 9) % 4) * 16 + s; STRINGS.forEach(m => { if (m[0] === cyc) leadHold(m[1], t, STEP * m[2] * 0.98, 0.032, R); }); }
+    if (drop2) { const cyc = ((bar - 13) % 8) * 16 + s; ANTHEM.forEach(m => { if (m[0] === cyc) { leadHold(m[1], t, STEP * m[2] * 0.97, 0.04, R); leadHold(m[1] - 12, t, STEP * m[2] * 0.97, 0.022, R); } }); }
+    if (fd) { const cyc = ((bar - 28) % 4) * 16 + s; ASCENT.forEach(m => { if (m[0] === cyc) leadHold(m[1], t, STEP * m[2] * 0.97, 0.038, R); }); }
+    if (drop3 && s === 0 && bar % 2 === 1) leadHold(ch.chord[2] + 12, t, BAR * 0.95, 0.026, R);
 
     // ---------- arriving at the black hole (400-464 m) ----------
     if (S === "dropout" && s === 0) { downsweep(t, BAR, R, 0.26); pad([45, 52, 57, 60], t, BAR * 1.1, 0.03, 700, R, 3); sub(hz(33), t, BAR, 0.32, R.bus); }
     if (S === "cinematic") {
-      const k = bar - 26;
+      const k = bar - 20;
       if (s === 0) { pad(ch.chord.map(x => x - 12), t, BAR * 1.05, 0.03, 600 + k * 300, R, 3); sub(hz(ch.root - 12), t, BAR, 0.32, R.bus); }
-      if (s % 2 === 0 && k >= 1) lowBrass(ch.root, t, STEP * 1.8, 0.05 + k * 0.02, R);        // the brass ostinato rises out of the dark
-      if ((s === 0 || s === 3) && k < 2) sub(hz(33), t, STEP * 2, 0.3, R.bus);                 // heartbeat
+      if (s === 0 && k >= 1) brassHold([ch.root, ch.root + 7, ch.root + 12], t, BAR * 1.02, 0.05 + k * 0.025, R);   // brass swells up out of the dark
+      if ((s === 0 || s === 3) && k < 2) sub(hz(33), t, STEP * 2, 0.3, R.bus);                                     // heartbeat
     }
-
-    // ---------- black hole groove (464-576 m): dark drive with low brass ----------
-    if (drop3) {
-      if (s % 2 === 0) lowBrass(ch.root, t, STEP * 1.8, s % 4 === 0 ? 0.075 : 0.06, R);
-      if (s === 0) pad(ch.chord.map(x => x - 12), t, BAR, 0.024, 900, R, 3);
-      if (s % 8 === 0 && bar % 2 === 1) heldLead(ch.chord[2] + 12, t, BEAT * 1.9, 0.03, R, 4);
-    }
+    if (drop3 && s === 0 && bar % 2 === 0) brassHold([ch.root, ch.root + 7], t, BAR * 2, 0.05, R);
 
     // ---------- pulled in (576-608 m): everything sinks ----------
     if (S === "warp") {
-      const k = bar - 36;
+      const k = bar - 26;
       if (k === 0 && s === 0) { downsweep(t, BAR * 2, R, 0.3);
         [57, 64, 72].forEach(n => { const g = ctx.createGain(); g.connect(R.pump); g.connect(R.verb);
           g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + BAR * 0.5); g.gain.linearRampToValueAtTime(0.0001, t + BAR * 2);
@@ -1118,12 +1177,16 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       if (k === 1 && s === 4) reverseCymbal(t, BEAT * 3, R, 0.34);
     }
 
-    // ---------- limbo: no beat, long pads and a slow arp ----------
-    if (S === "limbofill" && s === 0) { reverseCymbal(t, BAR * 0.9, R, 0.2); pad([57, 64, 72, 76], t, BAR * 2, 0.024, 1600, R, 3); }
+    // ---------- limbo: no beat, just long pads ----------
+    // limbo: everything else falls away. Water, warm pure tones, singing bowls. No beat, no saws, nothing driven.
+    if (S === "limbofill" && s === 0) { ocean(t, BAR * 2.2, R, 0.08); spaPad(SPA[0].pad, t, BAR * 3, 0.11, R); }
     if (S === "limbo") {
-      const k = bar - 50, lc = LIMBO[Math.floor(k / 4) % 4];
-      if (s === 0 && k % 4 === 0) { pad(lc.chord, t, BAR * 4.3, 0.022, 1800, R, 3); sub(hz(lc.root - 12), t, BAR * 4, 0.12, R.bus); }
-      if (s % 4 === 0) { const n = lc.chord[(k * 4 + s / 4) % lc.chord.length]; saws(hz(n), t, BEAT * 0.95, 0.04, R.arpIn, 2, 6, { from: 3000, to: 700, env: BEAT * 0.8 }); }
+      const k = bar - 37, sp = SPA[Math.floor(k / 4) % 4];
+      if (s === 0) R.bus.gain.setTargetAtTime(1.5, t, 1.5);
+      if (s === 0 && k % 4 === 0) { spaPad(sp.pad, t, BAR * 5, 0.14, R); bowl(hz(sp.bowl - 12), t, 0.11, R, 11); }
+      if (s === 0 && k % 4 === 2) bowl(hz(sp.hi), t, 0.05, R, 8);
+      if (s === 8 && k % 4 === 1) bowl(hz(sp.bowl + 12), t, 0.04, R, 7);
+      if (s === 0 && k % 4 === 0) ocean(t, BAR * 4, R, 0.05);
     }
   }
 
@@ -1564,8 +1627,8 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   let camY = 0, clock = 0;
   const VIS = [];
 
-  /* where the run is: stage, light speed 272-400 m, black hole from 400 m, pulled in 576-608 m, fourth dimension, limbo from 800 m */
-  const Z = { bh: 400, bhIn: 416, bhCalmEnd: 464, warp: 576, fourD: 608, limboIn: 784, limbo: 800 }; // one music bar = 16 m
+  /* where the run is: stage, light speed 192-304 m, black hole from 304 m, pulled in 416-448 m, fourth dimension from 448 m, limbo from 592 m */
+  const Z = { bh: 304, bhIn: 320, bhCalmEnd: 352, warp: 416, fourD: 448, limboIn: 576, limbo: 592 }; // one music bar = 16 m
   function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
   function scene(x) {
     return {
@@ -1621,9 +1684,9 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   const ZONE_BANNERS = [[Z.bhIn, "Black hole"], [Z.fourD + 2, "Fourth dimension"], [Z.limbo, "Limbo"]];
   let zoneBanner = null;
 
-  /* Stage one's sky is full of stars drifting toward you. From ~272 m they stretch into light-speed streaks,
-     and right at 400 m they snap back to points as you drop out in front of the black hole. */
-  const LIGHT = { on: 272, full: 288, off: 392, out: 401 };
+  /* Stage one's sky is full of stars drifting toward you. From ~192 m they stretch into light-speed streaks,
+     and right at 304 m they snap back to points as you drop out in front of the black hole. */
+  const LIGHT = { on: 192, full: 208, off: 296, out: 305 };
   function lightSpeed(x) {
     if (x <= LIGHT.on || x >= LIGHT.out) return 0;
     if (x < LIGHT.full) { const k = (x - LIGHT.on) / (LIGHT.full - LIGHT.on); return k * k; }
@@ -1886,7 +1949,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     ctx.globalAlpha = 1;
 
     // the white-out when you're pulled through, and again into limbo
-    const dropOut = Math.max(0, 1 - Math.abs(px - 400) / 2.2) * 0.6;
+    const dropOut = Math.max(0, 1 - Math.abs(px - 304) / 2.2) * 0.6;
     const flash = Math.max(dropOut, sc.fd ? 1 - sc.fdIn : (sc.warp > 0.82 ? (sc.warp - 0.82) / 0.18 : 0));
     if (flash > 0) { ctx.fillStyle = "rgba(255,255,255," + Math.min(1, flash) + ")"; ctx.fillRect(-10, -10, W + 20, H + 20); }
 
