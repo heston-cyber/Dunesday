@@ -11,15 +11,15 @@
 <meta property="og:site_name" content="Hill Movie Nights">
 <meta property="og:title" content="Movie night! Select your seat.">
 <meta property="og:url" content="https://hillmovienights.wranglerportal.com/">
-<meta property="og:image" content="https://hillmovienights.wranglerportal.com/preview.jpg">
-<meta property="og:image:secure_url" content="https://hillmovienights.wranglerportal.com/preview.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/heston-cyber/Dunesday/main/preview.jpg">
+<meta property="og:image:secure_url" content="https://raw.githubusercontent.com/heston-cyber/Dunesday/main/preview.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Hill Movie Nights ticket">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Movie night! Select your seat.">
-<meta name="twitter:image" content="https://hillmovienights.wranglerportal.com/preview.jpg">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/heston-cyber/Dunesday/main/preview.jpg">
 <meta property="og:description" content="Pick your seat for the next Hill Movie Night.">
 
 <!-- ================= SETTINGS =================
@@ -1337,7 +1337,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     player = G.newPlayer(0);
     rot = 0; acc = 0; buffer = 0; banner = 1.4; newTop = false; particles = []; camY = 0; zoneBanner = null;
     mode = "play";
-    simClock = performance.now();
+    simClock = performance.now(); pressAt = releaseAt = -1; pressUsed = true; held = false; syncPrev();
     playing(true);
     music.start();
     hud();
@@ -1421,7 +1421,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     mode = pausedFrom || "play"; pausedFrom = null;
     pauseCard.hidden = true;
     pauseBtn.hidden = false;
-    acc = 0; last = 0; simClock = performance.now();
+    acc = 0; last = 0; simClock = performance.now(); syncPrev();
     music.resume();
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   }
@@ -1430,22 +1430,28 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   $("ar-restart").addEventListener("click", () => { pauseCard.hidden = true; pausedFrom = null; pauseBtn.hidden = false; startAttempt(); });
 
   /* ---------- input: one button, tap to jump, hold to keep jumping ---------- */
-  function press() {
+  /* Taps are timestamped and applied inside the physics at the step they belong to, instead of
+     jumping the simulation ahead mid-frame (that made the frame right after a tap step unevenly). */
+  let pressAt = -1, releaseAt = -1, pressUsed = true;
+  function stamp(e) {
+    const now = performance.now(), ts = e && e.timeStamp;
+    return ts && ts > now - 1000 && ts <= now + 5 ? ts : now;
+  }
+  function press(e) {
     if (mode === "name") return;
     clearSelection();
     if (mode === "paused") { resume(); return; }
-    if (mode === "play") simulate(performance.now());
     if (music.unlock && music.state !== "running" && !music.muted) music.unlock(); // recovers after a call or another app took the audio
-    held = true; buffer = 0.12;
+    held = true; pressAt = stamp(e); pressUsed = false;
   }
   // the whole game area is the jump button; the deep floor at the bottom is where thumbs rest
   let touches = 0;
-  function release() { held = false; }
-  cv.addEventListener("pointerdown", e => { e.preventDefault(); touches++; try { cv.setPointerCapture(e.pointerId); } catch (err) {} press(); });
-  const lift = () => { touches = Math.max(0, touches - 1); if (!touches) release(); };
+  function release(e) { held = false; releaseAt = stamp(e); }
+  cv.addEventListener("pointerdown", e => { e.preventDefault(); touches++; try { cv.setPointerCapture(e.pointerId); } catch (err) {} press(e); });
+  const lift = e => { touches = Math.max(0, touches - 1); if (!touches) release(e); };
   cv.addEventListener("pointerup", lift);
   cv.addEventListener("pointercancel", lift);
-  cv.addEventListener("lostpointercapture", () => { touches = 0; release(); });
+  cv.addEventListener("lostpointercapture", e => { if (touches) { touches = 0; release(e); } });
   cv.addEventListener("contextmenu", e => e.preventDefault());
   // iPhones turn quick taps and long holds into text selection, magnifier, or zoom; the game area opts out of all of it
   ["touchstart", "touchmove", "touchend"].forEach(type => cv.addEventListener(type, e => { if (e.cancelable) e.preventDefault(); }, { passive: false }));
@@ -1460,9 +1466,9 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     if (root.hidden) return;
     if (mode === "name") { if (e.key === "Enter" && document.activeElement === nameIn) { e.preventDefault(); begin(); } return; }
     if (e.key === "p" || e.key === "P" || e.key === "Escape") { e.preventDefault(); if (mode === "paused") resume(); else pause(); return; }
-    if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w" || e.key === "W") { e.preventDefault(); if (!e.repeat) press(); }
+    if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w" || e.key === "W") { e.preventDefault(); if (!e.repeat) press(e); }
   });
-  window.addEventListener("keyup", e => { if (root.hidden) return; if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w" || e.key === "W") release(); });
+  window.addEventListener("keyup", e => { if (root.hidden) return; if (e.code === "Space" || e.key === "ArrowUp" || e.key === "w" || e.key === "W") release(e); });
   $("ar-go").addEventListener("click", begin);
   $("ar-change").addEventListener("click", showStart);
   document.addEventListener("visibilitychange", () => { if (document.hidden) { release(); pause(); } last = 0; });
@@ -1472,19 +1478,26 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
      exact moment of the tap, so jumps happen when your finger lands, not on the next screen refresh.
      Drawing then projects the last fraction of a step forward so motion stays smooth between steps. */
   const STEP_MS = P.dt * 1000, ROT_RATE = 90 / (2 * P.jumpV / P.gravity);
-  let simClock = 0, lead = 0, liftY = 0, rotLead = 0;
+  let simClock = 0, prevX = 0, prevY = 0, prevRot = 0, drawX = 0, drawY = 0, drawRot = 0;
+  function syncPrev() { if (player) { prevX = drawX = player.x; prevY = drawY = player.y; } prevRot = drawRot = rot; }
   function simulate(now) {
     if (mode !== "play") { simClock = now; return; }
     if (now - simClock > 120) simClock = now - 120; // after a stall, never fast-forward into a crash
     while (simClock + STEP_MS <= now && mode === "play") {
-      simClock += STEP_MS;
+      const T = simClock += STEP_MS;
       if (course.end < player.x + 30) course.ensure(player.x + 30);
+      prevX = player.x; prevY = player.y; prevRot = rot;
+      // held at this instant, or tapped within the last 120 ms and not yet used (lets a tap just before landing count)
+      const holding = pressAt >= 0 && pressAt <= T && (releaseAt < pressAt || releaseAt > T);
+      const buffered = !pressUsed && pressAt <= T && T - pressAt <= 120;
       const wasGrounded = player.grounded;
-      G.step(player, course, held || buffer > 0);
-      if (wasGrounded && !player.grounded && player.vy > 0) buffer = 0;
-      buffer = Math.max(0, buffer - P.dt);
+      G.step(player, course, holding || buffered);
+      if (wasGrounded && !player.grounded && player.vy > 0 && pressAt <= T) pressUsed = true;
       if (!player.grounded) rot += ROT_RATE * P.dt;
-      else rot = Math.round(rot / 90) * 90;
+      else { // settle flat with a quick turn instead of an instant snap (a landing mid-spin used to pop up to 45 degrees in one frame)
+        const d = Math.round(rot / 90) * 90 - rot, mx = 900 * P.dt;
+        rot += Math.abs(d) <= mx ? d : (d > 0 ? mx : -mx);
+      }
       if (player.dead) { if (godMode) { player.dead = false; player.grounded = true; player.y = Math.max(0, player.y); player.vy = 0; } else die(); }
     }
   }
@@ -1492,13 +1505,14 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
     last = t;
     if (mode !== "paused") clock += dt;
-    lead = liftY = rotLead = 0;
     if (mode === "play") {
       simulate(t);
       if (mode === "play") {
-        const ahead = Math.max(0, Math.min(STEP_MS, t - simClock)) / 1000;
-        lead = P.speed * ahead;
-        if (!player.grounded) { liftY = player.vy * ahead - 0.5 * P.gravity * ahead * ahead; rotLead = ROT_RATE * ahead; }
+        // draw between the last two physics steps: every frame lands exactly where it should, nothing overshoots into the floor
+        const k = Math.max(0, Math.min(1, (t - simClock) / STEP_MS));
+        drawX = prevX + (player.x - prevX) * k;
+        drawY = prevY + (player.y - prevY) * k;
+        drawRot = prevRot + (rot - prevRot) * k;
       }
       banner = Math.max(0, banner - dt);
       const want = Math.max(0, player.y - 2.4);
@@ -1517,6 +1531,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       particles = particles.filter(p => p.life > 0);
       shake = Math.max(0, shake - dt);
     }
+    if (window.__TRACE && player && mode === "play") window.__TRACE.push([t, drawX, drawY, drawRot, player.grounded ? 1 : 0]);
     draw();
     if (running) requestAnimationFrame(frame); else last = 0;
   }
@@ -1670,7 +1685,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   function draw() {
     if (!W) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const px = player ? player.x + lead : 0;
+    const px = player ? (mode === "play" || mode === "paused" ? drawX : player.x) : 0;
     const camX = px - (W * 0.28) / U;
     const sx = x => (x - camX) * U, sy = y => groundY - (y - camY) * U;
     const sc = scene(px), st = styleFor(px);
@@ -1770,8 +1785,8 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
 
     // player
     if (player && mode !== "dead") {
-      const cx = sx(px + 0.5), cy = sy(player.y + liftY + 0.5), spr = st.name === "fourD" ? SPR.playerGlow : SPR.player, half = U / 2 + SPR.pad;
-      ctx.save(); ctx.translate(cx, cy); ctx.rotate((rot + rotLead) * Math.PI / 180);
+      const cx = sx(px + 0.5), cy = sy((mode === "play" || mode === "paused" ? drawY : player.y) + 0.5), spr = st.name === "fourD" ? SPR.playerGlow : SPR.player, half = U / 2 + SPR.pad;
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate((mode === "play" || mode === "paused" ? drawRot : rot) * Math.PI / 180);
       ctx.drawImage(spr, -half, -half, half * 2, half * 2);
       ctx.restore();
     } else if (!player) {
@@ -1843,9 +1858,9 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   // test hook for previewing each world (?arcadetest=1). Runs that use it never count toward the top score.
   if (/[?&]arcadetest=1/.test(location.search)) {
     window.HMNArcade.test = {
-      go(x) { if (!player) return; testRun = true; simClock = performance.now(); course.ensure(x + 60); player.x = x; player.y = 0; player.vy = 0; player.grounded = true; player.dead = false; camY = 0; particles = []; mode = "play"; banner = 0; },
+      go(x) { if (!player) return; testRun = true; simClock = performance.now(); setTimeout(syncPrev, 0); course.ensure(x + 60); player.x = x; player.y = 0; player.vy = 0; player.grounded = true; player.dead = false; camY = 0; particles = []; mode = "play"; banner = 0; },
       freeze() { if (mode === "play") { pausedFrom = "play"; mode = "paused"; } },
-      thaw() { if (mode === "paused") { mode = "play"; last = 0; acc = 0; simClock = performance.now(); } },
+      thaw() { if (mode === "paused") { mode = "play"; last = 0; acc = 0; simClock = performance.now(); syncPrev(); } },
       god(on) { godMode = !!on; testRun = true; }
     };
   }
