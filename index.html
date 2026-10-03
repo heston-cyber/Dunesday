@@ -681,7 +681,23 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     return "drop2";
   }
 
-  let ctx = null, out = null, noise = null, timer = null, run = null;
+  let ctx = null, out = null, noise = null, timer = null, run = null, silentEl = null;
+  const SILENT_WAV = "data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
+
+  /* iPhones route web audio through the ringer switch unless the page asks for "playback",
+     the way video does. Must run inside a tap. */
+  function unlock() {
+    try {
+      if (navigator.audioSession) { if (navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback"; }
+      else if (!silentEl) {
+        silentEl = document.createElement("audio");
+        silentEl.setAttribute("playsinline", ""); silentEl.setAttribute("aria-hidden", "true");
+        silentEl.loop = true; silentEl.src = SILENT_WAV;
+        const p = silentEl.play(); if (p && p.catch) p.catch(() => {});
+      }
+    } catch (e) {}
+    if (ctx && ctx.state !== "running") { try { ctx.resume(); } catch (e) {} }
+  }
   let step = 0, nextTime = 0, playing = false;
   let muted = lsGet(LSK) === "off";
   const LEVEL = 0.52;
@@ -895,7 +911,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   const Music = {
     start() {
       if (!init()) return;
-      if (ctx.state === "suspended") ctx.resume();
+      unlock();
       this.stop();
       run = newRun();
       playing = true; step = 0; nextTime = ctx.currentTime + 0.06;
@@ -908,7 +924,8 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
       endRun();
     },
     pause() { if (ctx && ctx.state === "running") ctx.suspend(); },
-    resume() { if (ctx && ctx.state === "suspended") ctx.resume(); },
+    resume() { if (ctx && ctx.state !== "running" && ctx.state !== "closed") ctx.resume(); },
+    unlock() { if (init()) unlock(); },
     crash() {
       if (!ctx || muted) return;
       const g = ctx.createGain(); g.connect(out);
@@ -966,13 +983,13 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   const fill = $("ar-fill"), trackNote = $("ar-note"), jumpBtn = $("ar-jump"), whoLine = $("ar-who");
   const pauseBtn = $("ar-pause"), pauseCard = $("ar-paused"), pauseLine = $("ar-paused-line"), changeBtn = $("ar-change");
   const soundBtn = $("ar-sound");
-  const music = window.HMNMusic || { start() {}, stop() {}, pause() {}, resume() {}, crash() {}, setMuted() {}, muted: true };
+  const music = window.HMNMusic || { start() {}, stop() {}, pause() {}, resume() {}, crash() {}, setMuted() {}, unlock() {}, muted: true, state: "none" };
   function paintSound() {
     soundBtn.setAttribute("aria-pressed", music.muted ? "false" : "true");
     soundBtn.setAttribute("aria-label", music.muted ? "Turn sound on" : "Turn sound off");
     soundBtn.classList.toggle("off", !!music.muted);
   }
-  soundBtn.addEventListener("click", () => { music.setMuted(!music.muted); paintSound(); });
+  soundBtn.addEventListener("click", () => { music.setMuted(!music.muted); if (!music.muted && music.unlock) music.unlock(); paintSound(); });
   paintSound();
   const API = String((window.SITE_CONFIG || {}).apiUrl || "").trim();
   const reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -1068,6 +1085,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   }
 
   function begin() {
+    music.unlock && music.unlock();
     const n = nameIn.value.trim().slice(0, 20);
     if (!n) { nameIn.focus(); nameIn.setAttribute("aria-invalid", "true"); return; }
     nameIn.removeAttribute("aria-invalid");
@@ -1124,6 +1142,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   function press() {
     if (mode === "name") return;
     if (mode === "paused") { resume(); return; }
+    if (music.unlock && music.state !== "running" && !music.muted) music.unlock(); // recovers after a call or another app took the audio
     held = true; buffer = 0.12; jumpBtn.classList.add("down");
   }
   function release() { held = false; jumpBtn.classList.remove("down"); }
