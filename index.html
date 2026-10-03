@@ -370,6 +370,12 @@ let seats = {}, seatStatus = MODE === "none" ? "ok" : "loading";
 let route = { view: "home" };
 let selected = null, moveFrom = null, busy = false, lastLoad = 0;
 const qty = {};
+const SEAT_CACHE = "seats.cache.v1";
+let haveSeatData = false;
+function cacheSeats(list){ lsSet(SEAT_CACHE, JSON.stringify({ t: Date.now(), list: list || [] })); }
+function cachedSeats(){
+  try { const c = JSON.parse(lsGet(SEAT_CACHE) || "null"); return c && Array.isArray(c.list) ? c.list : null; } catch(e){ return null; }
+}
 
 const appEl = document.getElementById("app");
 const sideEl = document.getElementById("side");
@@ -475,6 +481,8 @@ async function loadSeats(){
       const data = await res.json();
       if (!data || !data.ok) throw new Error("bad");
       applyList(data.seats);
+      cacheSeats(data.seats);
+      haveSeatData = true;
     } else {
       let u = CSV;
       if (!/^https?:/i.test(u)) u = withParam(u, "v", Date.now());
@@ -486,7 +494,7 @@ async function loadSeats(){
     }
     seatStatus = "ok";
   } catch(e) {
-    seatStatus = "error";
+    seatStatus = haveSeatData ? "ok" : "error";
   }
   if (!typing()) render();
 }
@@ -499,7 +507,7 @@ async function send(payload, okMsg){
   try {
     const res = await fetch(API, { method: "POST", body: JSON.stringify(Object.assign({ token: TOKEN, film: m.id }, payload)) });
     const data = await res.json();
-    if (data && data.seats) { applyList(data.seats); seatStatus = "ok"; lastLoad = Date.now(); }
+    if (data && data.seats) { applyList(data.seats); cacheSeats(data.seats); haveSeatData = true; seatStatus = "ok"; lastLoad = Date.now(); }
     if (data && data.ok) { ok = true; if (okMsg) toast(okMsg); }
     else toast((data && data.message) || "That didn\u2019t go through. Try again.");
   } catch(e) {
@@ -642,8 +650,9 @@ function seatsOpen(m){ return seatIds(m).filter(s => !nm(m, s)).length; }
 
 function ticketCardHTML(m){
   const open = seatsOpen(m);
-  const stubBig = seatStatus === "loading" ? '\u2013' : String(open);
-  const stubSmall = seatStatus === "loading" ? 'checking' : (open === 1 ? 'seat open' : 'seats open');
+  const known = seatStatus === "ok";
+  const stubBig = known ? String(open) : '\u2013';
+  const stubSmall = known ? (open === 1 ? 'seat open' : 'seats open') : (seatStatus === "loading" ? 'checking' : 'seats');
   return '<a class="ticket tk-card' + (isPast(m) ? ' past' : '') + '" href="#/' + esc(m.id) + '" data-film="' + themeOf(m) + '">' +
     '<span class="tk-main"><span class="tk-top"><span class="tk-thumb">' + art(themeOf(m), "card", m.id) + '</span>' +
     '<span class="tk-name"><span class="tk-title">' + esc(m.title) + '</span><span class="tk-where">' + esc(m.theater.name || "") + '</span></span></span>' +
@@ -1084,7 +1093,13 @@ setInterval(() => {
 /* ---------- start ---------- */
 route = parseRoute();
 render();
-loadMovies().then(() => { applyList([]); render(); return loadSeats(); });
+loadMovies().then(() => {
+  const cached = MODE === "api" ? cachedSeats() : null;
+  applyList(cached || []);
+  if (cached) { haveSeatData = true; seatStatus = "ok"; }
+  render();
+  return loadSeats();
+});
 })();
 
 </script>
