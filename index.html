@@ -344,7 +344,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 .ar-bar::after{content:"";position:absolute;right:0;top:-2px;bottom:-2px;width:3px;background:var(--rust)}
 #ar-note{flex:none;font-weight:700;font-size:11px;letter-spacing:.06em;max-width:48%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .arcade.beating .ar-bar i{background:var(--signal)}
-.ar-stage{position:relative;margin-top:14px;height:clamp(250px,58vw,420px);border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--black);touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.ar-stage{position:relative;margin-top:14px;height:clamp(330px,86vw,560px);border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--black);touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .ar-stage canvas{display:block;width:100%;height:100%;touch-action:none}
 .ar-start{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(18,17,15,.72)}
 .ar-start[hidden]{display:none}
@@ -414,11 +414,10 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
               <h3>Who&rsquo;s playing?</h3>
               <div class="ar-row"><input id="ar-name" type="text" maxlength="20" placeholder="Your name" autocomplete="name" autocapitalize="words" spellcheck="false" enterkeyhint="go" aria-label="Your name"><button id="ar-go" class="ar-go" type="button">Start</button></div>
               <p id="ar-top-line"></p>
-              <p class="ar-how">Tap Jump to hop. Hold it to keep jumping. Land on top of blocks, but running into their sides or touching a spike ends the run.</p>
+              <p class="ar-how">Tap anywhere on the game to jump; hold to keep jumping. The floor at the bottom is a good spot for your thumb. Land on top of blocks, but running into their sides or touching a spike ends the run.</p>
             </div>
           </div>
         </div>
-        <button id="ar-jump" class="ar-jump" type="button" disabled>Jump</button>
       </div>
     </section>
   </div>
@@ -1164,7 +1163,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
   const stage = $("ar-stage"), cv = $("ar-cv"), ctx = cv.getContext("2d");
   const startCard = $("ar-start"), nameIn = $("ar-name"), topLine = $("ar-top-line");
   const hudAttempt = $("ar-attempt"), hudDist = $("ar-dist"), hudTop = $("ar-top"), hudTopName = $("ar-top-name");
-  const fill = $("ar-fill"), trackNote = $("ar-note"), jumpBtn = $("ar-jump"), whoLine = $("ar-who");
+  const fill = $("ar-fill"), trackNote = $("ar-note"), whoLine = $("ar-who");
   const pauseBtn = $("ar-pause"), pauseCard = $("ar-paused"), pauseLine = $("ar-paused-line"), changeBtn = $("ar-change");
   const soundBtn = $("ar-sound");
   const music = window.HMNMusic || { start() {}, stop() {}, pause() {}, resume() {}, crash() {}, setMuted() {}, unlock() {}, muted: true, state: "none" };
@@ -1204,8 +1203,10 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     W = Math.round(r.width); H = Math.round(r.height);
     cv.width = W * dpr; cv.height = H * dpr;
     cv.style.width = W + "px"; cv.style.height = H + "px";
-    U = H / 7.4;
-    groundY = H - U * 1.5;
+    // roughly 11.5 blocks across and 5.9 above the floor, the same view as before;
+    // everything below the floor is a band for thumbs, so tapping never covers the action
+    U = Math.min(W / 11.5, (H - 64) / 5.9);
+    groundY = U * 5.9;
     draw();
   }
 
@@ -1279,7 +1280,6 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     startCard.hidden = true;
     pauseCard.hidden = true;
     pauseBtn.hidden = false;
-    jumpBtn.disabled = false;
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     startAttempt();
   }
@@ -1290,8 +1290,6 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     startCard.hidden = false;
     pauseCard.hidden = true;
     pauseBtn.hidden = true;
-    jumpBtn.disabled = true;
-    jumpBtn.classList.remove("down");
     setText(whoLine, name ? "Last played as " + name : "Enter your name to play");
     changeBtn.hidden = true;
     nameIn.value = name || LS.get(K_NAME) || LS.get("seats.myname") || "";
@@ -1327,17 +1325,17 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     if (mode === "name") return;
     if (mode === "paused") { resume(); return; }
     if (music.unlock && music.state !== "running" && !music.muted) music.unlock(); // recovers after a call or another app took the audio
-    held = true; buffer = 0.12; jumpBtn.classList.add("down");
+    held = true; buffer = 0.12;
   }
-  function release() { held = false; jumpBtn.classList.remove("down"); }
-  jumpBtn.addEventListener("pointerdown", e => { e.preventDefault(); try { jumpBtn.setPointerCapture(e.pointerId); } catch (err) {} press(); });
-  jumpBtn.addEventListener("pointerup", release);
-  jumpBtn.addEventListener("pointercancel", release);
-  jumpBtn.addEventListener("lostpointercapture", release);
-  jumpBtn.addEventListener("contextmenu", e => e.preventDefault());
-  cv.addEventListener("pointerdown", e => { e.preventDefault(); press(); });
-  cv.addEventListener("pointerup", release);
-  cv.addEventListener("pointercancel", release);
+  // the whole game area is the jump button; the deep floor at the bottom is where thumbs rest
+  let touches = 0;
+  function release() { held = false; }
+  cv.addEventListener("pointerdown", e => { e.preventDefault(); touches++; try { cv.setPointerCapture(e.pointerId); } catch (err) {} press(); });
+  const lift = () => { touches = Math.max(0, touches - 1); if (!touches) release(); };
+  cv.addEventListener("pointerup", lift);
+  cv.addEventListener("pointercancel", lift);
+  cv.addEventListener("lostpointercapture", () => { touches = 0; release(); });
+  cv.addEventListener("contextmenu", e => e.preventDefault());
   window.addEventListener("keydown", e => {
     if (root.hidden) return;
     if (mode === "name") { if (e.key === "Enter" && document.activeElement === nameIn) { e.preventDefault(); begin(); } return; }
@@ -1591,7 +1589,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
       const hole = U * 0.34, pitch = U * 0.8, offs = ((-camX * U) % pitch + pitch) % pitch;
       for (let x = offs - pitch; x < W; x += pitch) {
         ctx.fillRect(x, gy + U * 0.28, hole, hole * 0.75);
-        ctx.fillRect(x, gy + U * 1.22 - hole * 0.75, hole, hole * 0.75);
+        ctx.fillRect(x, H + camY * U - U * 0.28 - hole * 0.75, hole, hole * 0.75);
       }
       ctx.fillStyle = C.bone; ctx.fillRect(0, gy - 1, W, 2);
     } else if (st.name === "bh") {
@@ -1698,6 +1696,17 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
     // the white-out when you're pulled through, and again into limbo
     const flash = sc.fd ? 1 - sc.fdIn : (sc.warp > 0.82 ? (sc.warp - 0.82) / 0.18 : 0);
     if (flash > 0) { ctx.fillStyle = "rgba(255,255,255," + Math.min(1, flash) + ")"; ctx.fillRect(-10, -10, W + 20, H + 20); }
+
+    // a reminder in the floor band at the start of each run
+    if (player && mode === "play" && player.x < 30) {
+      ctx.globalAlpha = Math.min(1, (30 - player.x) / 10) * 0.75;
+      ctx.fillStyle = st.name === "limbo" ? C.black : C.khaki;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.font = "700 " + Math.max(11, Math.round(U * 0.36)) + "px Montserrat, system-ui, sans-serif";
+      const bandMid = (gy + H) / 2;
+      ctx.fillText("TAP ANYWHERE TO JUMP  \u00b7  HOLD TO KEEP JUMPING", W / 2, Math.min(bandMid, H - 18));
+      ctx.globalAlpha = 1;
+    }
 
     // banners: attempt number, world names, run result
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
