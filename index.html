@@ -487,13 +487,13 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     };
   }
 
-  function tierAt(x) { return x < 120 ? 0 : x < 360 ? 1 : x < 568 ? 2 : x < 826 ? 3 : 4; }
+  function tierAt(x) { return x < 112 ? 0 : x < 288 ? 1 : x < 464 ? 2 : x < 608 ? 3 : 4; }
   /* stretches with no obstacles, lined up with the music (1 bar = 12.9 m) */
-  const CLEAR = [[497, 567.6], [786, 825.6], [1186, 1212.6]];
+  const CLEAR = [[407, 464], [576, 608], [783, 816]]; // black hole calm, pull-in, white-out into limbo (16 m music bars)
   function clearZoneHit(a, b) { for (const z of CLEAR) if (a < z[1] && b > z[0]) return z; return null; }
   function gapAt(x, r) {
-    const min = x < 120 ? 5 : x < 360 ? 4 : 3.5;
-    const span = x < 120 ? 5 : x < 360 ? 4 : 3;
+    const min = x < 112 ? 5 : x < 288 ? 4 : 3.5;
+    const span = x < 112 ? 5 : x < 288 ? 4 : 3;
     return min + Math.floor(r() * (span + 1));
   }
 
@@ -501,7 +501,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
      Each new chunk is checked with a small solver before it is kept, so the course can always be beaten. */
   /* The fixed course (seed 2026) comes pre-built out to ~3,000 m, so phones never generate it mid-run.
      Past that, the builder below carries on from a clear runway. */
-  const BAKED = {"seed": 2026, "end": 3009.6, "data": "b140,0,1,1;b70,0,4,1;s120,0;b70,0,4,1;s130,0;s10,0;s60,0;s90,0;s10,0;s60,0;b70,0,1,1;b110,0,1,1;s60,0;s10,0;b70,0,4,1;b140,0,3,1;b30,0,4,2;b110,0,3,1;s30,0;s10,0;s60,0;s30,0;b60,0,1,1;s10,0;s10,0;b10,0,1,1;b90,0,3,1;s30,0;s10,0;s90,0;s10,0;b50,0,3,1;s30,0;s10,0;b80,0,7,1;s30,1;b90,0,3,1;b30,0,4,2;b110,0,1,1;s10,0;s10,0;b10,0,1,1;s60,0;b90,0,4,1;b120,0,7,1;s30,1;s90,0;s30,0;b110,0,3,1;b30,0,4,2;b110,0,1,1;s10,0;s10,0;b10,0,1,1;s70,0;s30,0;b80,0,7,1;s30,1;b100,0,1,1;s10,0;s10,0;b10,0,1,1;b90,0,3,1;s30,0;s10,0;b50,0,4,1;b80,0,3,1;b30,0,4,2;s120,0;s40,0;s45,0;s10,0;s10,0;b65,0,1,1;s10,0;s10,0;b10,0,1,1;s75,0;s10,0;s40,0;s10,0;s45,0;s10,0;s40,0;s10,0;s65,0;s10,0;s40,0;s10,0;b45,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;s65,0;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;s45,0;s10,0;s40,0;s10,0;s756,0;s10,0;s10,0;b45,0,8,1;s30,1;s10,1;b105,0,8,1;b30,2,4,1;s105,0;s10,0;s10,0;b45,1,6,1;b125,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,1,5,1;s70,0;b75,0,4,1;b95,0,7,1;s30,1;b95,1,5,1;s70,0;b105,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;s75,0;s10,0;s40,0;s10,0;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,1,5,1;s70,0;b435,0,8,1;s30,1;s10,1;b85,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;s45,0;s30,0;b75,0,7,1;s30,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s45,0;s10,0;s10,0;b45,1,6,1;b125,0,3,1;s30,0;s10,0;b55,0,1,1;b65,0,8,1;b30,2,4,1;b115,1,5,1;s70,0;b65,0,8,1;b30,2,4,1;b105,0,9,1;b20,3,5,1;v10,2;v20,2;s95,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,1,6,1;s105,0;b50,1,4,1;s75,0;s10,0;s10,0;s55,0;s40,0;b55,0,2,1;b20,0,7,2;s30,2;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b55,2,6,1;v20,1;v10,1;b85,1,6,1;b95,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b115,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,1,6,1;s345,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b85,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b75,0,7,1;s30,1;b75,1,6,1;b95,0,1,1;s10,0;s10,0;b10,0,1,1;b45,1,6,1;b95,2,6,1;v20,1;v10,1;b75,0,4,1;b95,0,4,1;s85,0;s40,0;b55,1,6,1;b105,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,0,9,1;b20,3,5,1;v10,2;v20,2;s85,0;b50,1,4,1;b135,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,1,6,1;b115,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,0,8,1;b30,2,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,1,5,1;s70,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s65,0;s10,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,2,6,1;v20,1;v10,1;b65,1,6,1;s115,0;b50,1,4,1;b105,1,6,1;b95,2,6,1;v20,1;v10,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,9,1;b20,3,5,1;v10,2;v20,2;b95,2,6,1;v20,1;v10,1;b85,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s55,0;b50,1,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;s10,0;b45,0,8,1;b30,2,4,1;s85,0;s30,0;b55,0,1,1;s10,0;s10,0;b10,0,1,1;s65,0;s30,0;b75,0,8,1;b30,2,4,1;b95,0,8,1;b30,2,4,1;b85,0,3,1;b30,0,4,2;b95,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,9,1;b20,3,5,1;v10,2;v20,2;s85,0;b50,1,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,1,5,1;s70,0;b115,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b45,0,3,1;s30,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,2,6,1;v20,1;v10,1;b95,0,1,1;b65,2,6,1;v20,1;v10,1;s65,0;s30,0;b55,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,2,1;b20,0,7,2;s30,2;b75,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,3,1;b30,0,4,2;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b45,2,6,1;v20,1;v10,1;b95,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,0,4,1;b105,1,5,1;s70,0;s55,0;b50,1,4,1;s85,0;s10,0;s40,0;s10,0;s65,0;b50,1,4,1;b95,0,3,1;b30,0,4,2;b85,0,9,1;b20,3,5,1;v10,2;v20,2;s105,0;b50,1,4,1;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,2,1;b20,0,7,2;s30,2;s75,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,1,6,1;b125,1,5,1;s70,0;b55,1,6,1;b95,0,8,1;b30,2,4,1;b95,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b65,0,4,1;s85,0;b50,1,4,1;b85,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,3,1;s30,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,0,1,1;b45,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b105,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s45,0;s10,0;s10,0;b65,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,3,1;s30,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b115,0,2,1;b20,0,7,2;s30,2;b165,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;b50,1,4,1;s105,0;b50,1,4,1;b105,0,8,1;b30,2,4,1;b95,0,3,1;s30,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b85,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,1,5,1;s70,0;b45,0,9,1;b20,3,5,1;v10,2;v20,2;b85,0,1,1;s10,0;s10,0;b10,0,1,1;s45,0;b50,1,4,1;b135,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2"};
+  const BAKED = {"seed": 2026, "end": 3014.5, "data": "b140,0,1,1;b70,0,4,1;s120,0;b70,0,4,1;s130,0;s10,0;s60,0;s90,0;s10,0;s60,0;b70,0,1,1;b110,0,1,1;s60,0;s10,0;b70,0,4,1;b140,0,3,1;b30,0,4,2;b110,0,3,1;s30,0;s10,0;s60,0;s30,0;b60,0,1,1;s10,0;s10,0;b10,0,1,1;b90,0,3,1;s30,0;s10,0;s90,0;s10,0;b50,0,3,1;s30,0;s10,0;b80,0,7,1;s30,1;b90,0,3,1;b30,0,4,2;b110,0,1,1;s10,0;s10,0;b10,0,1,1;s60,0;b90,0,4,1;b120,0,7,1;s30,1;s90,0;s30,0;b110,0,3,1;b30,0,4,2;b110,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;s55,0;s10,0;s10,0;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b65,0,8,1;s30,1;s10,1;b105,0,3,1;b30,0,4,2;s75,0;s40,0;s45,0;s10,0;s40,0;s10,0;s75,0;s40,0;s45,0;s10,0;s10,0;b65,0,1,1;s10,0;s10,0;b10,0,1,1;s625,0;s10,0;b75,1,5,1;s70,0;b75,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b65,1,6,1;b95,0,8,1;b30,2,4,1;b115,0,8,1;b30,2,4,1;s115,0;s10,0;b75,0,8,1;b30,2,4,1;s535,0;b45,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,8,1;b30,2,4,1;b85,0,3,1;s30,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b55,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b85,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b65,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b45,0,8,1;b30,2,4,1;b85,2,6,1;v20,1;v10,1;b85,0,8,1;s30,1;s10,1;b75,1,6,1;b440,1,5,1;s70,0;b45,1,5,1;s70,0;b115,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,1,5,1;s70,0;b105,0,2,1;b20,0,7,2;s30,2;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;s30,0;s45,0;s10,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,2,6,1;v20,1;v10,1;b95,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,2,6,1;v20,1;v10,1;b85,0,7,1;s30,1;s85,0;b50,1,4,1;b85,0,1,1;s10,0;s10,0;b10,0,1,1;b45,1,6,1;s95,0;b50,1,4,1;s85,0;s10,0;s10,0;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;s125,0;s30,0;b45,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,9,1;b20,3,5,1;v10,2;v20,2;s95,0;s10,0;s10,0;b55,1,5,1;s70,0;b75,0,8,1;b30,2,4,1;b95,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s55,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b85,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b75,0,7,1;s30,1;b75,1,6,1;b95,0,1,1;s10,0;s10,0;b10,0,1,1;b45,1,6,1;b95,2,6,1;v20,1;v10,1;b75,0,4,1;b95,0,4,1;s85,0;s40,0;b55,1,6,1;b105,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,0,9,1;b20,3,5,1;v10,2;v20,2;s85,0;b50,1,4,1;b135,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,1,6,1;b115,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,0,8,1;b30,2,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,1,5,1;s70,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s65,0;s10,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,2,6,1;v20,1;v10,1;b65,1,6,1;s115,0;b50,1,4,1;b105,1,6,1;b95,2,6,1;v20,1;v10,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,9,1;b20,3,5,1;v10,2;v20,2;b95,2,6,1;v20,1;v10,1;b85,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s55,0;b50,1,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;s10,0;b45,0,8,1;b30,2,4,1;s85,0;s30,0;b55,0,1,1;s10,0;s10,0;b10,0,1,1;s65,0;s30,0;b75,0,8,1;b30,2,4,1;b95,0,8,1;b30,2,4,1;b85,0,3,1;b30,0,4,2;b95,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,9,1;b20,3,5,1;v10,2;v20,2;s85,0;b50,1,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,1,5,1;s70,0;b115,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b45,0,3,1;s30,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,2,6,1;v20,1;v10,1;b95,0,1,1;b65,2,6,1;v20,1;v10,1;s65,0;s30,0;b55,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,2,1;b20,0,7,2;s30,2;b75,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,3,1;b30,0,4,2;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b45,2,6,1;v20,1;v10,1;b95,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,0,4,1;b105,1,5,1;s70,0;s55,0;b50,1,4,1;s85,0;s10,0;s40,0;s10,0;s65,0;b50,1,4,1;b95,0,3,1;b30,0,4,2;b85,0,9,1;b20,3,5,1;v10,2;v20,2;s105,0;b50,1,4,1;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,2,1;b20,0,7,2;s30,2;s75,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,1,6,1;b125,1,5,1;s70,0;b55,1,6,1;b95,0,8,1;b30,2,4,1;b95,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b65,0,4,1;s85,0;b50,1,4,1;b85,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,3,1;s30,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,0,1,1;b45,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b105,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s45,0;s10,0;s10,0;b65,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,3,1;s30,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b115,0,2,1;b20,0,7,2;s30,2;b165,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;b50,1,4,1;s105,0;b50,1,4,1;b105,0,8,1;b30,2,4,1;b95,0,3,1;s30,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b85,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,1,5,1;s70,0;b45,0,9,1;b20,3,5,1;v10,2;v20,2;b85,0,1,1;s10,0;s10,0;b10,0,1,1;s45,0;b50,1,4,1;b135,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0"};
   function decodeBaked(B) {
     const out = []; let x10 = 0;
     B.data.split(";").forEach(tok => {
@@ -697,65 +697,70 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
 
 </script>
 <script>
-/* Hill Movie Nights arcade: an original 160 BPM electro score in the spirit of 2010-era Newgrounds game music.
-   The game runs at a constant speed, so every bar is ~12.9 m. Drop 1 hits at bar 9 (~116 m) and
-   drop 2 at bar 28 (~361 m), where the course gets harder. */
+/* Hill Movie Nights arcade score: an original progressive-house piece in the deadmau5 tradition (no samples or melodies borrowed).
+   129 BPM, so one bar is exactly 16 m of running and every section lands on its distance.
+   Each world has its own palette:
+     stars (0-400 m)        three-octave filtered arp, soft pad, eighth-note chord plucks, a swept saw lead; light speed adds a trance lead
+     black hole (400-576 m) dark drones and sub drops, then a distorted pumping bass, a resonant acid line, minor stabs
+     4th dimension (608 m)  wide supersaw chords, rolling bass, ride, a gliding saw lead
+     limbo (800 m on)       no beat: long pads and a slow half-speed arp */
 (function (root) {
   "use strict";
   const LSK = "hmn.arcade.sound";
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
-  const BPM = 160, BEAT = 60 / BPM, STEP = BEAT / 4;
+  const BPM = 129, BEAT = 60 / BPM, STEP = BEAT / 4, BAR = BEAT * 4;
   const hz = n => 440 * Math.pow(2, (n - 69) / 12);
 
-  // i - VI - III - VII in B minor, one chord per bar
-  const CH = [
-    { pad: [59, 62, 66], root: 35 }, // Bm
-    { pad: [59, 62, 67], root: 31 }, // G
-    { pad: [62, 66, 69], root: 38 }, // D
-    { pad: [61, 64, 69], root: 33 }  // A
-  ];
-  // drop riff: [step in 8-bar cycle, midi, length in sixteenths]
-  const RIFF_A = [[0,78,2],[2,83,2],[4,78,2],[6,74,2],[8,71,2],[10,74,2],[12,78,2],[14,81,2],
-    [16,83,3],[19,81,3],[22,79,2],[24,78,2],[26,79,2],[28,74,4],
-    [32,78,2],[34,81,2],[36,85,2],[38,81,2],[40,78,2],[42,74,2],[44,73,2],[46,74,2],
-    [48,76,3],[51,78,3],[54,76,2],[56,73,4],[60,69,2],[62,73,2]];
-  const RIFF = RIFF_A.concat(RIFF_A.slice(0, 22).map(n => [n[0] + 64, n[1], n[2]]),
-    [[112,76,2],[114,78,2],[116,81,2],[118,83,2],[120,85,2],[122,86,2],[124,88,4]]);
-  // anthem melody for the middle section
-  const ANTHEM_A = [[0,74,6],[6,73,2],[8,71,8],[16,74,4],[20,78,4],[24,76,8],[32,78,6],[38,76,2],[40,74,8],[48,73,4],[52,74,4],[56,76,8]];
-  const ANTHEM = ANTHEM_A.concat(ANTHEM_A.slice(0, 9).map(n => [n[0] + 64, n[1], n[2]]), [[112,78,4],[116,81,4],[120,83,8]]);
-  const GATE = [1,0,1,1, 0,1,0,1, 1,0,1,1, 0,1,1,0]; // trance gate on the chords
-  const BASS_DROP = [1,0,1,1, 0,1,1,0, 1,0,1,1, 0,1,0,1];
-  const BASS_OCT  = [0,0,0,1, 0,0,1,0, 0,0,0,1, 0,1,0,1];
+  /* ---------- harmony (A minor); open voicings so stacked saws stay clean ---------- */
+  const CH = {
+    Am:  { root: 45, chord: [57, 64, 72] },  // A3 E4 C5
+    F:   { root: 41, chord: [53, 60, 69] },  // F3 C4 A4
+    C:   { root: 48, chord: [55, 64, 72] },  // G3 E4 C5
+    G:   { root: 43, chord: [55, 62, 71] },  // G3 D4 B4
+    Dm:  { root: 38, chord: [53, 62, 69] },
+    E:   { root: 40, chord: [56, 64, 71] },  // G#3 E4 B4
+    Bb:  { root: 46, chord: [53, 62, 70] },  // F3 D4 Bb4
+    Fma: { root: 41, chord: [57, 64, 72] },  // Fmaj7 shell: A3 E4 C5 over F
+    Em:  { root: 40, chord: [55, 62, 71] }
+  };
+  const STARS = ["Am", "F", "C", "G"];      // stage one
+  const LIGHT = ["Am", "F", "G", "E"];      // light speed: the E pulls you forward
+  const GRAVITY = ["Am", "Bb", "Am", "E"];  // the black hole: darker turn
+  const WONDER = ["F", "G", "Am", "Am"];    // the fourth dimension: lift, then land
+  function chordFor(S, bar) {
+    if (S === "drop2") return CH[LIGHT[bar % 4]];
+    if (S === "dropout" || S === "cinematic" || S === "drop3") return CH[GRAVITY[bar % 4]];
+    if (S === "warp" || S === "fourD") return CH[WONDER[bar % 4]];
+    return CH[STARS[bar % 4]];
+  }
+  // themes: long held notes, [step in cycle, midi, length in sixteenths]
+  const STRINGS = [[0, 76, 16], [16, 77, 12], [28, 76, 4], [32, 79, 16], [48, 74, 16]];                      // breakdown, 4 bars
+  const ANTHEM = [[0, 69, 8], [8, 72, 4], [12, 76, 4], [16, 77, 12], [28, 76, 4], [32, 74, 8], [40, 76, 4], [44, 79, 4], [48, 76, 16],
+                  [64, 81, 8], [72, 79, 4], [76, 76, 4], [80, 77, 8], [88, 81, 8], [96, 79, 8], [104, 74, 8], [112, 76, 12], [124, 71, 4]];   // light speed, 8 bars
+  const ASCENT = [[0, 84, 8], [8, 81, 8], [16, 83, 8], [24, 79, 8], [32, 84, 4], [36, 83, 4], [40, 81, 8], [48, 76, 16]];   // fourth dimension, 4 bars
+  const LIMBO = [{ chord: [57, 64, 72, 76], root: 45 }, { chord: [53, 60, 69, 76], root: 41 }, { chord: [55, 64, 72, 79], root: 48 }, { chord: [55, 62, 71, 74], root: 43 }];
 
-  /* sections by bar (1 bar = 12.9 m): 490 m black hole, 568 m drop 3, 787 m pulled in, 826 m fourth dimension, 1200 m limbo */
+  /* sections by bar (16 m each) */
   function sec(bar) {
     if (bar === 0) return "pickup";
     if (bar <= 4) return "intro";
-    if (bar <= 8) return "build";
-    if (bar <= 16) return "drop1";
-    if (bar <= 24) return "anthem";
-    if (bar <= 27) return "build2";
-    if (bar <= 37) return "drop2";
-    if (bar === 38) return "bhfill";
-    if (bar <= 43) return "cinematic";
-    if (bar <= 60) return "drop3";
-    if (bar <= 63) return "warp";
-    if (bar <= 91) return "fourD";
-    if (bar === 92) return "limbofill";
+    if (bar <= 6) return "build";
+    if (bar <= 12) return "drop1";
+    if (bar <= 15) return "breakdown";
+    if (bar <= 17) return "build2";
+    if (bar <= 24) return "drop2";
+    if (bar === 25) return "dropout";
+    if (bar <= 28) return "cinematic";
+    if (bar <= 35) return "drop3";
+    if (bar <= 37) return "warp";
+    if (bar <= 48) return "fourD";
+    if (bar === 49) return "limbofill";
     return "limbo";
   }
-  const FD = [ // fourth dimension: VI - VII - v - i
-    { pad: [55, 59, 62], root: 31 }, { pad: [57, 61, 64], root: 33 }, { pad: [54, 57, 61], root: 30 }, { pad: [59, 62, 66], root: 35 }
-  ];
-  const FD_LEAD = [[0, 78, 12], [16, 76, 12], [32, 73, 12], [48, 74, 16]];
-  const LIMBO = [ // slow, open chords, four bars each
-    { pad: [59, 62, 66, 73], root: 35 }, { pad: [55, 59, 62, 66], root: 31 }, { pad: [62, 66, 69, 73], root: 38 }, { pad: [57, 61, 64, 71], root: 33 }
-  ];
 
-  let ctx = null, out = null, noise = null, timer = null, run = null, silentEl = null;
+  let ctx = null, out = null, verbIn = null, noise = null, timer = null, run = null, silentEl = null;
   const SILENT_WAV = "data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
 
   /* iPhones route web audio through the ringer switch unless the page asks for "playback",
@@ -774,7 +779,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   }
   let step = 0, nextTime = 0, playing = false;
   let muted = lsGet(LSK) === "off";
-  const LEVEL = 0.52;
+  const LEVEL = 0.46;
 
   function shaperCurve(k) {
     const n = 1024, c = new Float32Array(n);
@@ -791,324 +796,334 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   }
   function build(c) {
     const comp = c.createDynamicsCompressor();
-    comp.threshold.value = -9; comp.knee.value = 6; comp.ratio.value = 3; comp.attack.value = 0.002; comp.release.value = 0.12;
+    comp.threshold.value = -10; comp.knee.value = 6; comp.ratio.value = 3; comp.attack.value = 0.003; comp.release.value = 0.14;
     out = c.createGain(); out.gain.value = muted ? 0 : LEVEL;
-    out.connect(comp); comp.connect(c.destination);
+    const limiter = c.createDynamicsCompressor(); // brickwall-style safety so the big hits never clip
+    limiter.threshold.value = -2.5; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = 0.001; limiter.release.value = 0.08;
+    out.connect(comp); comp.connect(limiter); limiter.connect(c.destination);
     const len = Math.floor(c.sampleRate * 1.5);
     noise = c.createBuffer(1, len, c.sampleRate);
     const d = noise.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    // one wide hall: a generated 2.4 s tail
+    const verb = c.createConvolver(), irLen = Math.floor(c.sampleRate * 2.4);
+    const ir = c.createBuffer(2, irLen, c.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const data = ir.getChannelData(ch);
+      for (let i = 0; i < irLen; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / irLen, 3);
+    }
+    verb.buffer = ir;
+    const verbLp = c.createBiquadFilter(); verbLp.type = "lowpass"; verbLp.frequency.value = 6000;
+    verbIn = c.createGain(); verbIn.gain.value = 0.3;
+    verbIn.connect(verbLp); verbLp.connect(verb); verb.connect(out);
   }
   function newRun() {
     const bus = ctx.createGain(); bus.connect(out);
-    const pump = ctx.createGain(); pump.connect(bus);
-    // grit for the bass
-    const drive = ctx.createWaveShaper(); drive.curve = shaperCurve(18); drive.oversample = "2x";
-    const bassLp = ctx.createBiquadFilter(); bassLp.type = "lowpass"; bassLp.frequency.value = 900; bassLp.Q.value = 3;
-    const bassIn = ctx.createGain(); bassIn.gain.value = 1;
-    bassIn.connect(drive); drive.connect(bassLp); bassLp.connect(pump);
-    // punch for the kick
-    const kdrive = ctx.createWaveShaper(); kdrive.curve = shaperCurve(4); kdrive.connect(bus);
-    // echo for leads
+    const pump = ctx.createGain(); pump.connect(bus);                               // sidechain ducking on everything musical
+    const verb = ctx.createGain(); verb.connect(verbIn);
     const delay = ctx.createDelay(1.5), fb = ctx.createGain(), tone = ctx.createBiquadFilter(), send = ctx.createGain();
-    delay.delayTime.value = BEAT * 0.75; fb.gain.value = 0.3; tone.type = "lowpass"; tone.frequency.value = 4000; send.gain.value = 0.3;
-    send.connect(delay); delay.connect(tone); tone.connect(fb); fb.connect(delay); tone.connect(bus);
-    return { bus: bus, pump: pump, bassIn: bassIn, bassLp: bassLp, kick: kdrive, send: send };
+    delay.delayTime.value = STEP * 3; fb.gain.value = 0.38; tone.type = "lowpass"; tone.frequency.value = 3800; send.gain.value = 0.32;   // 3/16 delay
+    send.connect(delay); delay.connect(tone); tone.connect(fb); fb.connect(delay); tone.connect(pump); tone.connect(verb);
+    // the arp's own filter, swept over whole sections
+    const arpLp = ctx.createBiquadFilter(); arpLp.type = "lowpass"; arpLp.frequency.value = 350; arpLp.Q.value = 6;
+    const arpIn = ctx.createGain(); arpIn.connect(arpLp);
+    const arpSat = ctx.createWaveShaper(); arpSat.curve = shaperCurve(3); arpLp.connect(arpSat); arpSat.connect(pump); arpSat.connect(send);
+    // bass with grit
+    const bassDrive = ctx.createWaveShaper(); bassDrive.curve = shaperCurve(16); bassDrive.oversample = "2x";
+    const bassLp = ctx.createBiquadFilter(); bassLp.type = "lowpass"; bassLp.frequency.value = 1800; bassLp.Q.value = 1.5;
+    const bassIn = ctx.createGain(); bassIn.connect(bassDrive); bassDrive.connect(bassLp); bassLp.connect(pump);
+    // acid: one very resonant filter
+    const acidLp = ctx.createBiquadFilter(); acidLp.type = "lowpass"; acidLp.frequency.value = 500; acidLp.Q.value = 14;
+    const acidIn = ctx.createGain(); const acidDrive = ctx.createWaveShaper(); acidDrive.curve = shaperCurve(4);
+    acidIn.connect(acidLp); acidLp.connect(acidDrive); acidDrive.connect(pump); acidDrive.connect(send);
+    const kick = ctx.createWaveShaper(); kick.curve = shaperCurve(4); kick.connect(bus);
+    // growl: heavily driven saws through a resonant filter that an LFO wobbles in time
+    const growlIn = ctx.createGain(), gDrive = ctx.createWaveShaper(); gDrive.curve = shaperCurve(24); gDrive.oversample = "2x";
+    const gLp = ctx.createBiquadFilter(); gLp.type = "lowpass"; gLp.frequency.value = 650; gLp.Q.value = 8;
+    const wob = ctx.createOscillator(), wobAmt = ctx.createGain(); wob.type = "sine"; wob.frequency.value = 2 / BEAT; wobAmt.gain.value = 0;
+    wob.connect(wobAmt); wobAmt.connect(gLp.frequency); wob.start();
+    growlIn.connect(gDrive); gDrive.connect(gLp); gLp.connect(pump);
+    return { bus: bus, pump: pump, verb: verb, send: send, arpIn: arpIn, arpLp: arpLp, bassIn: bassIn, bassLp: bassLp, acidIn: acidIn, acidLp: acidLp, kick: kick,
+      growlIn: growlIn, gLp: gLp, wob: wob, wobAmt: wobAmt };
   }
 
-  /* ---------- instruments ---------- */
-  function kick(t, R, vol) {
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = "sine"; o.frequency.setValueAtTime(190, t); o.frequency.exponentialRampToValueAtTime(46, t + 0.07);
-    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.26);
-    o.connect(g); g.connect(R.kick); o.start(t); o.stop(t + 0.28);
-    hit(t, 0.01, 0.4 * vol, "highpass", 2500, R.bus);
-  }
-  function boom(t, R) { // sub drop on the downbeat of each drop
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = "sine"; o.frequency.setValueAtTime(70, t); o.frequency.exponentialRampToValueAtTime(30, t + 1.4);
-    g.gain.setValueAtTime(0.7, t); g.gain.exponentialRampToValueAtTime(0.001, t + 1.6);
-    o.connect(g); g.connect(R.bus); o.start(t); o.stop(t + 1.65);
-    hit(t, 2.4, 0.25, "highpass", 4500, R.bus);
-    hit(t, 0.9, 0.22, "bandpass", 700, R.bus, 0.5);
-  }
+  /* ---------- drums ---------- */
   function hit(t, dur, vol, type, freq, dest, q) {
     const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
     s.buffer = noise; f.type = type; f.frequency.value = freq; if (q) f.Q.value = q;
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     s.connect(f); f.connect(g); g.connect(dest); s.start(t, Math.random() * 0.8); s.stop(t + dur + 0.02);
   }
-  function snare(t, R, vol) {
-    hit(t, 0.17, vol, "bandpass", 1800, R.bus, 0.7);
-    hit(t, 0.08, vol * 0.7, "highpass", 5000, R.bus);
+  function kick(t, R, vol) { // sub thump, a punchy body, and a click
     const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = "triangle"; o.frequency.setValueAtTime(240, t); o.frequency.exponentialRampToValueAtTime(160, t + 0.06);
-    g.gain.setValueAtTime(vol * 0.7, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
-    o.connect(g); g.connect(R.bus); o.start(t); o.stop(t + 0.1);
+    o.type = "sine"; o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.07);
+    g.gain.setValueAtTime(vol, t); g.gain.setValueAtTime(vol, t + 0.03); g.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
+    o.connect(g); g.connect(R.kick); o.start(t); o.stop(t + 0.44);
+    const b = ctx.createOscillator(), bg = ctx.createGain();
+    b.type = "triangle"; b.frequency.setValueAtTime(240, t); b.frequency.exponentialRampToValueAtTime(90, t + 0.04);
+    bg.gain.setValueAtTime(vol * 0.5, t); bg.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+    b.connect(bg); bg.connect(R.kick); b.start(t); b.stop(t + 0.07);
+    hit(t, 0.007, 0.32 * vol, "highpass", 2200, R.bus);
   }
-  function riser(t, dur, R) {
-    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-    s.buffer = noise; s.loop = true; f.type = "bandpass"; f.Q.value = 3;
-    f.frequency.setValueAtTime(250, t); f.frequency.exponentialRampToValueAtTime(10000, t + dur);
-    g.gain.setValueAtTime(0.001, t); g.gain.exponentialRampToValueAtTime(0.35, t + dur * 0.97); g.gain.linearRampToValueAtTime(0.0001, t + dur);
-    s.connect(f); f.connect(g); g.connect(R.bus); s.start(t); s.stop(t + dur + 0.05);
-    const o = ctx.createOscillator(), og = ctx.createGain(), of = ctx.createBiquadFilter();
-    o.type = "sawtooth"; o.frequency.setValueAtTime(hz(47), t); o.frequency.exponentialRampToValueAtTime(hz(83), t + dur);
-    of.type = "lowpass"; of.frequency.setValueAtTime(400, t); of.frequency.exponentialRampToValueAtTime(6000, t + dur);
-    og.gain.setValueAtTime(0.001, t); og.gain.exponentialRampToValueAtTime(0.07, t + dur * 0.97); og.gain.linearRampToValueAtTime(0.0001, t + dur);
-    o.connect(of); of.connect(og); og.connect(R.bus); o.start(t); o.stop(t + dur + 0.05);
-  }
-  function voice(type, freq, t, dur, vol, cutoff, dest, voices, spread, res, pluck) {
-    const f = ctx.createBiquadFilter(), g = ctx.createGain();
-    f.type = "lowpass"; f.Q.value = res || 1;
-    if (pluck) { f.frequency.setValueAtTime(cutoff, t); f.frequency.exponentialRampToValueAtTime(Math.max(200, cutoff * 0.18), t + Math.min(dur, 0.18)); }
-    else f.frequency.value = cutoff;
-    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.004);
-    g.gain.setValueAtTime(vol, t + Math.max(0.005, dur - 0.03)); g.gain.linearRampToValueAtTime(0.0001, t + dur);
-    f.connect(g); g.connect(dest);
-    const n = voices || 1;
-    for (let i = 0; i < n; i++) {
-      const o = ctx.createOscillator(); o.type = type; o.frequency.value = freq;
-      if (n > 1) o.detune.value = (i / (n - 1) - 0.5) * 2 * (spread || 12);
-      o.connect(f); o.start(t); o.stop(t + dur + 0.03);
-    }
-    return g;
+  function snare(t, R, vol) { // clap layered over a tonal snare body, sent to the hall
+    clap(t, R, vol);
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "triangle"; o.frequency.setValueAtTime(210, t); o.frequency.exponentialRampToValueAtTime(150, t + 0.05);
+    g.gain.setValueAtTime(vol * 0.7, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    o.connect(g); g.connect(R.bus); o.start(t); o.stop(t + 0.13);
+    hit(t, 0.14, vol * 0.5, "highpass", 3500, R.bus);
   }
   function tom(t, R, vol, pitch) {
     const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = "sine"; o.frequency.setValueAtTime(pitch || 150, t); o.frequency.exponentialRampToValueAtTime((pitch || 150) * 0.45, t + 0.18);
-    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-    o.connect(g); g.connect(R.kick); o.start(t); o.stop(t + 0.37);
-    hit(t, 0.08, vol * 0.25, "bandpass", 900, R.bus, 1);
+    o.type = "sine"; o.frequency.setValueAtTime(pitch, t); o.frequency.exponentialRampToValueAtTime(pitch * 0.55, t + 0.2);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+    o.connect(g); g.connect(R.kick); g.connect(R.verb); o.start(t); o.stop(t + 0.34);
   }
-  function braam(t, notes, R) { // huge low brass-like hit
-    const f = ctx.createBiquadFilter(), g = ctx.createGain();
-    f.type = "lowpass"; f.Q.value = 2; f.frequency.setValueAtTime(220, t); f.frequency.exponentialRampToValueAtTime(1900, t + 0.5); f.frequency.exponentialRampToValueAtTime(500, t + 2.6);
-    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.32, t + 0.06); g.gain.exponentialRampToValueAtTime(0.001, t + 3);
-    f.connect(g); g.connect(R.bus);
-    notes.forEach(n => [-9, 0, 9].forEach(dt => { const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = hz(n); o.detune.value = dt; o.connect(f); o.start(t); o.stop(t + 3.05); }));
-    const so = ctx.createOscillator(), sg = ctx.createGain();
-    so.type = "sine"; so.frequency.value = hz(notes[0]); sg.gain.setValueAtTime(0.55, t); sg.gain.exponentialRampToValueAtTime(0.001, t + 2.6);
-    so.connect(sg); sg.connect(R.bus); so.start(t); so.stop(t + 2.65);
+  function shaker(t, R, vol) { hit(t, 0.045, vol, "bandpass", 6800, R.bus, 1.2); }
+  function clap(t, R, vol) {
+    [0, 0.009, 0.018].forEach((d, i) => hit(t + d, i === 2 ? 0.18 : 0.012, vol * (i === 2 ? 1 : 0.6), "bandpass", 1300, R.bus, 1.1));
+    hit(t + 0.018, 0.22, vol * 0.45, "bandpass", 1600, R.verb, 0.9);
   }
-  function swell(notes, t, dur, from, to, vol, dest) { // strings-like rising chord
-    notes.forEach(n => {
-      const f = ctx.createBiquadFilter(), g = ctx.createGain();
-      f.type = "lowpass"; f.frequency.setValueAtTime(from, t); f.frequency.exponentialRampToValueAtTime(to, t + dur);
-      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + dur * 0.85); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.08);
-      f.connect(g); g.connect(dest);
-      [-12, 0, 12].forEach(dt => { const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = hz(n); o.detune.value = dt; o.connect(f); o.start(t); o.stop(t + dur + 0.1); });
-    });
+  function hat(t, R, vol, open) { hit(t, open ? 0.18 : 0.03, vol, "highpass", open ? 7500 : 9000, R.bus); }
+  function ride(t, R, vol) { hit(t, 0.32, vol, "bandpass", 5200, R.bus, 3); hit(t, 0.12, vol * 0.5, "highpass", 9500, R.bus); }
+  function riser(t, dur, R, vol) {
+    const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    s.buffer = noise; s.loop = true; f.type = "bandpass"; f.Q.value = 2;
+    f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(10000, t + dur);
+    g.gain.setValueAtTime(0.001, t); g.gain.exponentialRampToValueAtTime(vol || 0.26, t + dur * 0.97); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(R.bus); g.connect(R.verb); s.start(t); s.stop(t + dur + 0.05);
   }
-  function bell(freq, t, vol, dest, decay) {
-    const d = decay || 0.9;
-    [[1, 1], [2.76, 0.35], [5.4, 0.12]].forEach(([mul, amp]) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = "sine"; o.frequency.value = freq * mul;
-      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol * amp, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0005, t + d / mul);
-      o.connect(g); g.connect(dest); o.start(t); o.stop(t + d / mul + 0.02);
-    });
-  }
-  function soft(notes, t, dur, vol, dest, attack, type) { // airy pad for the fourth dimension and limbo
-    notes.forEach(n => {
-      const g = ctx.createGain(), f = ctx.createBiquadFilter();
-      f.type = "lowpass"; f.frequency.value = 2200;
-      const a = attack || 0.3;
-      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + a);
-      g.gain.setValueAtTime(vol, t + Math.max(a, dur - a)); g.gain.linearRampToValueAtTime(0.0001, t + dur);
-      f.connect(g); g.connect(dest);
-      [[type || "triangle", 0, 1], ["sine", 1200, 0.5], ["sine", -6, 0.7]].forEach(([ty, dt, lv]) => {
-        const o = ctx.createOscillator(), og = ctx.createGain(); o.type = ty; o.frequency.value = hz(n); o.detune.value = dt; og.gain.value = lv;
-        o.connect(og); og.connect(f); o.start(t); o.stop(t + dur + 0.05);
-      });
-    });
-  }
-  function dive(t, dur, R) { // getting pulled in: a chord sliding down two octaves
-    [71, 74, 78].forEach(n => {
-      const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-      o.type = "sawtooth"; o.frequency.setValueAtTime(hz(n), t); o.frequency.exponentialRampToValueAtTime(hz(n - 24), t + dur);
-      f.type = "lowpass"; f.frequency.setValueAtTime(5000, t); f.frequency.exponentialRampToValueAtTime(300, t + dur);
-      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.07, t + dur * 0.3); g.gain.linearRampToValueAtTime(0.0001, t + dur);
-      o.connect(f); f.connect(g); g.connect(R.bus); o.start(t); o.stop(t + dur + 0.05);
-    });
+  function downsweep(t, dur, R, vol) {
     const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
     s.buffer = noise; s.loop = true; f.type = "bandpass"; f.Q.value = 1.5;
-    f.frequency.setValueAtTime(9000, t); f.frequency.exponentialRampToValueAtTime(150, t + dur);
-    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.3, t + dur * 0.4); g.gain.linearRampToValueAtTime(0.0001, t + dur);
-    s.connect(f); f.connect(g); g.connect(R.bus); s.start(t); s.stop(t + dur + 0.05);
+    f.frequency.setValueAtTime(9000, t); f.frequency.exponentialRampToValueAtTime(200, t + dur);
+    g.gain.setValueAtTime(vol || 0.24, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    s.connect(f); f.connect(g); g.connect(R.bus); g.connect(R.verb); s.start(t); s.stop(t + dur + 0.05);
   }
-  function reverseSwell(t, dur, R, vol) {
+  function reverseCymbal(t, dur, R, vol) {
     const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-    s.buffer = noise; s.loop = true; f.type = "highpass"; f.frequency.value = 3000;
+    s.buffer = noise; s.loop = true; f.type = "highpass"; f.frequency.value = 4000;
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.3, t + dur); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.02);
-    s.connect(f); f.connect(g); g.connect(R.bus); s.start(t); s.stop(t + dur + 0.05);
+    s.connect(f); f.connect(g); g.connect(R.bus); g.connect(R.verb); s.start(t); s.stop(t + dur + 0.05);
+  }
+  function impact(t, R, vol) { // sub drop plus a wash, at the top of a big section
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(62, t); o.frequency.exponentialRampToValueAtTime(28, t + 1.8);
+    g.gain.setValueAtTime(vol || 0.7, t); g.gain.exponentialRampToValueAtTime(0.001, t + 2);
+    o.connect(g); g.connect(R.bus); o.start(t); o.stop(t + 2.05);
+    hit(t, 2.6, 0.17, "highpass", 4500, R.bus); hit(t, 1.6, 0.2, "lowpass", 900, R.verb);
+  }
+
+  /* ---------- synths ---------- */
+  function saws(freq, t, dur, vol, dest, voices, detune, filter) { // unison saw stack into a given filter chain
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + (filter && filter.attack || 0.005));
+    g.gain.setValueAtTime(vol, t + Math.max(0.01, dur - (filter && filter.release || 0.04))); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    let head = g;
+    if (filter) {
+      const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.Q.value = filter.q || 1;
+      if (filter.env) { f.frequency.setValueAtTime(filter.from, t); f.frequency.exponentialRampToValueAtTime(filter.to, t + filter.env); }
+      else f.frequency.value = filter.from;
+      f.connect(g); head = f;
+    }
+    g.connect(dest);
+    const n = voices || 1;
+    for (let i = 0; i < n; i++) {
+      const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = freq;
+      if (n > 1) o.detune.value = (i / (n - 1) - 0.5) * 2 * (detune || 8);
+      o.connect(head); o.start(t); o.stop(t + dur + 0.03);
+    }
+    return g;
+  }
+  function sawsMulti(freqs, t, dur, vol, dest, voices, detune, filter) {
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + (filter.attack || 0.005));
+    g.gain.setValueAtTime(vol, t + Math.max(0.01, dur - (filter.release || 0.04))); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.Q.value = filter.q || 1;
+    if (filter.env) { f.frequency.setValueAtTime(filter.from, t); f.frequency.exponentialRampToValueAtTime(filter.to, t + filter.env); }
+    else f.frequency.value = filter.from;
+    f.connect(g); g.connect(dest);
+    const n = voices || 1;
+    freqs.forEach(fr => { for (let i = 0; i < n; i++) {
+      const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = fr;
+      if (n > 1) o.detune.value = (i / (n - 1) - 0.5) * 2 * (detune || 8);
+      o.connect(f); o.start(t); o.stop(t + dur + 0.03);
+    } });
+    return g;
+  }
+  function chordPluck(notes, t, vol, R, bright, voices) { // the eighth-note chord pluck: filter snaps down each time
+    notes.forEach(n => saws(hz(n), t, STEP * 1.9, vol, R.pump, voices || 3, 5, { from: bright || 2400, to: 320, env: STEP * 1.8, q: 3.5 }).connect(R.verb));
+  }
+  function pad(notes, t, dur, vol, cutoff, R, voices) {
+    sawsMulti(notes.map(hz), t, dur, vol, R.pump, voices || 3, 10, { from: cutoff, q: 0.8, attack: Math.min(0.9, dur * 0.25), release: Math.min(0.8, dur * 0.3) }).connect(R.verb);
   }
   function sub(freq, t, dur, vol, dest) {
     const o = ctx.createOscillator(), g = ctx.createGain();
     o.type = "sine"; o.frequency.value = freq;
-    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.008);
-    g.gain.setValueAtTime(vol, t + dur - 0.03); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.01);
+    g.gain.setValueAtTime(vol, t + dur - 0.04); g.gain.linearRampToValueAtTime(0.0001, t + dur);
     o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + 0.03);
   }
-  function pump(R, t, depth) {
-    R.pump.gain.setValueAtTime(depth, t);
-    R.pump.gain.linearRampToValueAtTime(1, t + BEAT * 0.6);
+  function sweptLead(note, t, dur, vol, R) { // breakdown lead: saw with a slow wah from an LFO on its filter
+    const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.Q.value = 5; f.frequency.value = 1200;
+    const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.type = "sawtooth"; lfo.frequency.value = 1 / (BEAT * 2); lg.gain.value = -800;
+    lfo.connect(lg); lg.connect(f.frequency); lfo.start(t); lfo.stop(t + dur + 0.05);
+    const g = saws(hz(note), t, dur, vol, R.pump, 2, 9, null);
+    g.disconnect(); g.connect(f); f.connect(R.pump); f.connect(R.send); f.connect(R.verb);
   }
-
-  /* ---------- the new sections ---------- */
-  function special(S, bar, s, t, R) {
-    if (S === "bhfill") { // last bar before the black hole: the floor drops out
-      if (s === 0) { riser(t, BEAT * 4, R); R.bassLp.frequency.setTargetAtTime(500, t, 0.4); }
-      if (s % 4 === 0 && s < 8) { kick(t, R, 1); pump(R, t, 0.3); sub(hz(35), t, BEAT * 0.85, 0.5, R.pump); }
-      if (s >= 4) snare(t, R, 0.12 + (s - 4) * 0.03);
-      if (s % 2 === 1) hit(t, 0.025, 0.05, "highpass", 9500, R.bus);
-      return;
-    }
-    if (S === "cinematic") { // 503-568 m: no obstacles, the black hole fills the sky
-      const k = bar - 39;
-      if (s === 0 && (k === 0 || k === 2)) braam(t, k === 0 ? [35, 47, 54] : [31, 43, 50], R);
-      if (s === 0 && (k === 0 || k === 2)) swell(k === 0 ? [59, 62, 66] : [55, 59, 62], t, BEAT * 8, 300, 3200, 0.022, R.bus);
-      if (s === 0 && k === 4) swell([57, 61, 64, 69], t, BEAT * 4, 600, 5200, 0.026, R.bus);
-      if (k === 1 && (s === 0 || s === 8)) tom(t, R, 0.7, 110);
-      if (k === 2 && s % 4 === 0) tom(t, R, 0.75, 120);
-      if (k === 3 && s % 2 === 0) tom(t, R, 0.55 + s * 0.02, 130);
-      if (k === 4 && s < 12) tom(t, R, 0.45 + s * 0.04, 140 + s * 4);
-      if (k >= 3 && s % 4 === 0) snare(t, R, 0.1 + k * 0.03);
-      if (k === 3 && s === 0) riser(t, BEAT * 8, R);
-      if (k === 4 && s === 12) reverseSwell(t, BEAT, R, 0.35);
-      return;
-    }
-    if (S === "warp") { // 787-826 m: pulled into the black hole
-      const k = bar - 61;
-      if (k === 0 && s === 0) dive(t, BEAT * 12, R);
-      if (s === 0) tom(t, R, 0.6 - k * 0.12, 70);
-      if (s === 8 && k < 2) sub(hz(35 - k * 5), t, BEAT * 2, 0.35, R.bus);
-      if (k === 2 && s === 4) reverseSwell(t, BEAT * 3, R, 0.4);
-      return;
-    }
-    if (S === "fourD") { // 826-1187 m
-      const k = bar - 64, ch = FD[k % 4], cyc = (k % 4) * 16 + s;
-      if (s === 0) R.bassLp.frequency.setTargetAtTime(1500, t, 0.05);
-      if (s === 0 && k % 8 === 0 && k > 0) hit(t, 1.8, 0.16, "highpass", 6000, R.bus);
-      if (s % 4 === 0) { kick(t, R, 0.9); pump(R, t, 0.35); sub(hz(ch.root), t, BEAT * 0.85, 0.45, R.pump); }
-      if (s === 4 || s === 12) snare(t, R, 0.34);
-      if (s % 2 === 1) hit(t, 0.02, 0.045, "highpass", 10000, R.bus);
-      if (s % 4 === 2) { hit(t, 0.16, 0.07, "highpass", 7000, R.bus); voice("sawtooth", hz(ch.root + 12), t, STEP * 1.6, 0.13, 4000, R.bassIn, 2, 8, 1); }
-      const tones = [ch.pad[0] + 12, ch.pad[1] + 12, ch.pad[2] + 12, ch.pad[0] + 24];
-      const pat = [0, 1, 2, 3, 2, 1, 3, 2, 0, 2, 1, 3, 2, 3, 1, 2];
-      const b = ctx.createGain(); b.gain.value = 1; b.connect(R.pump); b.connect(R.send);
-      bell(hz(tones[pat[s]]), t, 0.06, b, 0.8);
-      if (s === 0) soft(ch.pad, t, BEAT * 4, 0.035, R.pump, 0.25, "square");
-      FD_LEAD.forEach(h => { if (h[0] === cyc) { const g = voice("triangle", hz(h[1]), t, STEP * h[2], 0.1, 6000, R.pump, 2, 6, 1); g.connect(R.send); } });
-      return;
-    }
-    if (S === "limbofill") { // drums fall away into white
-      if (s === 0) { soft([59, 66, 71, 74], t, BEAT * 8, 0.03, R.bus, 1.2); reverseSwell(t, BEAT * 4, R, 0.25); }
-      if (s === 0 || s === 4) { kick(t, R, 0.6 - s * 0.06); }
-      return;
-    }
-    if (S === "limbo") { // 1200 m and on: no beat, just space
-      const k = bar - 93, ch = LIMBO[Math.floor(k / 4) % 4];
-      if (s === 0 && k % 4 === 0) { soft(ch.pad, t, BEAT * 18, 0.03, R.bus, 1.6); sub(hz(ch.root + 12), t, BEAT * 16, 0.16, R.bus); }
-      const notes = ch.pad.map(n => n + 12);
-      if (k % 2 === 0 && (s === 0 || s === 6)) bell(hz(notes[(k + s) % notes.length]), t, 0.05, R.send, 2.4);
-      if (k % 2 === 1 && s === 8) bell(hz(notes[(k * 3) % notes.length] + 12), t, 0.035, R.send, 2.8);
-      return;
-    }
+  function glideLead(from, to, t, dur, vol, R) { // fourth-dimension lead: slides into each note
+    const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.Q.value = 2; f.frequency.value = 3600;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.03);
+    g.gain.setValueAtTime(vol, t + dur - 0.06); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    f.connect(g); g.connect(R.pump); g.connect(R.send); g.connect(R.verb);
+    [-12, -4, 4, 12].forEach(dt => {
+      const o = ctx.createOscillator(); o.type = "sawtooth"; o.detune.value = dt;
+      o.frequency.setValueAtTime(hz(from), t); o.frequency.exponentialRampToValueAtTime(hz(to), t + 0.11);
+      o.connect(f); o.start(t); o.stop(t + dur + 0.03);
+    });
   }
+  function acidNote(note, t, accent, R) {
+    R.acidLp.frequency.setValueAtTime(accent ? 2600 : 1300, t);
+    R.acidLp.frequency.exponentialRampToValueAtTime(accent ? 420 : 300, t + STEP * 0.9);
+    saws(hz(note), t, STEP * 0.92, accent ? 0.11 : 0.075, R.acidIn, 1, 0, null);
+  }
+  function bassNote(note, t, dur, vol, R, cutoff, accent, withSub) { // two driven saws with a filter bite, plus an optional sub
+    saws(hz(note), t, dur, vol, R.bassIn, 2, 14, { from: cutoff * (accent ? 3 : 1.8), to: cutoff, env: Math.min(dur, STEP * 1.4), q: 4 });
+    if (withSub) sub(hz(note - 12), t, dur * 0.95, vol * 3, R.pump);
+  }
+  function driveBass(note, t, R, vol, cutoff) { // one sixteenth of the relentless bass
+    saws(hz(note), t, STEP * 0.9, vol * 1.3, R.bassIn, 1, 0, { from: cutoff * 2.2, to: cutoff, env: STEP * 0.8, q: 2.5 });
+  }
+  function pulseChord(notes, t, vol, R, bright, voices) { // straight eighth-note chord pulse
+    sawsMulti(notes.map(hz), t, STEP * 1.6, vol, R.pump, voices || 2, 7, { from: bright, to: bright * 0.25, env: STEP * 1.5, q: 1.5 }).connect(R.verb);
+  }
+  function heldLead(note, t, dur, vol, R, voices) { // long anthem notes: wide detuned saws, swelling in
+    saws(hz(note), t, dur, vol, R.pump, voices || 5, 16, { from: 4800, q: 0.9, attack: 0.06, release: 0.12 }).connect(R.send);
+  }
+  function lowBrass(note, t, dur, vol, R) { // dark, driving low brass pulse
+    const g = saws(hz(note), t, dur, vol, R.pump, 3, 9, { from: 1700, to: 380, env: dur * 0.9, q: 2 });
+    g.connect(R.verb);
+  }
+  function growlNote(note, t, dur, R) {
+    saws(hz(note), t, dur, 0.1, R.growlIn, 3, 18, null);
+    saws(hz(note - 12), t, dur, 0.06, R.growlIn, 1, 0, null);
+    sub(hz(note - 12), t, dur * 0.97, 0.3, R.pump);
+  }
+  function pitchRiser(t, dur, R) { // a detuned saw that climbs two octaves while its filter opens
+    const f = ctx.createBiquadFilter(), g = ctx.createGain();
+    f.type = "lowpass"; f.Q.value = 3; f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(7000, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.07, t + dur * 0.95); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    f.connect(g); g.connect(R.bus); g.connect(R.verb);
+    [-15, 0, 15].forEach(dt => { const o = ctx.createOscillator(); o.type = "sawtooth"; o.detune.value = dt;
+      o.frequency.setValueAtTime(hz(45), t); o.frequency.exponentialRampToValueAtTime(hz(81), t + dur); o.connect(f); o.start(t); o.stop(t + dur + 0.05); });
+  }
+  function hitBrass(t, notes, R) { // the big cinematic low hit
+    const f = ctx.createBiquadFilter(), g = ctx.createGain();
+    f.type = "lowpass"; f.Q.value = 2; f.frequency.setValueAtTime(200, t); f.frequency.exponentialRampToValueAtTime(1800, t + 0.45); f.frequency.exponentialRampToValueAtTime(420, t + 2.8);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.26, t + 0.06); g.gain.exponentialRampToValueAtTime(0.001, t + 3.2);
+    f.connect(g); g.connect(R.bus); g.connect(R.verb);
+    notes.forEach(n => [-10, 0, 10].forEach(dt => { const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = hz(n); o.detune.value = dt; o.connect(f); o.start(t); o.stop(t + 3.25); }));
+  }
+  function pump(R, t, depth) { R.pump.gain.setValueAtTime(depth, t); R.pump.gain.linearRampToValueAtTime(1, t + BEAT * 0.62); }
 
-  /* ---------- the score ---------- */
+  /* ---------- the score, one sixteenth at a time ---------- */
   function playStep(i, t) {
-    const bar = Math.floor(i / 16), s = i % 16, S = sec(bar), R = run;
-    const ch = CH[bar % 4];
-    const cyc = (bar % 8) * 16 + s;
-    const drop = S === "drop1" || S === "drop2" || S === "drop3";
+    const bar = Math.floor(i / 16), s = i % 16, S = sec(bar), R = run, ch = chordFor(S, bar);
+    const drop1 = S === "drop1", drop2 = S === "drop2", drop3 = S === "drop3", fd = S === "fourD";
+    const groove = drop1 || drop2 || drop3 || fd;
     const building = S === "build" || S === "build2";
-    const lastBuildBar = bar === 8 || bar === 27;
+    const lastBeat = (bar === 6 || bar === 17 || bar === 28 || bar === 37) && s >= 12;
 
-    // the whole mix steps up section by section so the drops land harder than everything before them
+    // once per bar: mix level and the long filter sweep on the ostinato
     if (s === 0) {
-      const lvl = { pickup: 0.55, intro: 0.58, build: 0.62 + (bar - 5) * 0.06, drop1: 1, anthem: 0.78, build2: 0.8 + (bar - 25) * 0.05, drop2: 1,
-        bhfill: 1, cinematic: 0.9 + (bar - 39) * 0.02, drop3: 1, warp: 0.95, fourD: 0.92, limbofill: 0.85, limbo: 0.8 }[S];
-      R.bus.gain.setTargetAtTime(lvl, t, 0.03);
-    }
-    // the bass filter opens through each build
-    if (s === 0) {
-      const open = { pickup: 500, intro: 700, build: 700 + (bar - 5) * 380, drop1: 2600, anthem: 1700, build2: 1400 + (bar - 25) * 500, drop2: 3400, drop3: 3000 }[S];
-      if (open) R.bassLp.frequency.setTargetAtTime(open, t, 0.05);
-    }
-    if (["bhfill", "cinematic", "warp", "fourD", "limbofill", "limbo"].indexOf(S) !== -1) {
-      if (s === 0 && bar === 64) boom(t, R);
-      special(S, bar, s, t, R);
-      return;
+      const lvl = { pickup: 0.55, intro: 0.62, build: 0.74 + (bar - 5) * 0.08, drop1: 0.96, breakdown: 0.84, build2: 0.86 + (bar - 16) * 0.07, drop2: 1,
+        dropout: 1, cinematic: 0.9 + (bar - 26) * 0.03, drop3: 1, warp: 0.95, fourD: 1, limbofill: 0.85, limbo: 0.8 }[S];
+      R.bus.gain.setTargetAtTime(lvl, t, 0.04);
+      const sweep = { pickup: 300, intro: 360 + (bar - 1) * 180, build: 1200 + (bar - 5) * 1100, drop1: 2600, breakdown: 800 + (bar - 13) * 300,
+        build2: 1600 + (bar - 16) * 1500, drop2: 4600, cinematic: 500 + (bar - 26) * 350, drop3: 1800, fourD: 3800, limbofill: 900, limbo: 650 }[S];
+      if (sweep) R.arpLp.frequency.setTargetAtTime(sweep, t, BAR * 0.5);
+      R.arpLp.Q.setTargetAtTime(building ? 8 : 4, t, BAR * 0.5);
+      R.bassLp.frequency.setTargetAtTime(drop3 ? 1300 : 1800, t, 0.1);
     }
 
-    // pickup bar: a snare roll that launches the run
-    if (S === "pickup") {
-      if (s === 0) kick(t, R, 1);
-      if (s >= 8) snare(t, R, 0.12 + (s - 8) * 0.04);
-      if (s === 8) riser(t, BEAT * 2, R);
-      return;
-    }
-    if (s === 0 && (bar === 1 || bar === 9 || bar === 28 || bar === 44)) boom(t, R);
-    // drop 3 growls: the bass filter swings open and shut on the eighths
-    if (S === "drop3" && s % 2 === 0) R.bassLp.frequency.setValueAtTime(s % 4 === 0 ? 3600 : 800, t);
-    // roll into the pull of the black hole
-    if (bar === 60 && s >= 8) snare(t, R, 0.12 + (s - 8) * 0.04);
-    if (s === 0 && drop && bar % 4 === 0 && bar !== 28) hit(t, 1.8, 0.18, "highpass", 5000, R.bus);
-    if (s === 0 && (bar === 7 || bar === 26)) riser(t, BEAT * 8, R);
+    // impacts, hits, risers
+    if (s === 0 && (bar === 7 || bar === 18 || bar === 29 || bar === 38)) impact(t, R);
+    if (s === 0 && (bar === 18 || bar === 25 || bar === 29 || bar === 38)) hitBrass(t, bar === 38 ? [29, 41, 48] : bar === 29 ? [34, 46, 53] : [33, 45, 52], R);
+    if (s === 0 && (bar === 6 || bar === 17 || bar === 28)) { riser(t, BAR, R); pitchRiser(t, BAR, R); }
+    if (s === 0 && groove && bar % 8 === 0 && bar !== 18 && bar !== 38) hit(t, 2.2, 0.15, "highpass", 4500, R.bus);
+    if (s === 8 && (bar === 12 || bar === 35 || bar === 48)) reverseCymbal(t, BEAT * 2, R, 0.28);
 
-    // kick: four on the floor; drops out for the last half of the bar before each drop
-    if (s % 4 === 0 && !(lastBuildBar && s >= 8)) { kick(t, R, drop ? 1 : 0.9); pump(R, t, drop ? 0.22 : 0.45); }
-    // backbeat, then the build-up roll
-    if (!building || bar < 7) { if (s === 4 || s === 12) snare(t, R, drop ? 0.5 : 0.42); }
-    if (building && bar >= 7) {
-      const every = lastBuildBar ? (s < 8 ? 2 : 1) : 4;
-      if (s % every === 0) snare(t, R, 0.16 + (lastBuildBar ? s * 0.022 : 0.02));
-    }
-    if (S === "anthem" && bar === 24 && s >= 8) snare(t, R, 0.12 + (s - 8) * 0.035);
-    // hats
-    if (s % 4 === 2) hit(t, drop ? 0.12 : 0.07, drop ? 0.13 : 0.1, "highpass", 7000, R.bus);
-    if ((drop || S === "anthem" || building) && s % 2 === 1) hit(t, 0.025, 0.06, "highpass", 9500, R.bus);
+    // ---------- drums: steady and straight ----------
+    const kickOn = (S === "intro" && bar >= 3) || building || groove || (S === "cinematic" && bar === 28);
+    if (kickOn && s % 4 === 0 && !lastBeat) { kick(t, R, drop3 ? 1 : S === "intro" ? 0.72 : 0.96); pump(R, t, drop2 ? 0.12 : 0.2); }
+    if (groove && (s === 4 || s === 12)) snare(t, R, drop3 ? 0.4 : 0.34);
+    if ((groove || building) && s % 4 === 2) hat(t, R, groove ? 0.1 : 0.07, true);
+    if (groove && s % 2 === 1) hat(t, R, 0.03, false);
+    if ((drop2 || fd) && s % 4 === 0) ride(t, R, 0.05);
+    // snare rolls into every drop: quarters, eighths, then sixteenths
+    if ((building && (bar === 6 || bar === 17)) || (S === "cinematic" && bar === 28)) { const every = s < 8 ? 4 : s < 12 ? 2 : 1; if (s % every === 0) snare(t, R, 0.06 + s * 0.016); }
 
-    // bass
-    if (s % 4 === 0 && !(lastBuildBar && s >= 8)) sub(hz(ch.root), t, BEAT * 0.85, 0.5, R.pump);
-    if (drop) {
-      if (BASS_DROP[s]) voice("sawtooth", hz(ch.root + 12 + (BASS_OCT[s] ? 12 : 0)), t, STEP * 0.9, 0.17, 4000, R.bassIn, 2, 10, 1);
-    } else if (s % 4 !== 0 && !(lastBuildBar && s >= 8)) {
-      voice("sawtooth", hz(ch.root + 12), t, STEP * 0.85, 0.15, 4000, R.bassIn, 2, 8, 1);
+    // ---------- bass: a sub on the beat and a relentless sixteenth drive on the root ----------
+    const bassOn = groove || building || (S === "intro" && bar >= 3);
+    if (bassOn && s % 4 === 0 && !lastBeat) sub(hz(ch.root - 12), t, BEAT * 0.9, groove ? 0.36 : 0.3, R.pump);
+    if (bassOn && s % 4 !== 0 && !lastBeat) {
+      const cutoff = building ? 450 + (bar % 2) * 350 : drop3 ? 520 : drop2 ? 900 : 700;
+      driveBass(ch.root, t, R, groove ? 0.1 : 0.065, cutoff);
     }
 
-    // pluck arpeggio in the intro and builds
-    if (S === "intro" || building || S === "anthem") {
-      const tones = [ch.pad[0] + 12, ch.pad[1] + 12, ch.pad[2] + 12, ch.pad[0] + 24];
-      const pat = [0, 2, 1, 3, 2, 1, 0, 2, 1, 3, 2, 3, 1, 2, 0, 3];
-      const cut = S === "intro" ? 1600 : building ? 1600 + (bar % 4) * 700 : 2600;
-      const g = voice("sawtooth", hz(tones[pat[s]]), t, STEP * 0.9, 0.06, cut, R.pump, 2, 8, 4, true);
-      g.connect(R.send);
+    // ---------- the ostinato: a steady climbing arpeggio through its slowly opening filter ----------
+    const ostOn = S === "pickup" || S === "intro" || building || S === "breakdown" || drop1 || drop2 || fd || (S === "cinematic" && bar >= 27);
+    if (ostOn) {
+      const tones = [ch.chord[0], ch.chord[1], ch.chord[2], ch.chord[0] + 12];
+      saws(hz(tones[s % 4]), t, STEP * 0.92, S === "pickup" ? 0.05 : 0.07, R.arpIn, S === "pickup" || S === "intro" || S === "breakdown" ? 2 : 1, 6, { from: 8000, to: 1400, env: STEP * 0.85 });
     }
 
-    // gated supersaw chords in the drops, wide held chords in the anthem
-    if (drop && GATE[s]) ch.pad.forEach(n => voice("sawtooth", hz(n + 12), t, STEP * 0.8, S === "drop2" ? 0.03 : 0.026, S === "drop2" ? 5200 : 4200, R.pump, 3, 16, 1));
-    if (S === "anthem" && s === 0) ch.pad.forEach(n => voice("sawtooth", hz(n + 12), t, BEAT * 4, 0.022, 2600, R.pump, 3, 16, 1));
+    // ---------- chords ----------
+    if ((drop1 || drop2 || fd) && s % 2 === 0) pulseChord(ch.chord, t, (s % 4 === 0 ? 1 : 0.8) * (drop2 ? 0.032 : fd ? 0.034 : 0.027), R, drop2 ? 3600 : 2600, fd ? 1 : 2);
+    if ((S === "pickup" || S === "intro" || S === "breakdown" || S === "build2" || fd) && s === 0 && (bar % 2 === 1 || S === "pickup" || S === "build2" || fd))
+      pad(fd ? ch.chord.concat([ch.chord[0] + 12]) : ch.chord, t, fd ? BAR : BAR * 2, S === "breakdown" ? 0.032 : fd ? 0.02 : 0.022, S === "breakdown" ? 1600 : fd ? 3600 : 1000, R, 3);
 
-    // the riff in the drops; doubled up an octave and fattened in drop 2
-    if (drop) {
-      const offs = (S === "drop2" && Math.floor((bar - 28) / 8) % 2 === 1) || (S === "drop3" && Math.floor((bar - 44) / 4) % 2 === 1) ? 12 : 0;
-      RIFF.forEach(h => {
-        if (h[0] !== cyc) return;
-        const dur = STEP * h[2] * 0.92;
-        voice("sawtooth", hz(h[1] + offs), t, dur, 0.085, 5200, R.pump, 3, 14, 2).connect(R.send);
-        voice("square", hz(h[1] + offs - 12), t, dur, 0.03, 2600, R.pump, 1).connect(R.send);
-        if (S !== "drop1") voice("sawtooth", hz(h[1] + offs + 12), t, dur, 0.035, 7000, R.pump, 2, 18, 1);
-      });
+    // ---------- themes ----------
+    if (S === "breakdown") { const cyc = ((bar - 13) % 4) * 16 + s; STRINGS.forEach(m => { if (m[0] === cyc) heldLead(m[1], t, STEP * m[2] * 0.98, 0.04, R, 4); }); }
+    if (drop2) { const cyc = ((bar - 18) % 8) * 16 + s; ANTHEM.forEach(m => { if (m[0] === cyc) { heldLead(m[1], t, STEP * m[2] * 0.96, 0.05, R, 5); heldLead(m[1] - 12, t, STEP * m[2] * 0.96, 0.025, R, 3); } }); }
+    if (fd) { const cyc = ((bar - 38) % 4) * 16 + s; ASCENT.forEach(m => { if (m[0] === cyc) heldLead(m[1], t, STEP * m[2] * 0.96, 0.045, R, 5); }); }
+
+    // ---------- arriving at the black hole (400-464 m) ----------
+    if (S === "dropout" && s === 0) { downsweep(t, BAR, R, 0.26); pad([45, 52, 57, 60], t, BAR * 1.1, 0.03, 700, R, 3); sub(hz(33), t, BAR, 0.32, R.bus); }
+    if (S === "cinematic") {
+      const k = bar - 26;
+      if (s === 0) { pad(ch.chord.map(x => x - 12), t, BAR * 1.05, 0.03, 600 + k * 300, R, 3); sub(hz(ch.root - 12), t, BAR, 0.32, R.bus); }
+      if (s % 2 === 0 && k >= 1) lowBrass(ch.root, t, STEP * 1.8, 0.05 + k * 0.02, R);        // the brass ostinato rises out of the dark
+      if ((s === 0 || s === 3) && k < 2) sub(hz(33), t, STEP * 2, 0.3, R.bus);                 // heartbeat
     }
-    // the anthem melody in the middle section
-    if (S === "anthem") {
-      ANTHEM.forEach(h => {
-        if (h[0] !== cyc) return;
-        voice("sawtooth", hz(h[1]), t, STEP * h[2] * 0.95, 0.09, 3600, R.pump, 3, 14, 2).connect(R.send);
-      });
+
+    // ---------- black hole groove (464-576 m): dark drive with low brass ----------
+    if (drop3) {
+      if (s % 2 === 0) lowBrass(ch.root, t, STEP * 1.8, s % 4 === 0 ? 0.075 : 0.06, R);
+      if (s === 0) pad(ch.chord.map(x => x - 12), t, BAR, 0.024, 900, R, 3);
+      if (s % 8 === 0 && bar % 2 === 1) heldLead(ch.chord[2] + 12, t, BEAT * 1.9, 0.03, R, 4);
+    }
+
+    // ---------- pulled in (576-608 m): everything sinks ----------
+    if (S === "warp") {
+      const k = bar - 36;
+      if (k === 0 && s === 0) { downsweep(t, BAR * 2, R, 0.3);
+        [57, 64, 72].forEach(n => { const g = ctx.createGain(); g.connect(R.pump); g.connect(R.verb);
+          g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + BAR * 0.5); g.gain.linearRampToValueAtTime(0.0001, t + BAR * 2);
+          const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.setValueAtTime(hz(n), t); o.frequency.exponentialRampToValueAtTime(hz(n - 24), t + BAR * 2);
+          const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.setValueAtTime(4000, t); f.frequency.exponentialRampToValueAtTime(250, t + BAR * 2);
+          o.connect(f); f.connect(g); o.start(t); o.stop(t + BAR * 2 + 0.05); }); }
+      if (s % 4 === 0) sub(hz(33), t, BEAT * 0.9, 0.3 - k * 0.08, R.bus);
+      if (k === 1 && s === 4) reverseCymbal(t, BEAT * 3, R, 0.34);
+    }
+
+    // ---------- limbo: no beat, long pads and a slow arp ----------
+    if (S === "limbofill" && s === 0) { reverseCymbal(t, BAR * 0.9, R, 0.2); pad([57, 64, 72, 76], t, BAR * 2, 0.024, 1600, R, 3); }
+    if (S === "limbo") {
+      const k = bar - 50, lc = LIMBO[Math.floor(k / 4) % 4];
+      if (s === 0 && k % 4 === 0) { pad(lc.chord, t, BAR * 4.3, 0.022, 1800, R, 3); sub(hz(lc.root - 12), t, BAR * 4, 0.12, R.bus); }
+      if (s % 4 === 0) { const n = lc.chord[(k * 4 + s / 4) % lc.chord.length]; saws(hz(n), t, BEAT * 0.95, 0.04, R.arpIn, 2, 6, { from: 3000, to: 700, env: BEAT * 0.8 }); }
     }
   }
 
@@ -1120,7 +1135,8 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     if (!run || !ctx) return;
     const r = run; run = null;
     r.bus.gain.setTargetAtTime(0, ctx.currentTime, 0.02);
-    setTimeout(() => { try { r.bus.disconnect(); r.send.disconnect(); } catch (e) {} }, 400);
+    r.verb.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
+    setTimeout(() => { try { r.bus.disconnect(); r.send.disconnect(); r.verb.disconnect(); r.wob.stop(); } catch (e) {} }, 400);
   }
 
   const Music = {
@@ -1145,7 +1161,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       if (!ctx || muted) return;
       const g = ctx.createGain(); g.connect(out);
       const t = ctx.currentTime + 0.01;
-      hit(t, 0.45, 0.55, "lowpass", 1400, g);
+      hit(t, 0.45, 0.5, "lowpass", 1400, g);
       const o = ctx.createOscillator(), og = ctx.createGain();
       o.type = "sine"; o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(32, t + 0.35);
       og.gain.setValueAtTime(0.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
@@ -1163,14 +1179,14 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
 
   /* Offline render for previews and tests: same score, same instruments. */
   Music.render = async function (bars, fromBar) {
-    const sr = 44100, secs = bars * 16 * STEP + 2.5, first = (fromBar || 0) * 16;
-    const saved = { ctx: ctx, out: out, noise: noise, run: run };
+    const sr = 44100, secs = bars * 16 * STEP + 3, first = (fromBar || 0) * 16;
+    const saved = { ctx: ctx, out: out, verbIn: verbIn, noise: noise, run: run };
     ctx = new OfflineAudioContext(2, Math.ceil(sr * secs), sr);
     const wasMuted = muted; muted = false;
     build(ctx); run = newRun();
     for (let i = 0; i < bars * 16; i++) playStep(first + i, 0.05 + i * STEP);
     const buf = await ctx.startRendering();
-    muted = wasMuted; ctx = saved.ctx; out = saved.out; noise = saved.noise; run = saved.run;
+    muted = wasMuted; ctx = saved.ctx; out = saved.out; verbIn = saved.verbIn; noise = saved.noise; run = saved.run;
     return buf;
   };
 
@@ -1280,7 +1296,6 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     SPR.cell = layer(s, s, x => { x.fillStyle = "rgba(255,255,255,0.05)"; x.fillRect(1.5, 1.5, s - 3, s - 3); x.strokeStyle = "rgba(255,255,255,0.9)"; x.lineWidth = 1.6; x.strokeRect(2.5, 2.5, s - 5, s - 5); });
     // backgrounds
     SPR.stageBg = layer(W, H, x => {
-      x.fillStyle = C.black; x.fillRect(0, 0, W, H);
       const gy = groundY;
       const beam = x.createLinearGradient(W, 0, W * 0.35, gy);
       beam.addColorStop(0, "rgba(255,223,0,0.30)"); beam.addColorStop(0.55, "rgba(253,152,0,0.08)"); beam.addColorStop(1, "rgba(253,152,0,0)");
@@ -1288,6 +1303,11 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       const lamp = x.createRadialGradient(W, 0, 0, W, 0, H * 0.7);
       lamp.addColorStop(0, "rgba(255,180,71,0.45)"); lamp.addColorStop(1, "rgba(255,180,71,0)");
       x.fillStyle = lamp; x.fillRect(0, 0, W, H);
+    });
+    SPR.warpGlow = layer(W, H, x => {
+      const g = x.createRadialGradient(W * 0.68, H * 0.3, 0, W * 0.68, H * 0.3, H * 0.9);
+      g.addColorStop(0, "rgba(190,215,255,0.22)"); g.addColorStop(1, "rgba(190,215,255,0)");
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
     });
     SPR.spaceBg = layer(W, H, x => {
       const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#04050a"); g.addColorStop(1, "#0c0f1c"); x.fillStyle = g; x.fillRect(0, 0, W, H);
@@ -1504,7 +1524,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   function frame(t) {
     const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
     last = t;
-    if (mode !== "paused") clock += dt;
+    if (mode !== "paused") { clock += dt; skyStep(dt, player && mode !== "name" ? lightSpeed(mode === "play" ? drawX : player.x) : 0); }
     if (mode === "play") {
       simulate(t);
       if (mode === "play") {
@@ -1544,8 +1564,8 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   let camY = 0, clock = 0;
   const VIS = [];
 
-  /* where the run is: 0 stage, then black hole from 490 m, pulled in 787-826, fourth dimension, limbo from 1200 m */
-  const Z = { bh: 490.2, bhIn: 503.1, bhCalmEnd: 567.6, warp: 786.9, fourD: 825.6, limboIn: 1186.8, limbo: 1199.7 };
+  /* where the run is: stage, light speed 272-400 m, black hole from 400 m, pulled in 576-608 m, fourth dimension, limbo from 800 m */
+  const Z = { bh: 400, bhIn: 416, bhCalmEnd: 464, warp: 576, fourD: 608, limboIn: 784, limbo: 800 }; // one music bar = 16 m
   function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
   function scene(x) {
     return {
@@ -1601,10 +1621,74 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   const ZONE_BANNERS = [[Z.bhIn, "Black hole"], [Z.fourD + 2, "Fourth dimension"], [Z.limbo, "Limbo"]];
   let zoneBanner = null;
 
+  /* Stage one's sky is full of stars drifting toward you. From ~272 m they stretch into light-speed streaks,
+     and right at 400 m they snap back to points as you drop out in front of the black hole. */
+  const LIGHT = { on: 272, full: 288, off: 392, out: 401 };
+  function lightSpeed(x) {
+    if (x <= LIGHT.on || x >= LIGHT.out) return 0;
+    if (x < LIGHT.full) { const k = (x - LIGHT.on) / (LIGHT.full - LIGHT.on); return k * k; }
+    if (x <= LIGHT.off) return 1;
+    const k = 1 - (x - LIGHT.off) / (LIGHT.out - LIGHT.off); return k * k * k;
+  }
+  let skySeed = 12345;
+  const skyRand = () => (skySeed = (skySeed * 16807) % 2147483647) / 2147483647;
+  // stars are placed by where they land on screen (spread across the whole sky), at a random depth
+  function placeStar(s, rnd, zMin, zMax) {
+    s.z = zMin + rnd() * (zMax - zMin);
+    s.x = (-2.0 + rnd() * 3.2) * s.z;  // left edge to past the right edge, relative to the vanishing point
+    s.y = (-0.8 + rnd() * 2.4) * s.z;  // top of the sky down to the floor
+    return s;
+  }
+  const sky = Array.from({ length: 220 }, () => placeStar({ b: 0.45 + skyRand() * 0.55, tw: skyRand() * 6.28 }, skyRand, 0.1, 1));
+  let skyWarp = 0;
+  function skyStep(dt, warp) {
+    skyWarp = warp;
+    const dz = dt * (0.018 + warp * warp * 2.4);
+    for (const s of sky) {
+      s.z -= dz;
+      const px = s.x / s.z, py = s.y / s.z;
+      if (s.z <= 0.03 || px < -2.6 || px > 1.8 || py < -1.3 || py > 2.2) placeStar(s, Math.random, 0.7, 1);
+    }
+  }
+  function drawStars(a) {
+    const w = skyWarp, cx = W * 0.68, cy = H * 0.3, f = Math.max(W, H) * 0.42;
+    const tail = 0.012 + w * 0.26;           // how far back along its path each star is drawn
+    const tint = w > 0.05;
+    for (let band = 0; band < 3; band++) {    // three brightness bands, one stroke each
+      ctx.globalAlpha = a * (0.4 + band * 0.28);
+      ctx.strokeStyle = tint ? (band === 2 ? "#f2f8ff" : "#cfe2ff") : C.bone;
+      ctx.fillStyle = C.bone;
+      ctx.lineWidth = tint ? (band === 2 ? 1.6 : 1) : 1;
+      ctx.beginPath();
+      for (let i = 0; i < sky.length; i++) {
+        const s = sky[i];
+        if (w > 0.3 && i % 2 === 0) continue;  // fewer streaks at full speed keeps it light on phones
+        const lum = s.b * (1.25 - s.z * 0.6) * (tint ? 1 : 0.7 + 0.3 * Math.sin(clock * 1.8 + s.tw));
+        if ((lum < 0.55 ? 0 : lum < 0.8 ? 1 : 2) !== band) continue;
+        const px = cx + (s.x / s.z) * f, py = cy + (s.y / s.z) * f;
+        if (tint) {
+          const z2 = s.z + tail;
+          ctx.moveTo(px, py); ctx.lineTo(cx + (s.x / z2) * f, cy + (s.y / z2) * f);
+        } else {
+          const r = 1 + (1 - s.z) * 1.8;
+          ctx.rect(px - r / 2, py - r / 2, r, r);
+        }
+      }
+      if (tint) ctx.stroke(); else ctx.fill();
+    }
+    if (w > 0) { // the tunnel glows faintly at its center while you're at light speed (pre-drawn)
+      ctx.globalAlpha = a * w; ctx.drawImage(SPR.warpGlow, 0, 0, W, H);
+    }
+    ctx.globalAlpha = 1;
+  }
   function drawStage(a, camX, sy) {
     if (a <= 0) return;
     ctx.globalAlpha = a;
-    ctx.drawImage(SPR.stageBg, 0, 0, W, H);
+    ctx.fillStyle = C.black; ctx.fillRect(0, 0, W, H);
+    drawStars(a);
+    const beamA = a * (1 - skyWarp);         // the projector light fades while you're at light speed
+    if (beamA > 0.01) { ctx.globalAlpha = beamA; ctx.drawImage(SPR.stageBg, 0, 0, W, H); }
+    ctx.globalAlpha = beamA;
     ctx.fillStyle = "rgba(255,223,0,0.35)";
     for (const m of motes) {
       const px = ((m.x - camX * 0.25) % 60 + 60) % 60 * U * 0.6;
@@ -1802,7 +1886,8 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     ctx.globalAlpha = 1;
 
     // the white-out when you're pulled through, and again into limbo
-    const flash = sc.fd ? 1 - sc.fdIn : (sc.warp > 0.82 ? (sc.warp - 0.82) / 0.18 : 0);
+    const dropOut = Math.max(0, 1 - Math.abs(px - 400) / 2.2) * 0.6;
+    const flash = Math.max(dropOut, sc.fd ? 1 - sc.fdIn : (sc.warp > 0.82 ? (sc.warp - 0.82) / 0.18 : 0));
     if (flash > 0) { ctx.fillStyle = "rgba(255,255,255," + Math.min(1, flash) + ")"; ctx.fillRect(-10, -10, W + 20, H + 20); }
 
     // a reminder in the floor band at the start of each run
