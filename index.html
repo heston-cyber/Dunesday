@@ -1780,9 +1780,9 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       path(); x.fillStyle = fill; x.fill();
       x.shadowColor = glow; x.shadowBlur = 4; x.strokeStyle = line; x.lineWidth = 1.6; path(); x.stroke(); path(); x.stroke(); path(); x.stroke();   // glow: small radius, stacked strong
       x.shadowBlur = 0; x.lineWidth = 1.6; path(); x.stroke();                                                                                   // hard edge   // glowing edge
-      x.shadowBlur = 0; x.strokeStyle = line === N.deep ? "#5aa8ff" : N.core; x.lineWidth = 0.6; path(); x.stroke(); // bright core
+      x.shadowBlur = 0; x.strokeStyle = line === N.deep ? "#5aa8ff" : line === RED.line ? RED.core : N.core; x.lineWidth = 0.6; path(); x.stroke(); // bright core
     });
-    const SP = { stage: [N.dark, N.cyan, N.cyan], bh: [N.dark, "#5cc8ff", N.blue], fourD: ["rgba(63,243,255,0.08)", N.core, N.cyan], limbo: ["#f4fcff", N.deep, "#4d9bff"] };
+    const SP = { red: [RED.fill, RED.line, RED.glow], stage: [N.dark, N.cyan, N.cyan], bh: [N.dark, "#5cc8ff", N.blue], fourD: ["rgba(63,243,255,0.08)", N.core, N.cyan], limbo: ["#f4fcff", N.deep, "#4d9bff"] };
     SPR.spike = {}; SPR.hang = {};
     for (const k in SP) { SPR.spike[k] = spike(SP[k][0], SP[k][1], SP[k][2], false); SPR.hang[k] = spike(SP[k][0], SP[k][1], SP[k][2], true); }
     SPR.cell = layer(s, s, x => {
@@ -2151,6 +2151,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
 
   /* ---------- drawing ---------- */
   /* neon: everything near-black, every edge traced in glowing cyan; the cube stays orange */
+  const RED = { line: "#ff4d5e", glow: "#ff2440", core: "#ffd9de", fill: "#12040a", seam: "rgba(255,77,94,0.22)" };
   const N = { sky0: "#010309", sky1: "#04122a", cyan: "#3ff3ff", core: "#e6fdff", blue: "#2a8cff", deep: "#0a5cff", dark: "#02060d", limboBg0: "#f3fcff", limboBg1: "#d6f1ff" };
   const C = { black: "#12110f", coal: "#262221", olive: "#52513f", khaki: "#aeac94", bone: "#e6e5d3", ember: "#fd9800", rust: "#dd4b00", gold: "#ffb447", signal: "#ffdf00" };
   const motes = Array.from({ length: 18 }, (_, i) => ({ x: (i * 37.3) % 60, y: 1.5 + (i * 2.17) % 5, r: i % 3 ? 1.2 : 2 }));
@@ -2196,7 +2197,45 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     const want = Math.round(3 + 21 * p);
     while (tracers.length < want) spawnTracer(j0, cols);
   }
-  function resetOpening() { lit = new Set(); tracers = []; colSeen = new Map(); }
+  function resetOpening() { lit = new Set(); tracers = []; colSeen = new Map(); redLit = new Set(); redTracers = []; }
+  /* 01 into 02: as 01 starts fading, red tracers race across the grid, faster than the opening's, turning every line red
+     by 02's first obstacle. All of 02 glows red; the descent into 03 is back to blue. */
+  let redLit = new Set(), redTracers = [], RED0 = null, RED1 = null;
+  function redSpan() {
+    if (RED0 === null && course) {
+      RED0 = XX(TL.b02a - 0.501);                                        // the moment 02 starts coming in over 01
+      const first = course.objs.find(o => o.x > RED0 + 2);
+      RED1 = first ? Math.min(first.x - 1.5, RED0 + 40) : RED0 + 25;    // done just before 02's first obstacle
+    }
+    return RED0 !== null;
+  }
+  function redPhase(x) { if (!redSpan()) return 0; return Math.max(0, Math.min(1, (x - RED0) / (RED1 - RED0))); }
+  function isRed(o) { return redSpan() && o.x >= RED0 && o.x < LV.plateauEnd; }
+  function stepRedTracers(dt, j0, cols, p) {
+    const speed = (22 + 26 * p) * dt;                                    // segments per second: far quicker than the opening
+    for (const t of redTracers) {
+      if (t.j < j0 - 1) { t.dead = true; continue; }
+      t.f += speed;
+      while (t.f >= 1) {
+        redLit.add(segKey(t.kind, t.i, t.j)); t.f -= 1;
+        let ni, nj;
+        if (t.kind === "c") { ni = t.i + (t.dir > 0 ? 1 : 0); nj = t.j; } else { ni = t.i; nj = t.j + (t.dir > 0 ? 1 : 0); }
+        const opts = [];
+        if (ni < ROWS) opts.push({ kind: "c", i: ni, j: nj, dir: 1, w: t.kind === "c" && t.dir > 0 ? 3 : 1 });
+        if (ni > 1) opts.push({ kind: "c", i: ni - 1, j: nj, dir: -1, w: t.kind === "c" && t.dir < 0 ? 3 : 0.6 });
+        if (ni > 0) { opts.push({ kind: "r", i: ni, j: nj, dir: 1, w: t.kind === "r" && t.dir > 0 ? 3 : 1.4 }); opts.push({ kind: "r", i: ni, j: nj - 1, dir: -1, w: t.kind === "r" && t.dir < 0 ? 3 : 0.7 }); }
+        const open = opts.filter(o => !redLit.has(segKey(o.kind, o.i, o.j)));
+        if (!open.length) { t.dead = true; break; }
+        let pick = Math.random() * open.reduce((a, o) => a + o.w, 0), ch = open[0];
+        for (const o of open) { pick -= o.w; if (pick <= 0) { ch = o; break; } }
+        t.kind = ch.kind; t.i = ch.i; t.j = ch.j; t.dir = ch.dir;
+      }
+    }
+    redTracers = redTracers.filter(t => !t.dead);
+    const sweep = Math.min(1, p / 0.3);                                  // tracers drop from the part of the floor line that's already red
+    const want = Math.round(8 + 30 * p);
+    while (redTracers.length < want) redTracers.push({ kind: "c", i: 0, j: j0 + Math.floor(Math.random() * Math.max(1, (cols + 2) * sweep)), dir: 1, f: 0 });
+  }
   window.__OPENING = () => ({ lit: lit.size, tracers: tracers.length });
   const START_X = SEC ? SEC.start : 0;
   const Z = { bh: XX(TL.climax), bhIn: XX(TL.climax) + 9, bhCalmEnd: XX(TL.b02a), warp: XX(TL.b02a + (TL.bars02 - 1) * 4 * TL.beat02), fourD: XX(TL.end02), limboIn: LV.fallX, limbo: LV.landX };
@@ -2525,27 +2564,72 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
         ctx.restore();
         continue;
       }
+      const rp = seg.y === LV.N && st.name !== "limbo" ? redPhase(px) : 0;
+      if (rp > 0 && rp < 1) {   // the red trace, on exactly the same grid as the floor it's replacing
+        ctx.save(); ctx.beginPath(); ctx.rect(L0, gT - 10, R0 - L0, H - gT + 60); ctx.clip();
+        const depth = H - gT + 40, vx = W * 0.5, sp = U * 1.25;
+        const colX = (j, f) => { const x = j * sp - camX * U; return x + (x - vx) * 1.8 * f; };
+        const rowF = i => Math.pow(i / ROWS, 1.7), rowY = i => gT + depth * rowF(i);
+        const j0 = Math.floor(camX * U / sp) - 2, cols = Math.ceil(W / sp) + 4;
+        stepRedTracers(Math.min(0.05, dtFrame), j0, cols, rp);
+        const forced = Math.max(0, (rp - 0.72) / 0.28);                    // the last stretch: whatever's left floods red
+        const isLit = (kind, i, j) => redLit.has(segKey(kind, i, j)) || ((i * 7 + j * 13) % 10) / 10 < forced;
+        ctx.fillStyle = "#01050d"; ctx.fillRect(0, gT, W, depth);
+        for (const red of [false, true]) {
+          ctx.beginPath();
+          for (let i = 1; i <= ROWS; i++) for (let j = j0; j < j0 + cols; j++) {
+            if (isLit("r", i, j) === red) { ctx.moveTo(colX(j, rowF(i)), rowY(i)); ctx.lineTo(colX(j + 1, rowF(i)), rowY(i)); }
+            if (i < ROWS && isLit("c", i, j) === red) { ctx.moveTo(colX(j, rowF(i)), rowY(i)); ctx.lineTo(colX(j, rowF(i + 1)), rowY(i + 1)); }
+          }
+          for (let j = j0; j < j0 + cols; j++) if (isLit("c", 0, j) === red) { ctx.moveTo(colX(j, 0), gT); ctx.lineTo(colX(j, rowF(1)), rowY(1)); }
+          ctx.lineWidth = 1;
+          if (red) { ctx.strokeStyle = RED.glow; ctx.globalAlpha = 0.18; ctx.lineWidth = 3; ctx.stroke(); ctx.lineWidth = 1; ctx.strokeStyle = RED.line; ctx.globalAlpha = 0.55; ctx.stroke(); }
+          else { ctx.strokeStyle = N.cyan; ctx.globalAlpha = 0.28; ctx.stroke(); }
+        }
+        // the floor line turns red left to right, quickly
+        const rw = W * Math.min(1, rp / 0.3);
+        for (const [c, a0, a1, a2] of [[N.cyan, rw, W, 1], [RED.line, 0, rw, 1]]) {
+          if (a1 <= a0) continue;
+          ctx.fillStyle = c; ctx.globalAlpha = 0.22; ctx.fillRect(a0, gT - 4, a1 - a0, 8); ctx.globalAlpha = 0.6; ctx.fillRect(a0, gT - 2.5, a1 - a0, 5);
+          ctx.globalAlpha = 1; ctx.fillRect(a0, gT - 1, a1 - a0, 2); ctx.fillStyle = c === RED.line ? RED.core : N.core; ctx.fillRect(a0, gT - 0.5, a1 - a0, 1);
+        }
+        // the tracers' heads
+        ctx.globalAlpha = 1; ctx.strokeStyle = RED.line; ctx.lineWidth = 1.4; ctx.beginPath(); const heads = [];
+        for (const t of redTracers) {
+          let x0, y0, x1, y1;
+          if (t.kind === "c") { const a = t.dir > 0 ? t.i : t.i + 1, b = t.dir > 0 ? t.i + 1 : t.i; x0 = colX(t.j, rowF(a)); y0 = rowY(a); x1 = colX(t.j, rowF(b)); y1 = rowY(b); }
+          else { const a = t.dir > 0 ? t.j : t.j + 1, b = t.dir > 0 ? t.j + 1 : t.j; x0 = colX(a, rowF(t.i)); y0 = rowY(t.i); x1 = colX(b, rowF(t.i)); y1 = rowY(t.i); }
+          const hx = x0 + (x1 - x0) * t.f, hy = y0 + (y1 - y0) * t.f; ctx.moveTo(x0, y0); ctx.lineTo(hx, hy); heads.push([hx, hy]);
+        }
+        ctx.stroke(); ctx.fillStyle = RED.core; for (const [hx, hy] of heads) ctx.fillRect(hx - 1.5, hy - 1.5, 3, 3);
+        ctx.globalAlpha = 1; ctx.restore();
+        continue;
+      }
       ctx.save(); ctx.beginPath(); ctx.rect(L0, gT - 10, R0 - L0, H - gT + 60); ctx.clip();
       {
-        const lim = st.name === "limbo", depth = H - gT + 40, vx = W * 0.5, col = lim ? N.deep : N.cyan;
+        const lim = st.name === "limbo", depth = H - gT + 40, vx = W * 0.5, isR = rp >= 1, col = lim ? N.deep : isR ? RED.line : N.cyan;
         ctx.fillStyle = lim ? "#e4f6ff" : "#01050d"; ctx.fillRect(0, gT, W, depth);
-        ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.globalAlpha = lim ? 0.22 : 0.3; ctx.beginPath();
+        ctx.beginPath();
         for (let k = 1; k <= 9; k++) { const y = gT + depth * Math.pow(k / 9, 1.7); ctx.moveTo(0, y); ctx.lineTo(W, y); }
+        if (isR) { ctx.strokeStyle = RED.glow; ctx.globalAlpha = 0.18; ctx.lineWidth = 3; ctx.stroke(); }
+        ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.globalAlpha = lim ? 0.22 : isR ? 0.55 : 0.3;
         ctx.stroke();
         ctx.fillStyle = col;
         ctx.globalAlpha = 0.22; ctx.fillRect(0, gT - 4, W, 8);
         ctx.globalAlpha = 0.6; ctx.fillRect(0, gT - 2.5, W, 5);
         ctx.globalAlpha = 1; ctx.fillRect(0, gT - 1, W, 2);                                    // hard edge
-        ctx.fillStyle = lim ? "#9cc4ff" : N.core; ctx.fillRect(0, gT - 0.5, W, 1);
+        ctx.fillStyle = lim ? "#9cc4ff" : isR ? RED.core : N.core; ctx.fillRect(0, gT - 0.5, W, 1);
         // the grid's columns fan toward you and slide with the run (only part drawn live)
         const sp = U * 1.25, offs = ((-camX * U) % sp + sp) % sp, x0 = offs - sp * Math.ceil(vx / sp / 2.8 + 1), x1 = W - x0;
-        ctx.strokeStyle = lim ? N.deep : N.cyan; ctx.lineWidth = 1; ctx.globalAlpha = lim ? 0.2 : 0.28; ctx.beginPath();
+        ctx.beginPath();
         for (let x = x0; x < x1; x += sp) { ctx.moveTo(x, gT); ctx.lineTo(vx + (x - vx) * 2.8, gT + depth); }
+        if (isR) { ctx.strokeStyle = RED.glow; ctx.globalAlpha = 0.18; ctx.lineWidth = 3; ctx.stroke(); }
+        ctx.strokeStyle = lim ? N.deep : col; ctx.lineWidth = 1; ctx.globalAlpha = lim ? 0.2 : isR ? 0.55 : 0.28;
         ctx.stroke(); ctx.globalAlpha = 1;
       }
       ctx.restore();
       // a cliff edge where a strip starts or stops in view
-      ctx.fillStyle = st.name === "limbo" ? N.deep : N.cyan;
+      ctx.fillStyle = st.name === "limbo" ? N.deep : rp >= 1 ? RED.line : N.cyan;
       for (const ex of [seg.x0 > camX - 2 ? L0 : null, seg.x1 < camX + W / U + 2 ? R0 : null]) {
         if (ex === null) continue;
         ctx.globalAlpha = 0.3; ctx.fillRect(ex - 2.5, gT, 5, H - gT);
@@ -2594,15 +2678,15 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
         }
         continue;
       }
-      const x = sx(o.x), y = sy(o.y + o.h - fly), w = o.w * U, h = o.h * U;
-      ctx.fillStyle = blockFill; ctx.fillRect(x, y, w, h);
-      ctx.strokeStyle = blockLine;   // glow: a wide soft stroke, a medium one, then a bright thin core
+      const x = sx(o.x), y = sy(o.y + o.h - fly), w = o.w * U, h = o.h * U, red = isRed(o);
+      ctx.fillStyle = red ? RED.fill : blockFill; ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = red ? RED.line : blockLine;   // glow: a wide soft stroke, a medium one, then a bright thin core
       ctx.globalAlpha = 0.22; ctx.lineWidth = 6; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
       ctx.globalAlpha = 0.6; ctx.lineWidth = 3.6; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
       ctx.globalAlpha = 1; ctx.lineWidth = 1.6; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);   // hard edge
-      ctx.strokeStyle = st.name === "limbo" ? "#7fb2ff" : N.core; ctx.lineWidth = 0.6; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+      ctx.strokeStyle = st.name === "limbo" ? "#7fb2ff" : red ? RED.core : N.core; ctx.lineWidth = 0.6; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
       {
-        ctx.strokeStyle = st.name === "limbo" ? "rgba(10,92,255,0.2)" : "rgba(63,243,255,0.22)"; ctx.lineWidth = 1;
+        ctx.strokeStyle = st.name === "limbo" ? "rgba(10,92,255,0.2)" : red ? RED.seam : "rgba(63,243,255,0.22)"; ctx.lineWidth = 1;
         for (let i = 1; i < o.w; i++) { ctx.beginPath(); ctx.moveTo(x + i * U, y + 3); ctx.lineTo(x + i * U, y + h - 3); ctx.stroke(); }
         for (let j = 1; j < o.h; j++) { ctx.beginPath(); ctx.moveTo(x + 3, y + j * U); ctx.lineTo(x + w - 3, y + j * U); ctx.stroke(); }
       }
@@ -2610,8 +2694,9 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     { // spikes are pre-drawn stamps (the fourth dimension's glow is baked in, no live blur)
       const up = SPR.spike[st.name], down = SPR.hang[st.name], pd = SPR.pad;
       for (const o of objs) {
-        if (o.t === "s") ctx.drawImage(up, sx(o.x) - pd, sy(o.y + 1 - rise(o)) - pd, U + pd * 2, U + pd * 2);
-        else if (o.t === "v") ctx.drawImage(down, sx(o.x) - pd, sy(o.y + 1 - rise(o)) - pd, U + pd * 2, U + pd * 2);
+        const red = isRed(o);
+        if (o.t === "s") ctx.drawImage(red ? SPR.spike.red : up, sx(o.x) - pd, sy(o.y + 1 - rise(o)) - pd, U + pd * 2, U + pd * 2);
+        else if (o.t === "v") ctx.drawImage(red ? SPR.hang.red : down, sx(o.x) - pd, sy(o.y + 1 - rise(o)) - pd, U + pd * 2, U + pd * 2);
       }
     }
     if (st.name === "fourD") {
