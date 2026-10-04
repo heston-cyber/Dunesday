@@ -380,6 +380,44 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 .arcade input{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 
+
+/* ---------- the neon arcade (scoped to the arcade section) ---------- */
+/* ---------- neon: dark panels, glowing cyan edges, the cube's orange as the only warm color ---------- */
+:root{--nc:#3ff3ff;--nc-soft:rgba(63,243,255,.45);--nc-faint:rgba(63,243,255,.16);--ncore:#e6fdff;--nbg:#010309;--npanel:#020a16;--norange:#ff8a1f}
+.arcade{background:none!important}
+.arcade .sec-h{border-bottom:1px solid var(--nc-soft);box-shadow:0 1px 4px -3px var(--nc)}
+.arcade .sec-h h2{color:var(--ncore)!important;text-shadow:0 0 2px rgba(63,243,255,.9),0 0 5px rgba(63,243,255,.45)}
+.ar-intro,.ar-player{color:#8fd9e8!important}
+.ar-player #ar-who{color:var(--ncore)}
+.ar-link{color:var(--nc)!important;text-shadow:0 0 2px rgba(63,243,255,.9)}
+/* every panel: dark glass with a glowing cyan edge (no ticket notches here) */
+.ar-ticket{background:var(--npanel)!important;color:var(--ncore)!important;-webkit-mask:none!important;mask:none!important;border:1px solid var(--nc)!important;border-radius:3px!important;
+  box-shadow:0 0 2px rgba(63,243,255,1),0 0 4px rgba(63,243,255,.75),inset 0 0 2px rgba(63,243,255,.45)!important}
+.ar-cells > div{border-color:var(--nc-faint)!important}
+.ar-hud small{color:#7fdcef!important}
+.ar-hud b{color:var(--ncore)!important;text-shadow:0 0 2px rgba(63,243,255,.9),0 0 5px rgba(63,243,255,.4)}
+.ar-hud .ar-topcell span{color:#8fd9e8!important}
+.ar-track{border-color:var(--nc-faint)!important}
+.ar-bar{background:#01060f!important;border:1px solid var(--nc)!important;box-shadow:0 0 2px rgba(63,243,255,.8)}
+.ar-bar i{background:var(--nc)!important;box-shadow:0 0 2px var(--nc),0 0 5px rgba(63,243,255,.5)}
+.ar-bar::after{background:var(--norange)!important;box-shadow:0 0 2px rgba(255,138,31,.6)}
+.arcade.beating .ar-bar i{background:var(--norange)!important;box-shadow:0 0 3px rgba(255,138,31,.6)}
+#ar-note{color:#8fd9e8!important}
+.ar-stage{background:#000!important;border:1px solid var(--nc);box-shadow:0 0 2px rgba(63,243,255,1),0 0 4px rgba(63,243,255,.75)}
+.ar-card h3{color:var(--ncore)!important;text-shadow:0 0 2px rgba(63,243,255,.9),0 0 5px rgba(63,243,255,.45)}
+.ar-card p,.ar-how,#ar-top-line,.ar-paused-line{color:#9fe3f0!important}
+.ar-row input{background:#01060f!important;color:var(--ncore)!important;border:1px solid var(--nc)!important;box-shadow:0 0 2px rgba(63,243,255,.9),0 0 4px rgba(63,243,255,.5)}
+.ar-row input::placeholder{color:#4f8c99}
+.ar-row input:focus{outline:none;border-color:var(--nc)!important;box-shadow:0 0 2px rgba(63,243,255,.9),0 0 5px rgba(63,243,255,.4)}
+.ar-go,.ar-go-main{background:rgba(63,243,255,.12)!important;color:var(--ncore)!important;border:1px solid var(--nc)!important;text-shadow:0 0 2px rgba(63,243,255,.9);box-shadow:0 0 2px rgba(63,243,255,1),0 0 4px rgba(63,243,255,.75),inset 0 0 2px rgba(63,243,255,.45)}
+.ar-go:active,.ar-go-main:active{background:rgba(63,243,255,.3)!important}
+.ar-go-alt{background:transparent!important;color:#c5f4fb!important;border:1px solid var(--nc)!important;box-shadow:0 0 2px rgba(63,243,255,.9),0 0 4px rgba(63,243,255,.5);text-shadow:none}
+.ar-pause,.ar-sound{background:rgba(1,6,15,.75)!important;border:1px solid var(--nc)!important;color:var(--nc)!important;box-shadow:0 0 2px rgba(63,243,255,1),0 0 4px rgba(63,243,255,.7)}
+.ar-pause svg rect{fill:var(--nc)}
+.ar-sound svg path{stroke:var(--nc)!important}
+.ar-sound .spk{fill:var(--nc)!important}
+.ar-start{background:rgba(0,3,9,.55)!important}
+
 </style>
 </head>
 <body>
@@ -433,9 +471,9 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   "use strict";
 
   const P = {
-    speed: 8.6,        // units per second, constant like the original
-    gravity: 52,       // units per second^2
-    jumpV: 13.8,       // initial jump velocity
+    speed: 11,         // units per second: faster run
+    gravity: 88.4,     // units per second^2: a much harder pull down, so jumps snap
+    jumpV: 18.57,      // initial jump velocity: same height (~1.95 blocks), 0.42 s in the air, same 4.6-block reach
     dt: 1 / 240,       // fixed physics step
     size: 1,           // player is a 1x1 square
     stepTol: 0.16,     // forgiving lip: clip a block corner by this much and you land on it
@@ -487,13 +525,302 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     };
   }
 
-  function tierAt(x) { return x < 80 ? 0 : x < 208 ? 1 : x < 352 ? 2 : x < 448 ? 3 : 4; }
+  // steps are single blocks sitting exactly where a hop lands, so there's never a question of which block to aim for
+  const REDO = {
+    "step-up":   { tier: 1, w: 7,  o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2]] },
+    "stairs":    { tier: 2, w: 13, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["b", 7.8, 0, 1, 3], ["s", 12, 0]] },
+    "tall-steps":{ tier: 3, w: 15, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["b", 7.8, 0, 1, 3], ["b", 11.7, 0, 1, 4]] },
+    "high-walk": { tier: 3, w: 11, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 6, 2], ["s", 6.5, 2]] },
+    "pit-steps": { tier: 3, w: 12, o: [["b", 0, 0, 1, 1], ["s", 2, 0], ["s", 3, 0], ["b", 4.6, 0, 1, 1], ["s", 6.5, 0], ["s", 7.5, 0], ["b", 9.2, 0, 1, 1]] },
+    "summit":    { tier: 4, w: 19, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["b", 7.8, 0, 1, 3], ["b", 11.7, 0, 1, 4], ["s", 16.5, 0], ["s", 17.5, 0]] },
+    "triple-high":{ tier: 4, w: 12, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["s", 6, 0], ["s", 7, 0], ["s", 8, 0], ["b", 9.5, 0, 1, 2]] }
+  };
+  Object.assign(REDO, {
+    "block":      { tier: 1, w: 4,  o: [["b", 0, 0, 1, 1]] },
+    "block-moat": { tier: 1, w: 8,  o: [["b", 0, 0, 1, 1], ["s", 2, 0], ["s", 3, 0], ["b", 4.6, 0, 1, 1]] },
+    "ledge":      { tier: 1, w: 6,  o: [["b", 0, 0, 1, 1], ["s", 3, 0]] },
+    "ledge-spike":{ tier: 1, w: 7,  o: [["b", 0, 0, 1, 1], ["b", 4.6, 0, 1, 1], ["s", 6, 0]] },
+    "ledge-drop": { tier: 1, w: 7,  o: [["b", 0, 0, 1, 1], ["s", 5.6, 0]] },                                   // drop, don't jump: a jump off the block lands on the spike
+    "ledge-double":{ tier: 2, w: 8, o: [["b", 0, 0, 1, 1], ["s", 3, 0], ["s", 4, 0]] },
+    "landing-spike":{ tier: 2, w: 9, o: [["b", 0, 0, 1, 1], ["s", 3.5, 0], ["s", 7, 0]] },
+    "ledge-pads": { tier: 2, w: 14, o: [["b", 0, 0, 1, 1], ["b", 4.6, 0, 1, 1], ["b", 9.2, 0, 1, 1], ["s", 13, 0]] },
+    "climb-pad":  { tier: 2, w: 13, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["b", 7.8, 0, 1, 3], ["s", 12, 0]] },
+    "climb-to-platform": { tier: 3, w: 17, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["b", 7.8, 0, 1, 3], ["s", 9.5, 0], ["s", 10.5, 0], ["b", 12.4, 0, 1, 3], ["s", 16, 0]] },
+    "shelf-hop":  { tier: 3, w: 14, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["s", 6, 0], ["s", 7, 0], ["b", 8.5, 0, 1, 2], ["s", 12, 0]] },
+    "step-spike": { tier: 2, w: 9,  o: [["b", 0, 0, 1, 1], ["s", 2.5, 0], ["b", 4.6, 0, 1, 2]] }
+  });
+  CHUNKS.forEach(c => { if (REDO[c.id]) { c.w = REDO[c.id].w; c.o = REDO[c.id].o; c.tier = REDO[c.id].tier; } });
+  // new kinds: a squeeze, a hanging block you must not jump into, and a drop where NOT jumping is the right call
+  CHUNKS.push(
+    { id: "squeeze", tier: 2, w: 12, anchor: 2.31, o: [["b", 0, 0, 1, 1], ["b", 3.6, 1, 4, 1], ["s", 3.6, 2], ["s", 4.6, 2], ["s", 5.6, 2], ["s", 6.6, 2], ["s", 11.1, 0]] },   // over a block, through a short flush tunnel (spiked on top), jump the spike
+    { id: "hang-bait", tier: 1, w: 9, o: [["b", 0, 1, 4, 1], ["s", 0, 2], ["s", 1, 2], ["s", 2, 2], ["s", 3, 2], ["s", 7.5, 0]] },     // a flush ceiling (spiked on top): the cube just fits under it; then jump the spike
+    { id: "drop-dont-jump", tier: 2, w: 9, o: [["b", 0, 0, 1, 1], ["s", 5.6, 0], ["s", 8.5, 0]] },           // step off the block (a jump lands on the spike), then jump
+    { id: "hang-run", tier: 2, w: 12, o: [["b", 0, 2, 6, 1], ["s", 3, 0], ["b", 8.5, 0, 1, 1]] }             // hmm: a spike under the hanging slab can't be jumped; it's a short hop sized gap instead
+  );
+  CHUNKS.splice(CHUNKS.findIndex(c => c.id === "hang-run"), 1);
+  CHUNKS.forEach(c => { if (REDO[c.id]) { c.w = REDO[c.id].w; c.o = REDO[c.id].o; c.tier = REDO[c.id].tier; } });   // single-block versions win, whenever a pattern was added
+  CHUNKS.push(
+    { id: "perch", tier: 2, w: 11, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["s", 8.5, 0]] },                                                     // up, up, drop onto a spike
+    { id: "step-spike", tier: 2, w: 10, o: [["b", 0, 0, 3, 1], ["s", 1.6, 1], ["b", 5.5, 0, 1, 2]] },                                               // a spike on the ledge, then up to a single block
+    { id: "landing-spike", tier: 2, w: 8, o: [["b", 0, 0, 2, 1], ["s", 4, 0], ["s", 7, 0]] },                                                       // drop off a pad straight into two jumps
+    { id: "gap-pillars", tier: 3, w: 11, o: [["b", 0, 0, 1, 1], ["s", 2, 0], ["s", 3, 0], ["b", 4.6, 0, 1, 1], ["s", 6.5, 0], ["s", 7.5, 0], ["b", 9.2, 0, 1, 1]] },   // pillar to pillar over spikes
+    { id: "high-shelf", tier: 3, w: 14, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 5, 2], ["s", 6.5, 2], ["s", 12.5, 0]] },                              // up onto a shelf, clear its spike, drop onto a spike
+    { id: "drop-ladder", tier: 3, w: 22, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["b", 7.8, 0, 1, 3], ["b", 12.95, 0, 1, 2], ["b", 18.1, 0, 1, 1], ["s", 21, 0]] },   // up three, back down two, spike
+    { id: "zigzag", tier: 3, w: 12, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["b", 9.05, 0, 1, 1], ["s", 11, 0]] },                              // low, high, low
+    { id: "up-drop-up", tier: 2, w: 12, o: [["b", 0, 0, 1, 1], ["s", 2.5, 0], ["b", 4.6, 0, 1, 1], ["s", 7.5, 0], ["s", 8.5, 0]] },               // up one, drop over a spike, up again, drop over two
+    { id: "hill-spike", tier: 2, w: 13, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 5, 2], ["s", 6.5, 2], ["s", 11.5, 0]] },                              // up, up, clear a spike up high, drop all the way onto a spike
+    { id: "climb-to-platform", tier: 3, w: 19, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["b", 7.8, 0, 1, 3], ["s", 9.5, 0], ["s", 10.5, 0], ["b", 12.4, 0, 2, 3], ["s", 18, 0]] },   // climb, leap a pit onto a pad, drop off into a spike
+    { id: "stair-wave", tier: 3, w: 20, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["s", 6, 0], ["b", 9.05, 0, 1, 1], ["b", 12.95, 0, 1, 2], ["b", 16.85, 0, 1, 3], ["s", 19, 0]] },   // up two, drop over a spike, up three, drop
+    { id: "shelf-hop", tier: 3, w: 15, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 2, 2], ["s", 6.5, 0], ["s", 7.5, 0], ["b", 8.5, 0, 2, 2], ["s", 13, 0]] },   // shelf to shelf over a pit, down onto a spike
+    { id: "stones-up", tier: 2, w: 15, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["b", 7.8, 0, 1, 3], ["s", 14, 0]] },                           // stepping stones up, then off
+    { id: "stones-wave", tier: 3, w: 18, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["b", 9.05, 0, 1, 1], ["b", 12.95, 0, 1, 2], ["s", 17.5, 0]] },   // up, down, up, off
+    { id: "pillar-hop", tier: 2, w: 14, o: [["b", 0, 0, 1, 1], ["b", 4.6, 0, 1, 1], ["b", 9.2, 0, 1, 1], ["s", 13, 0]] },                           // three pillars, then a spike
+    { id: "wall-step", tier: 2, w: 13, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["b", 8.5, 0, 1, 2], ["s", 12, 0]] },                           // up to a wall, across to its twin, off
+    { id: "ledge-pads", tier: 2, w: 14, o: [["b", 0, 0, 2, 1], ["b", 4.6, 0, 2, 1], ["b", 9.2, 0, 2, 1], ["s", 13, 0]] },                           // pad to pad to pad
+    { id: "climb-pad", tier: 2, w: 15, o: [["b", 0, 0, 1, 1], ["b", 3.9, 0, 1, 2], ["b", 7.8, 0, 2, 3], ["s", 14, 0]] }                             // up two stones onto a pad, then off
+  );
+  CHUNKS.forEach(c => { if (REDO[c.id]) { c.w = REDO[c.id].w; c.o = REDO[c.id].o; c.tier = REDO[c.id].tier; } });   // and again after the last additions: single blocks win
+  // Track 02's own set, from Heston's sketches: single blocks only. Tier 9 keeps them out of limbo.
+  // "anchor" is where the first object sits relative to a jump taken on the beat.
+  CHUNKS.push(
+    { id: "k-sbs", tier: 9, w: 4, anchor: 2.31, o: [["s", 0, 0], ["b", 1.6, 0, 1, 1], ["s", 2.85, 0]] },                          // spike, block, spike
+    { id: "k-block-double", tier: 9, w: 4, anchor: 3.6, o: [["b", 0, 0, 1, 1], ["s", 1.25, 0], ["s", 2.25, 0]] },                 // onto a block, off over two spikes
+    { id: "k-column-run", tier: 9, w: 15, anchor: 3.6, o: [["b", 0, 0, 1, 1], ["s", 1.6, 0], ["b", 3.9, 0, 1, 2], ["s", 5.6, 0], ["s", 6.6, 0], ["b", 9.05, 0, 1, 1], ["b", 12.95, 1, 1, 1], ["s", 13.45, 0]] },   // block, spike, column, two spikes, block, floating block over a spike
+    { id: "k-stone-stairs", tier: 9, w: 17, anchor: 3.6, o: [["b", 0, 0, 1, 1], ["b", 3.9, 1, 1, 1], ["b", 7.8, 2, 1, 1], ["s", 1.6, 0], ["s", 2.6, 0], ["s", 3.6, 0], ["s", 4.6, 0], ["s", 5.6, 0], ["s", 6.6, 0], ["s", 7.6, 0], ["s", 8.6, 0], ["s", 9.6, 0], ["s", 10.6, 0], ["s", 11.6, 0], ["b", 13.4, 0, 1, 1], ["s", 15.2, 0]] },   // up three stones over a spike pit, drop to a block, jump the spike
+    { id: "k-ceiling-run", tier: 9, w: 14, anchor: 2.31, o: [["b", 0, 0, 1, 1], ["b", 3.6, 1, 6, 1], ["s", 3.6, 2], ["s", 4.6, 2], ["s", 5.6, 2], ["s", 6.6, 2], ["s", 7.6, 2], ["s", 8.6, 2], ["s", 13.1, 0]] },   // over (or onto) a block, through a flush tunnel (spiked on top), jump the spike after
+    { id: "k-squeeze-stairs", tier: 9, w: 21, anchor: 3.6, o: [["b", 0, 0, 1, 1], ["b", 0, 3, 1, 1], ["b", 7.0, 0, 1, 1], ["s", 8.6, 0], ["s", 9.6, 0], ["s", 10.6, 0], ["b", 10.9, 1, 1, 1], ["b", 10.9, 4, 1, 1], ["b", 14.4, 0, 1, 1], ["s", 15.9, 0], ["s", 16.9, 0], ["s", 17.9, 0], ["b", 18.4, 1, 1, 1], ["b", 18.4, 4, 1, 1]] }   // slot, drop, step, slot, drop, step, slot; spikes under the floating ones
+  );
+  const K02 = ["k-sbs", "k-block-double", "k-column-run", "k-stone-stairs", "k-ceiling-run", "k-squeeze-stairs"];
+  const ROOFED = {
+    "tunnel":       [["b", 0, 1, 6, 1], ["s", 0, 2], ["s", 1, 2], ["s", 2, 2], ["s", 3, 2], ["s", 4, 2], ["s", 5, 2]],
+    "tunnel-exit":  [["b", 0, 1, 5, 1], ["s", 0, 2], ["s", 1, 2], ["s", 2, 2], ["s", 3, 2], ["s", 4, 2], ["s", 8.5, 0]],
+    "spike-tunnel": [["s", 0, 0], ["b", 5, 1, 4, 1], ["s", 5, 2], ["s", 6, 2], ["s", 7, 2], ["s", 8, 2]],
+    "stair-tunnel": [["b", 0, 0, 8, 1], ["b", 3, 2, 4, 1], ["s", 3, 3], ["s", 4, 3], ["s", 5, 3], ["s", 6, 3]]
+  };
+  CHUNKS.forEach(c => { if (ROOFED[c.id]) { c.o = ROOFED[c.id]; if (c.id === "tunnel-exit") c.w = Math.max(c.w, 10); } });
+  const DROPJUMP = ["perch", "step-spike", "landing-spike", "gap-pillars", "high-shelf", "drop-ladder", "zigzag", "up-drop-up", "hill-spike", "climb-to-platform", "stair-wave", "shelf-hop", "stones-up", "stones-wave", "pillar-hop", "wall-step", "ledge-pads", "climb-pad"];
+  function tierAt(x) { return 4; }   // the generator only builds limbo now: the hardest patterns
+  /* The soundtrack's beats, as distances along the course (the run moves at a constant 8.6 m/s).
+     Each obstacle pattern is placed so the ideal moment to jump lands on a beat. */
+  const BEATS = [];
+  const TAKEOFF = 2.31; // jump here to clear an obstacle at the top of the arc (half a jump's reach)
+  function onBeat(base) { return base; }
   /* stretches with no obstacles, lined up with the music (1 bar = 12.9 m) */
-  const CLEAR = [[311, 352], [416, 448], [575, 608]]; // black hole calm, pull-in, white-out into limbo (16 m music bars)
+  const CLEAR = [];
+  /* ---------- the level, laid out from the soundtrack's exact beat times (seconds into the run music) ---------- */
+  const TL = {
+    b01: 9.654, beat01: 0.5883, drop: 47.306, climax: 70.840,          // 01: beat comes in, the drop (stairs + light speed), the climax
+    b02a: 83.104, beat02: 0.50010, bars02: 51,                      // 02: 18 bars, about 400 m
+    end02: 185.125, beat03: 0.49999, bars03: 39,                     // 03: the descent
+    limboAt: 0, loopStart: 51.479, loopEnd: 110.379
+  };
+  TL.end03 = TL.end02 + TL.bars03 * 4 * TL.beat03;   // 03's music ends: the free fall starts and 04 comes in
+  TL.limboAt = TL.end03;
+  const X = t => t * P.speed;
+  const FALL = 175;          // the long free fall into limbo (about 2 seconds)
+  const RISER = 3.29;        // where each stair step starts, relative to the takeoff that should clear it
+  const GROUND = [];         // ground strips: { x0, x1, y }; no strip means open void
+  const LEVEL = {};
+  function surfaceY(x) { for (const g of GROUND) if (x >= g.x0 && x < g.x1) return g.y; return null; }
+  function groundUnder(px) { let best = null; for (const g of GROUND) if (px + 1 > g.x0 + 0.04 && px < g.x1 - 0.04 && (best === null || g.y > best)) best = g.y; return best; }
+  function stairCycle() { // one held jump onto a step one block higher, measured with the real physics
+    const fake = { near: (a, b, out) => { out.length = 0; out.push({ t: "b", x: 1.6, y: 0, w: 40, h: 1 }); return out; } };
+    const pl = { x: 0, y: 0, vy: 0, grounded: true, dead: false };
+    for (let i = 0; i < 400; i++) { step(pl, fake, true); if (pl.grounded && pl.y > 0.5) return pl.x; }
+    return 3.9;
+  }
+  // tightest jump window (ms) when a stretch is played down the middle from a flat run-up; null if impossible
+  function tightestWindow(objsRel) {
+    const base = 40, objs = objsRel.map(o => ({ t: o.t, x: o.x + base, y: o.y, w: o.w, h: o.h })).sort((a, b) => a.x - b.x);   // fresh copies: no cached spike shapes
+    const course = { objs: objs, near: Course.prototype.near };
+    const right = Math.max.apply(null, objs.map(o => o.x + (o.w || 1))) + 4;
+    const key = p => Math.round(p.y * 400) + "," + Math.round(p.vy * 40) + "," + (p.grounded ? 1 : 0);
+    const start = { x: 20, y: 0, vy: 0, grounded: true, dead: false, lastG: 0 };
+    const layers = [new Map([[key(start), { s: start, next: [] }]])];
+    while (layers[layers.length - 1].size && layers[layers.length - 1].values().next().value.s.x < right) {
+      const cur = layers[layers.length - 1], nxt = new Map();
+      for (const [k, node] of cur) for (const j of (node.s.grounded ? [false, true] : [false])) {
+        const n = step(Object.assign({}, node.s), course, j); if (n.dead) continue;
+        const kk = key(n); if (!nxt.has(kk)) nxt.set(kk, { s: n, next: [] }); node.next.push([j, kk]);
+      }
+      layers.push(nxt);
+    }
+    const Lz = layers.length, good = layers.map(() => new Set());
+    for (const [k, n] of layers[Lz - 1]) if (n.s.x >= right) good[Lz - 1].add(k);
+    for (let i = Lz - 2; i >= 0; i--) for (const [k, n] of layers[i]) if (n.next.some(e => good[i + 1].has(e[1]))) good[i].add(k);
+    if (!good[0].has(key(start))) return null;
+    let i = 0, k = key(start), tight = 1e9;
+    while (i < Lz - 1) {
+      const node = layers[i].get(k);
+      if (!node.s.grounded) { k = node.next[0][1]; i++; continue; }
+      const goodM = []; let ki = k, ii = i, runOK = true;
+      for (let m = 0; m < 200 && ii < Lz - 1; m++) {
+        const nd = layers[ii].get(ki); if (!nd || !nd.s.grounded) break;
+        const jmp = nd.next.find(e => e[0]); if (jmp && good[ii + 1].has(jmp[1])) goodM.push(m);
+        const run = nd.next.find(e => !e[0]); if (!run || !good[ii + 1].has(run[1])) { runOK = false; break; }
+        ki = run[1]; ii++;
+      }
+      if (goodM.length && !runOK) {
+        let e = 0; while (e + 1 < goodM.length && goodM[e + 1] === goodM[e] + 1) e++;
+        tight = Math.min(tight, Math.round((e + 1) * P.dt * 1000));
+        const mid = goodM[Math.floor(e / 2)];
+        for (let m = 0; m < mid; m++) { k = layers[i].get(k).next.find(e2 => !e2[0])[1]; i++; }
+        k = layers[i].get(k).next.find(e2 => e2[0])[1]; i++;
+      } else { const run = layers[i].get(k).next.find(e2 => !e2[0]); if (!run) break; k = run[1]; i++; }
+    }
+    return tight;
+  }
+  const DEBUG = {};
+  function canRideOver(objsRel) {
+    const base = 40, objs = objsRel.map(o => ({ t: o.t, x: o.x + base, y: o.y, w: o.w, h: o.h })).sort((a, b) => a.x - b.x);
+    const surfaceUnder = t => { let top = 0; for (const o of objs) if (o !== t && o.t === "b" && o.x < t.x + t.w && o.x + o.w > t.x && o.y + o.h <= t.y + 1e-6) top = Math.max(top, o.y + o.h); return top; };
+    const tunnels = objs.filter(o => o.t === "b" && o.w >= 4 && o.y >= 1 && Math.abs(o.y - surfaceUnder(o) - 1) < 1e-6);
+    if (!tunnels.length) return false;
+    const course = { objs: objs, near: Course.prototype.near };
+    const right = Math.max.apply(null, objs.map(o => o.x + (o.w || 1))) + 4;
+    const key = p => Math.round(p.y * 400) + "," + Math.round(p.vy * 40) + "," + (p.grounded ? 1 : 0);
+    const start = { x: 20, y: 0, vy: 0, grounded: true, dead: false, lastG: 0 };
+    const layers = [new Map([[key(start), { s: start, next: [] }]])];
+    while (layers[layers.length - 1].size && layers[layers.length - 1].values().next().value.s.x < right) {
+      const cur = layers[layers.length - 1], nxt = new Map();
+      for (const [k, node] of cur) for (const j of (node.s.grounded ? [false, true] : [false])) {
+        const n = step(Object.assign({}, node.s), course, j); if (n.dead) continue;
+        const kk = key(n); if (!nxt.has(kk)) nxt.set(kk, { s: n, next: [] }); node.next.push([j, kk]);
+      }
+      layers.push(nxt);
+    }
+    const Lz = layers.length, good = layers.map(() => new Set());
+    for (const [k, n] of layers[Lz - 1]) if (n.s.x >= right) good[Lz - 1].add(k);
+    for (let i = Lz - 2; i >= 0; i--) for (const [k, n] of layers[i]) if (n.next.some(e => good[i + 1].has(e[1]))) good[i].add(k);
+    for (let i = 0; i < Lz; i++) for (const k of good[i]) {
+      const p = layers[i].get(k).s;
+      if (tunnels.some(t => p.x + 1 > t.x + 0.1 && p.x < t.x + t.w - 0.1 && p.y >= t.y + t.h - 0.05)) return true;   // alive on top of a tunnel
+    }
+    return false;
+  }
+  // the same measure, steadied: the middle result of three tiny position offsets (a third of a physics step apart)
+  function steadyTightest(objsRel) {
+    const d = P.speed * P.dt / 3, r3 = [0, d, 2 * d].map(sh => tightestWindow(objsRel.map(o => ({ t: o.t, x: o.x + sh, y: o.y, w: o.w, h: o.h }))));
+    if (r3.some(v => v === null)) return null;
+    return r3.sort((a, b) => a - b)[1];
+  }
+  function buildLevel() {
+    const objs = [], spike = (t, y, dx) => objs.push({ t: "s", x: X(t) + TAKEOFF + (dx || 0), y: y });
+    // ---- 01 opening: an easy obstacle on every measure, every 2 beats into the drop, with a couple of tougher ones ----
+    const bar01 = 4 * TL.beat01;
+    const easy = (t, kind) => {
+      if (kind === "spike") spike(t, 0);
+      else if (kind === "block") objs.push({ t: "b", x: X(t) + 2.1, y: 0, w: 1, h: 1 });
+      else if (kind === "double") { spike(t, 0, -0.5); spike(t, 0, 0.5); }
+      else if (kind === "triple") { spike(t, 0, -1); spike(t, 0, 0); spike(t, 0, 1); }
+      else if (kind === "ledge-drop") { objs.push({ t: "b", x: X(t) + 1.6, y: 0, w: 3, h: 1 }); objs.push({ t: "s", x: X(t) + 4.6, y: 0 }); objs.push({ t: "s", x: X(t) + 5.6, y: 0 }); }
+    };
+    const chunkAt = (t, id, y) => { const c = CHUNKS.find(k => k.id === id), first = Math.min.apply(null, c.o.map(o => o[1])); const base = X(t) + TAKEOFF - first;
+      c.o.forEach(o => objs.push(o[0] === "b" ? { t: "b", x: base + o[1], y: y + o[2], w: o[3], h: o[4] } : { t: o[0], x: base + o[1], y: y + o[2] })); };
+    ["spike", "block", "spike", "double", "hang-bait", "block", "spike", "triple", "spike", "squeeze", "double", "drop-dont-jump"].forEach((k, n) => {
+      if (k === "hang-bait" || k === "squeeze" || k === "drop-dont-jump") chunkAt(TL.b01 + n * bar01, k, 0); else easy(TL.b01 + n * bar01, k);
+    });
+    easy(TL.b01 + 12 * bar01, "spike"); easy(TL.b01 + 12 * bar01 + 2 * TL.beat01, "block");
+    chunkAt(TL.b01 + 13 * bar01, "pillar-hop", 0);
+    easy(TL.b01 + 14 * bar01, "double"); easy(TL.b01 + 14 * bar01 + 2 * TL.beat01, "spike");
+    easy(TL.b01 + 15 * bar01, "spike");                                    // then clear, so you're set for the drop
+    // ---- the drop: the held-jump staircase to the climax ----
+    const cyc = stairCycle(), x0 = X(TL.drop);
+    const N = Math.round((X(TL.climax) - x0) / cyc);
+    for (let k = 0; k < N; k++) objs.push({ t: "b", x: x0 + (k + 1) * cyc + 0.1, y: k, w: 1, h: 1 });   // a single block per step, centered on where each hop lands
+    const xTop = x0 + (N + 1) * cyc + 0.1;
+    for (let x = x0 + 2 * cyc + 1; x < xTop - 2; x += 3.5) objs.push({ t: "s", x: x, y: 0 });                   // the floor under the stairs is spiked
+    GROUND.push({ x0: -1e9, x1: xTop, y: 0 }, { x0: xTop, x1: X(TL.end02), y: N });
+    objs.sort((a, b) => a.x - b.x);
+
+    // ---- from here on every pattern is checked before it's kept: can it be beaten from where you'd be? ----
+    const work = { objs: objs, near: Course.prototype.near, advance: Course.prototype.advance };
+    const r = rng(777);
+    let frontier = [{ x: xTop + 1.5, y: N, vy: 0, grounded: true, dead: false, lastG: N }];
+    let cursor = xTop + 2;                     // nothing may start before here
+    const byId = id => CHUNKS.find(c => c.id === id);
+    const shape = (c, base, gy) => c.o.map(o => o[0] === "b" ? { t: "b", x: base + o[1], y: gy + o[2], w: o[3], h: o[4] } : { t: o[0], x: base + o[1], y: gy + o[2] });
+    const rightOf = list => Math.max.apply(null, list.map(o => o.x + (o.w || 1)));
+    function tryAdd(list, checkTo) {
+      Array.prototype.push.apply(objs, list); objs.sort((a, b) => a.x - b.x); work._maxW = undefined;
+      const surv = work.advance(frontier.slice(), checkTo);
+      if (surv.length) { frontier = surv; return true; }
+      for (const o of list) objs.splice(objs.indexOf(o), 1); work._maxW = undefined;
+      return false;
+    }
+    const pick = ids => ids[Math.floor(r() * ids.length)];
+    let AUTO_ANCHOR = false; const GAP02 = 3, OWN = {}; let prevGroup = null; const PLACED02 = []; DEBUG.placed02 = PLACED02;
+    // place one pattern (first jump on the beat) from a pool, falling back to simpler ones; returns true if something went in
+    function onBeatPattern(t, gy, ids, fallback, roomTo) {
+      const tried = [];
+      for (let n = 0; n < 6; n++) {
+        const id = n < 4 ? pick(ids) : fallback[n - 4];
+        if (!id || tried.indexOf(id) !== -1) continue; tried.push(id);
+        const c = byId(id), first = Math.min.apply(null, c.o.map(o => o[1]));
+        const firstObj = c.o.find(o => o[1] === first);
+        const auto = AUTO_ANCHOR && firstObj[0] === "b" && firstObj[2] === 0 ? 3.6 : TAKEOFF;          // in 02, a block-first pattern puts its block where a jump on the beat lands
+        const base = X(t) + (c.anchor !== undefined ? c.anchor : auto) - first;
+        if (base < cursor) continue;
+        const list = shape(c, base, gy), right = rightOf(list);
+        if (right > roomTo) continue;
+        if (AUTO_ANCHOR && prevGroup) {   // in 02: the handoff from the last pattern mustn't make any jump tighter than the patterns are on their own
+          const rel = (g, x0) => g.map(o => ({ t: o.t, x: o.x - x0, y: o.y - gy, w: o.w, h: o.h }));
+          const ownOf = g => { if (g.own === undefined) g.own = steadyTightest(rel(g.list, g.list[0].x)) || 0; return g.own; };   // each pattern measured exactly where it sits
+          const pair = steadyTightest(rel(prevGroup.list.concat(list), prevGroup.list[0].x));
+          if (pair === null || (pair < 85 && pair < Math.min(ownOf(prevGroup), ownOf({ list: list })) - 10)) continue;
+          const pairRel = rel(prevGroup.list.concat(list), prevGroup.list[0].x);
+          if (pairRel.some(o => o.t === "b" && o.y >= 1 && o.w >= 4) && canRideOver(pairRel)) continue;
+        }
+        if (tryAdd(list, right + 3)) { cursor = right + (AUTO_ANCHOR ? GAP02 : 1.5); if (AUTO_ANCHOR) { prevGroup = { id: id, list: list }; PLACED02.push(prevGroup); } return true; }   // in 02, room to land before the next one
+      }
+      return false;
+    }
+    // ---- the top of the stairs: keep the measure-by-measure rhythm, with more variety ----
+    const TOP = ["squeeze", "hang-bait", "drop-dont-jump", "block-moat", "step-up", "pillar-hop", "ledge-spike", "double", "hop"];
+    for (let k = 27; k <= 30; k++) {
+      const t = TL.b01 + 4 * k * TL.beat01;
+      onBeatPattern(t, N, TOP, ["spike", "block"], X(TL.b02a) - 2);
+      if (k >= 29) onBeatPattern(t + 2 * TL.beat01, N, ["spike", "double", "block"], [], X(TL.b02a) - 2);
+    }
+    // ---- 02: 18 bars, building from easy to a moderately hard run of dropping and jumping ----
+    const bar2 = 4 * TL.beat02, end2 = X(TL.end02);
+    // track 02: Heston's six sketch patterns mixed with the regular block patterns, in any order, close together
+    AUTO_ANCHOR = true;
+    const SK = ["k-sbs", "k-block-double", "k-column-run", "k-stone-stairs", "k-ceiling-run", "k-squeeze-stairs"];
+    const REG = ["step-up", "pillar-hop", "block-moat", "ledge-spike", "drop-dont-jump", "hang-bait", "wall-step", "climb-pad", "zigzag", "perch", "block"];
+    const MIX = SK.concat(SK, REG);                                         // sketch patterns twice as likely
+    const LIGHT = ["k-sbs", "k-block-double", "k-ceiling-run", "pillar-hop", "block-moat", "step-up", "drop-dont-jump", "hang-bait", "block"];
+    const BIG = SK.concat(SK, ["wall-step", "climb-pad", "zigzag", "squeeze"]);
+    const FB = ["block", "k-sbs", "k-block-double"];
+    // 02's shape: fade-in (bars 0-1), opening (2-4), breakdown (5-15), the drop (16-39), a dip (40-44), the finish (45-49), the last bar clear
+    for (let k = 0; k < TL.bars02 - 1; k++) {
+      const t = TL.b02a + k * bar2, room = end2 - 26;
+      const beats = k < 1 ? [2] : [0, 1, 2, 3];
+      const pool = k < 5 || (k >= 40 && k < 45) ? LIGHT : k < 16 ? MIX : k < 40 ? MIX : BIG;
+      for (const b of beats) onBeatPattern(t + b * TL.beat02, N, k < 2 ? ["block", "k-sbs"] : pool, FB, room);
+    }
+    AUTO_ANCHOR = false;
+    frontier = work.advance(frontier, end2 - 2);
+    // ---- 03: the approved descent, fixed in place (so changes to 02 never reshuffle it) ----
+    const fallX = X(TL.end03);
+    LEVEL.plateauEnd = end2; LEVEL.fallX = fallX;
+    const D03 = {"plateauEnd": 2036.375, "fallX": 2894.35784, "floorY": -399, "top": -224, "objs": [{"t": "b", "x": 2036.375, "y": 62, "w": 20, "h": 1}, {"t": "b", "x": 2061.972, "y": 58, "w": 1, "h": 1}, {"t": "b", "x": 2067.964, "y": 55, "w": 1, "h": 1}, {"t": "b", "x": 2073.956, "y": 52, "w": 1, "h": 1}, {"t": "b", "x": 2079.948, "y": 49, "w": 1, "h": 1}, {"t": "b", "x": 2086.621, "y": 44, "w": 1, "h": 1}, {"t": "b", "x": 2092.613, "y": 41, "w": 1, "h": 1}, {"t": "b", "x": 2097.212, "y": 39, "w": 26, "h": 1}, {"t": "b", "x": 2104.184, "y": 40, "w": 1, "h": 1}, {"t": "s", "x": 2109.784, "y": 40}, {"t": "b", "x": 2128.059, "y": 35, "w": 20, "h": 1}, {"t": "b", "x": 2137.183, "y": 36, "w": 1, "h": 1}, {"t": "s", "x": 2140.683, "y": 36}, {"t": "b", "x": 2151.159, "y": 36, "w": 1, "h": 1}, {"t": "b", "x": 2155.059, "y": 37, "w": 1, "h": 1}, {"t": "b", "x": 2158.959, "y": 38, "w": 1, "h": 1}, {"t": "b", "x": 2162.859, "y": 39, "w": 1, "h": 1}, {"t": "b", "x": 2167.458, "y": 37, "w": 32, "h": 1}, {"t": "b", "x": 2175.682, "y": 38, "w": 1, "h": 1}, {"t": "s", "x": 2178.182, "y": 38}, {"t": "b", "x": 2180.282, "y": 38, "w": 1, "h": 1}, {"t": "b", "x": 2186.682, "y": 38, "w": 1, "h": 1}, {"t": "b", "x": 2190.582, "y": 38, "w": 1, "h": 2}, {"t": "s", "x": 2193.182, "y": 38}, {"t": "b", "x": 2204.305, "y": 33, "w": 26, "h": 1}, {"t": "b", "x": 2212.381, "y": 36, "w": 4, "h": 1}, {"t": "s", "x": 2219.681, "y": 34}, {"t": "s", "x": 2220.681, "y": 34}, {"t": "s", "x": 2225.181, "y": 34}, {"t": "s", "x": 2226.181, "y": 34}, {"t": "b", "x": 2235.902, "y": 29, "w": 1, "h": 1}, {"t": "b", "x": 2242.249, "y": 25, "w": 1, "h": 1}, {"t": "b", "x": 2248.922, "y": 20, "w": 1, "h": 1}, {"t": "b", "x": 2254.521, "y": 18, "w": 1, "h": 1}, {"t": "b", "x": 2260.513, "y": 15, "w": 1, "h": 1}, {"t": "b", "x": 2267.186, "y": 10, "w": 1, "h": 1}, {"t": "b", "x": 2272.785, "y": 8, "w": 1, "h": 1}, {"t": "b", "x": 2278.384, "y": 6, "w": 1, "h": 1}, {"t": "b", "x": 2285.057, "y": 1, "w": 1, "h": 1}, {"t": "b", "x": 2291.404, "y": -3, "w": 1, "h": 1}, {"t": "b", "x": 2298.077, "y": -8, "w": 1, "h": 1}, {"t": "b", "x": 2303.676, "y": -10, "w": 1, "h": 1}, {"t": "b", "x": 2310.023, "y": -14, "w": 1, "h": 1}, {"t": "b", "x": 2316.696, "y": -19, "w": 1, "h": 1}, {"t": "b", "x": 2323.042, "y": -23, "w": 1, "h": 1}, {"t": "b", "x": 2329.034, "y": -26, "w": 1, "h": 1}, {"t": "b", "x": 2335.381, "y": -30, "w": 1, "h": 1}, {"t": "b", "x": 2342.054, "y": -35, "w": 1, "h": 1}, {"t": "b", "x": 2347.046, "y": -38, "w": 26, "h": 1}, {"t": "b", "x": 2357.179, "y": -37, "w": 1, "h": 1}, {"t": "s", "x": 2359.679, "y": -37}, {"t": "b", "x": 2361.779, "y": -37, "w": 1, "h": 1}, {"t": "b", "x": 2377.895, "y": -40, "w": 1, "h": 1}, {"t": "b", "x": 2384.242, "y": -44, "w": 1, "h": 1}, {"t": "b", "x": 2390.589, "y": -48, "w": 1, "h": 1}, {"t": "b", "x": 2396.581, "y": -51, "w": 1, "h": 1}, {"t": "b", "x": 2402.928, "y": -55, "w": 1, "h": 1}, {"t": "b", "x": 2408.92, "y": -58, "w": 1, "h": 1}, {"t": "b", "x": 2415.593, "y": -63, "w": 1, "h": 1}, {"t": "b", "x": 2422.266, "y": -68, "w": 1, "h": 1}, {"t": "b", "x": 2428.258, "y": -71, "w": 1, "h": 1}, {"t": "b", "x": 2434.25, "y": -74, "w": 1, "h": 1}, {"t": "b", "x": 2440.597, "y": -78, "w": 1, "h": 1}, {"t": "b", "x": 2447.269, "y": -83, "w": 1, "h": 1}, {"t": "b", "x": 2452.261, "y": -86, "w": 26, "h": 1}, {"t": "b", "x": 2461.677, "y": -85, "w": 1, "h": 1}, {"t": "s", "x": 2464.177, "y": -85}, {"t": "b", "x": 2466.277, "y": -85, "w": 1, "h": 1}, {"t": "b", "x": 2483.108, "y": -90, "w": 32, "h": 1}, {"t": "b", "x": 2492.876, "y": -87, "w": 4, "h": 1}, {"t": "b", "x": 2500.176, "y": -89, "w": 1, "h": 1}, {"t": "s", "x": 2503.676, "y": -89}, {"t": "b", "x": 2520.35, "y": -93, "w": 1, "h": 1}, {"t": "b", "x": 2526.697, "y": -97, "w": 1, "h": 1}, {"t": "b", "x": 2532.689, "y": -100, "w": 1, "h": 1}, {"t": "b", "x": 2539.362, "y": -105, "w": 1, "h": 1}, {"t": "b", "x": 2544.961, "y": -107, "w": 1, "h": 1}, {"t": "b", "x": 2548.561, "y": -106, "w": 1, "h": 1}, {"t": "b", "x": 2552.461, "y": -105, "w": 1, "h": 1}, {"t": "b", "x": 2557.061, "y": -107, "w": 20, "h": 1}, {"t": "b", "x": 2566.174, "y": -106, "w": 1, "h": 1}, {"t": "s", "x": 2568.674, "y": -106}, {"t": "b", "x": 2570.774, "y": -106, "w": 1, "h": 1}, {"t": "b", "x": 2582.983, "y": -112, "w": 1, "h": 1}, {"t": "b", "x": 2588.975, "y": -115, "w": 1, "h": 1}, {"t": "b", "x": 2595.648, "y": -120, "w": 1, "h": 1}, {"t": "b", "x": 2601.64, "y": -123, "w": 1, "h": 1}, {"t": "b", "x": 2607.987, "y": -127, "w": 1, "h": 1}, {"t": "b", "x": 2613.586, "y": -129, "w": 1, "h": 1}, {"t": "b", "x": 2618.186, "y": -131, "w": 20, "h": 1}, {"t": "b", "x": 2626.673, "y": -130, "w": 1, "h": 1}, {"t": "b", "x": 2630.573, "y": -130, "w": 1, "h": 2}, {"t": "s", "x": 2633.173, "y": -130}, {"t": "b", "x": 2643.428, "y": -134, "w": 1, "h": 1}, {"t": "b", "x": 2649.027, "y": -136, "w": 1, "h": 1}, {"t": "b", "x": 2654.626, "y": -138, "w": 1, "h": 1}, {"t": "b", "x": 2660.226, "y": -140, "w": 1, "h": 1}, {"t": "b", "x": 2666.218, "y": -143, "w": 1, "h": 1}, {"t": "b", "x": 2672.21, "y": -146, "w": 1, "h": 1}, {"t": "b", "x": 2677.202, "y": -149, "w": 32, "h": 1}, {"t": "b", "x": 2685.372, "y": -145, "w": 4, "h": 1}, {"t": "v", "x": 2687.372, "y": -146}, {"t": "s", "x": 2692.672, "y": -148}, {"t": "s", "x": 2693.672, "y": -148}, {"t": "b", "x": 2698.172, "y": -148, "w": 1, "h": 1}, {"t": "s", "x": 2701.672, "y": -148}, {"t": "b", "x": 2714.799, "y": -153, "w": 1, "h": 1}, {"t": "b", "x": 2720.791, "y": -156, "w": 1, "h": 1}, {"t": "b", "x": 2727.464, "y": -161, "w": 1, "h": 1}, {"t": "b", "x": 2733.063, "y": -163, "w": 1, "h": 1}, {"t": "b", "x": 2739.41, "y": -167, "w": 1, "h": 1}, {"t": "b", "x": 2745.402, "y": -170, "w": 1, "h": 1}, {"t": "b", "x": 2751.001, "y": -172, "w": 1, "h": 1}, {"t": "b", "x": 2756.993, "y": -175, "w": 1, "h": 1}, {"t": "b", "x": 2763.34, "y": -179, "w": 1, "h": 1}, {"t": "b", "x": 2769.332, "y": -182, "w": 1, "h": 1}, {"t": "b", "x": 2775.324, "y": -185, "w": 1, "h": 1}, {"t": "b", "x": 2781.316, "y": -188, "w": 1, "h": 1}, {"t": "b", "x": 2786.916, "y": -190, "w": 1, "h": 1}, {"t": "b", "x": 2792.908, "y": -193, "w": 1, "h": 1}, {"t": "b", "x": 2798.507, "y": -195, "w": 1, "h": 1}, {"t": "b", "x": 2804.106, "y": -197, "w": 1, "h": 1}, {"t": "b", "x": 2810.453, "y": -201, "w": 1, "h": 1}, {"t": "b", "x": 2816.8, "y": -205, "w": 1, "h": 1}, {"t": "b", "x": 2822.792, "y": -208, "w": 1, "h": 1}, {"t": "b", "x": 2826.392, "y": -207, "w": 1, "h": 1}, {"t": "b", "x": 2830.292, "y": -206, "w": 1, "h": 1}, {"t": "b", "x": 2833.892, "y": -205, "w": 1, "h": 1}, {"t": "b", "x": 2837.792, "y": -204, "w": 1, "h": 1}, {"t": "b", "x": 2841.692, "y": -203, "w": 1, "h": 1}, {"t": "b", "x": 2845.592, "y": -202, "w": 1, "h": 1}, {"t": "b", "x": 2851.939, "y": -206, "w": 1, "h": 1}, {"t": "b", "x": 2857.931, "y": -209, "w": 1, "h": 1}, {"t": "b", "x": 2864.604, "y": -214, "w": 1, "h": 1}, {"t": "b", "x": 2871.276, "y": -219, "w": 1, "h": 1}, {"t": "b", "x": 2877.269, "y": -222, "w": 1, "h": 1}, {"t": "b", "x": 2882.261, "y": -225, "w": 12.097204202451849, "h": 1}]};
+    if (Math.abs(D03.plateauEnd - end2) > 0.01 || Math.abs(D03.fallX - fallX) > 0.01) throw new Error("the approved descent no longer lines up with the music");
+    D03.objs.forEach(o => objs.push(o.t === "b" ? { t: "b", x: o.x, y: o.y, w: o.w, h: o.h } : { t: o.t, x: o.x, y: o.y }));
+    objs.sort((a, b) => a.x - b.x); work._maxW = undefined;
+    let top = D03.top;
+    frontier = work.advance(frontier, fallX - 2);
+    // ---- the free fall: off the last platform as 03 ends, into limbo far below ----
+    const floorY = top - FALL, landX = fallX + P.speed * Math.sqrt(2 * FALL / P.gravity);
+    GROUND.push({ x0: fallX - 1, x1: 1e9, y: floorY });
+    Object.assign(LEVEL, { N: N, cycle: cyc, xTop: xTop, plateauEnd: end2, floorY: floorY, fallX: fallX, landX: landX, genStart: landX + 50, killY: floorY - 20 });
+    objs.sort((a, b) => a.x - b.x);
+    return objs;
+  }
+  let SCRIPT = null;
   function clearZoneHit(a, b) { for (const z of CLEAR) if (a < z[1] && b > z[0]) return z; return null; }
   function gapAt(x, r) {
-    const min = x < 80 ? 5 : x < 208 ? 4 : 3.5;
-    const span = x < 80 ? 5 : x < 208 ? 4 : 3;
+    const min = 4.5, span = 3;   // limbo: tight and hard
     return min + Math.floor(r() * (span + 1));
   }
 
@@ -501,26 +828,27 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
      Each new chunk is checked with a small solver before it is kept, so the course can always be beaten. */
   /* The fixed course (seed 2026) comes pre-built out to ~3,000 m, so phones never generate it mid-run.
      Past that, the builder below carries on from a clear runway. */
-  const BAKED = {"seed": 2026, "end": 3011.5, "data": "b140,0,1,1;b70,0,4,1;s120,0;b70,0,4,1;s130,0;s10,0;s60,0;s90,0;s10,0;s60,0;s70,0;s30,0;b90,0,1,1;s10,0;s10,0;b10,0,1,1;s50,0;s40,0;b60,0,7,1;s30,1;b120,0,3,1;b30,0,4,2;b110,0,3,1;s30,0;s10,0;s60,0;s30,0;b60,0,1,1;s10,0;s10,0;b10,0,1,1;b90,0,3,1;s30,0;s10,0;s90,0;s10,0;b50,0,3,1;s30,0;s10,0;b80,0,7,1;s30,1;s90,0;s10,0;s40,0;s10,0;b65,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;s55,0;s75,0;s40,0;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;s55,0;s10,0;s10,0;s45,0;s10,0;s40,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b475,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,0,2,1;b20,0,7,2;s30,2;b105,1,5,1;s70,0;b65,0,8,1;b30,2,4,1;s415,0;s10,0;s10,0;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b105,0,2,1;b20,0,7,2;s30,2;b105,0,9,1;b20,3,5,1;v10,2;v20,2;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b75,0,8,1;b30,2,4,1;s105,0;s10,0;b455,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,0,2,1;b20,0,7,2;s30,2;s75,0;s10,0;s40,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b45,0,2,1;b20,0,7,2;s30,2;b105,0,9,1;b20,3,5,1;v10,2;v20,2;b75,1,6,1;b115,0,9,1;b20,3,5,1;v10,2;v20,2;b75,2,6,1;v20,1;v10,1;b95,0,1,1;b65,0,1,1;s10,0;s10,0;b10,0,1,1;b65,2,6,1;v20,1;v10,1;b65,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b55,0,3,1;b30,0,4,2;b105,1,5,1;s70,0;b45,1,5,1;s70,0;b115,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,1,5,1;s70,0;b105,0,2,1;b20,0,7,2;s30,2;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;s30,0;s45,0;s10,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,2,6,1;v20,1;v10,1;b95,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,2,6,1;v20,1;v10,1;b85,0,7,1;s30,1;s85,0;b50,1,4,1;b85,0,1,1;s10,0;s10,0;b10,0,1,1;b45,1,6,1;s95,0;b50,1,4,1;s85,0;s10,0;s10,0;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;s125,0;s30,0;b45,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,9,1;b20,3,5,1;v10,2;v20,2;s95,0;s10,0;s10,0;b55,1,5,1;s70,0;b75,0,8,1;b30,2,4,1;b95,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s55,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b85,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b75,0,7,1;s30,1;b75,1,6,1;b95,0,1,1;s10,0;s10,0;b10,0,1,1;b45,1,6,1;b95,2,6,1;v20,1;v10,1;b75,0,4,1;b95,0,4,1;s85,0;s40,0;b55,1,6,1;b105,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,0,9,1;b20,3,5,1;v10,2;v20,2;s85,0;b50,1,4,1;b135,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,1,6,1;b115,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b75,0,8,1;b30,2,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b55,1,5,1;s70,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s65,0;s10,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,2,6,1;v20,1;v10,1;b65,1,6,1;s115,0;b50,1,4,1;b105,1,6,1;b95,2,6,1;v20,1;v10,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b55,0,9,1;b20,3,5,1;v10,2;v20,2;b95,2,6,1;v20,1;v10,1;b85,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s55,0;b50,1,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b75,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;s10,0;b45,0,8,1;b30,2,4,1;s85,0;s30,0;b55,0,1,1;s10,0;s10,0;b10,0,1,1;s65,0;s30,0;b75,0,8,1;b30,2,4,1;b95,0,8,1;b30,2,4,1;b85,0,3,1;b30,0,4,2;b95,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,9,1;b20,3,5,1;v10,2;v20,2;s85,0;b50,1,4,1;b105,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,1,5,1;s70,0;b115,0,3,1;b30,0,3,2;b30,0,4,3;s40,0;s10,0;b45,0,3,1;s30,0;s10,0;b65,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,2,6,1;v20,1;v10,1;b95,0,1,1;b65,2,6,1;v20,1;v10,1;s65,0;s30,0;b55,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,2,1;b20,0,7,2;s30,2;b75,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,9,1;b20,3,5,1;v10,2;v20,2;b95,0,3,1;b30,0,4,2;b75,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b45,2,6,1;v20,1;v10,1;b95,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b135,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b65,0,4,1;b105,1,5,1;s70,0;s55,0;b50,1,4,1;s85,0;s10,0;s40,0;s10,0;s65,0;b50,1,4,1;b95,0,3,1;b30,0,4,2;b85,0,9,1;b20,3,5,1;v10,2;v20,2;s105,0;b50,1,4,1;b135,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;b65,0,2,1;b20,0,7,2;s30,2;s75,0;b50,1,4,1;b95,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,1,6,1;b125,1,5,1;s70,0;b55,1,6,1;b95,0,8,1;b30,2,4,1;b95,0,9,1;b20,3,5,1;v10,2;v20,2;b105,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b65,0,4,1;s85,0;b50,1,4,1;b85,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,0,3,1;s30,0;s10,0;b55,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b125,0,1,1;b45,0,2,1;s20,0;s10,0;b10,0,2,1;s20,0;s10,0;b10,0,1,1;b105,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b145,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s45,0;s10,0;s10,0;b65,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2;b75,0,3,1;s30,0;s10,0;b75,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,4,4;b115,0,2,1;b20,0,7,2;s30,2;b165,0,3,1;b30,0,3,2;b30,0,3,3;b30,0,3,4;s30,0;s10,0;s10,0;s10,0;s75,0;b50,1,4,1;s105,0;b50,1,4,1;b105,0,8,1;b30,2,4,1;b95,0,3,1;s30,0;s10,0;b65,0,9,1;b20,3,5,1;v10,2;v20,2;b85,0,2,1;s20,0;s10,0;b10,0,2,2;s20,0;s10,0;b10,0,2,1;b85,1,5,1;s70,0;b45,0,9,1;b20,3,5,1;v10,2;v20,2;b85,0,1,1;s10,0;s10,0;b10,0,1,1;s45,0;b50,1,4,1;b135,0,2,1;b20,0,2,2;s20,0;s10,0;s10,0;b10,0,2,2"};
+  const BAKED = {"seed": 2026, "end": 4321.3, "data": "s108504,0;b25675,0,1,1;s26095,0;s25386,0;s1000,0;b25385,1,4,1;s0,2;s1000,2;s1000,2;s1000,2;s4500,0;b18175,0,1,1;s26095,0;s24885,0;s1000,0;s1000,0;s24886,0;b25885,0,1,1;b3600,1,4,1;s0,2;s1000,2;s1000,2;s1000,2;s4500,0;s14285,0;s1000,0;b25385,0,1,1;s5600,0;s2900,0;s17385,0;b12733,0,1,1;b13153,0,1,1;b4600,0,1,1;b4600,0,1,1;s3800,0;s12385,0;s1000,0;s12442,0;s12943,0;b27584,0,1,1;b3900,1,1,1;s900,0;b3000,2,1,1;s500,0;b3400,3,1,1;s100,0;s3500,0;b300,4,1,1;s3200,0;b700,5,1,1;s2800,0;b1100,6,1,1;s2400,0;b1500,7,1,1;s2000,0;b1900,8,1,1;s1600,0;b2300,9,1,1;s1200,0;b2700,10,1,1;s800,0;b3100,11,1,1;s400,0;s3500,0;b0,12,1,1;s3500,0;b400,13,1,1;s3100,0;b800,14,1,1;s2700,0;b1200,15,1,1;s2300,0;b1600,16,1,1;s1900,0;b2000,17,1,1;s1500,0;b2400,18,1,1;s1100,0;b2800,19,1,1;s700,0;b3200,20,1,1;s300,0;s3500,0;b100,21,1,1;s3400,0;b500,22,1,1;s3000,0;b900,23,1,1;s2600,0;b1300,24,1,1;s2200,0;b1700,25,1,1;s1800,0;b2100,26,1,1;s1400,0;b2500,27,1,1;s1000,0;b2900,28,1,1;s600,0;b3300,29,1,1;s200,0;s3500,0;b200,30,1,1;s3300,0;b600,31,1,1;s2900,0;b1000,32,1,1;s2500,0;b1400,33,1,1;s2100,0;b1800,34,1,1;s1700,0;b2200,35,1,1;s1300,0;b2600,36,1,1;s900,0;b3000,37,1,1;s500,0;b3400,38,1,1;s100,0;s3500,0;b300,39,1,1;s3200,0;b700,40,1,1;s2800,0;b1100,41,1,1;s2400,0;b1500,42,1,1;s2000,0;b1900,43,1,1;s1600,0;b2300,44,1,1;s1200,0;b2700,45,1,1;s800,0;b3100,46,1,1;s400,0;s3500,0;b0,47,1,1;s3500,0;b400,48,1,1;s3100,0;b800,49,1,1;s2700,0;b1200,50,1,1;s2300,0;b1600,51,1,1;s1900,0;b2000,52,1,1;s1500,0;b2400,53,1,1;s1100,0;b2800,54,1,1;s700,0;b3200,55,1,1;s300,0;s3500,0;b100,56,1,1;s3400,0;b500,57,1,1;s3000,0;b900,58,1,1;s2600,0;b1300,59,1,1;s2200,0;b1700,60,1,1;s1800,0;b2100,61,1,1;s1400,0;b2500,62,1,1;s1000,0;b2900,63,1,1;s600,0;b3300,64,1,1;s200,0;s3500,0;b200,65,1,1;b29538,66,1,1;b4600,66,1,1;s1400,66;b19886,66,1,1;b3600,67,4,1;s0,68;s1000,68;s1000,68;s1000,68;s4500,66;b14785,67,4,1;s0,68;s1000,68;s1000,68;s1000,68;s4500,66;s5442,66;b12943,66,1,1;b4600,66,1,1;b4600,66,1,1;s3800,66;s29396,66;b1600,66,1,1;s1250,66;s8152,66;b1600,66,1,1;s1250,66;s8153,66;b1600,66,1,1;s1250,66;b9442,66,1,1;b5501,66,1,1;b4600,66,1,1;b4600,66,1,1;s3800,66;s7714,66;b1600,66,1,1;s1250,66;b9443,66,1,1;b5501,66,1,1;s5600,66;s2900,66;b6713,66,1,1;b3600,67,6,1;s0,68;s1000,68;s1000,68;s1000,68;s1000,68;s1000,68;s4500,66;b4693,66,1,1;b5501,66,1,1;b0,69,1,1;b7000,66,1,1;s1600,66;s1000,66;s1000,66;b300,67,1,1;b0,70,1,1;b3500,66,1,1;s1500,66;s1000,66;s1000,66;b500,67,1,1;b0,70,1,1;b9106,66,1,1;s1600,66;s1000,66;s1000,66;b300,67,1,1;s700,66;s1000,66;s1000,66;s1000,66;b200,68,1,1;s800,66;s1000,66;s1000,66;s1000,66;b1800,66,1,1;s1800,66;b6804,66,1,1;b3900,66,1,2;b4600,66,1,2;s3500,66;b10005,66,1,1;s2000,66;s1000,66;b1600,66,1,1;b6402,66,1,1;b4600,66,1,1;s1400,66;b5002,66,1,1;s1250,66;s1000,66;b8752,66,1,1;s2000,66;s1000,66;b1600,66,1,1;b6402,66,1,1;b4600,66,1,1;s1400,66;b5003,66,1,1;s1250,66;s1000,66;b8752,66,1,1;b5501,66,1,1;b0,69,1,1;b7000,66,1,1;s1600,66;s1000,66;s1000,66;b300,67,1,1;b0,70,1,1;b3500,66,1,1;s1500,66;s1000,66;s1000,66;b500,67,1,1;b0,70,1,1;b9105,66,1,1;s1250,66;s1000,66;b8753,66,1,1;b5501,66,1,1;b4600,66,1,1;b4600,66,1,1;s3800,66;b9004,66,1,1;s1600,66;s1000,66;s1000,66;b300,67,1,1;s700,66;s1000,66;s1000,66;s1000,66;b200,68,1,1;s800,66;s1000,66;s1000,66;s1000,66;b1800,66,1,1;s1800,66;b5515,67,4,1;s0,68;s1000,68;s1000,68;s1000,68;s4500,66;b4792,66,1,1;b5501,66,1,1;b5501,66,1,1;b0,69,1,1;b7000,66,1,1;s1600,66;s1000,66;s1000,66;b300,67,1,1;b0,70,1,1;b3500,66,1,1;s1500,66;s1000,66;s1000,66;b500,67,1,1;b0,70,1,1;b9105,66,1,1;s1600,66;b2300,66,1,2;s1700,66;s1000,66;b2450,66,1,1;b3900,67,1,1;s500,66;b8555,66,1,1;s2000,66;s1000,66;b1600,66,1,1;b6402,66,1,1;b5501,66,1,1;s1600,66;s1000,66;s1000,66;b300,67,1,1;s700,66;s1000,66;s1000,66;s1000,66;b200,68,1,1;s800,66;s1000,66;s1000,66;s1000,66;b1800,66,1,1;s1800,66;b6805,66,1,1;b3900,66,1,2;b5150,66,1,1;s1950,66;b11004,66,1,1;b3900,66,1,2;b5150,66,1,1;s1950,66;s9714,66;b1600,66,1,1;s1250,66;b9443,66,1,1;s1250,66;s1000,66;b8752,66,1,1;s1600,66;s1000,66;s1000,66;b300,67,1,1;s700,66;s1000,66;s1000,66;s1000,66;b200,68,1,1;s800,66;s1000,66;s1000,66;s1000,66;b1800,66,1,1;s1800,66;b6804,66,1,1;s5600,66;s2900,66;b8003,66,1,1;b0,69,1,1;b7000,66,1,1;s1600,66;s1000,66;s1000,66;b300,67,1,1;b0,70,1,1;b3500,66,1,1;s1500,66;s1000,66;s1000,66;b500,67,1,1;b0,70,1,1;s7816,66;b1600,66,1,1;s1250,66;s8152,66;b1600,66,1,1;s1250,66;b9442,66,1,1;b3900,66,1,2;b5150,66,1,1;s1950,66;b11005,66,1,1;s2000,66;s1000,66;b1600,66,1,1;b6402,66,1,1;s5600,66;s2900,66;s6713,66;b1600,66,1,1;s1250,66;b9442,66,1,1;s1600,66;s1000,66;s1000,66;b300,67,1,1;s700,66;s1000,66;s1000,66;s1000,66;b200,68,1,1;s800,66;s1000,66;s1000,66;s1000,66;b1800,66,1,1;s1800,66;b6805,66,1,1;b3900,66,1,2;s4600,66;b8003,66,1,1;b3900,66,1,2;s4600,66;b8003,66,1,1;b3900,66,1,2;b3900,66,1,3;s4200,66;b4504,66,1,1;b5501,66,1,1;b0,69,1,1;b7000,66,1,1;s1600,66;s1000,66;s1000,66;b300,67,1,1;b0,70,1,1;b3500,66,1,1;s1500,66;s1000,66;s1000,66;b500,67,1,1;b0,70,1,1;b7815,67,4,1;s0,68;s1000,68;s1000,68;s1000,68;s4500,66;b4793,66,1,1;b3900,66,1,2;s4600,66;b6713,66,1,1;b3600,67,6,1;s0,68;s1000,68;s1000,68;s1000,68;s1000,68;s1000,68;s4500,66;b4693,66,1,1;b5501,66,1,1;b4600,66,1,1;b4600,66,1,1;s3800,66;b9005,66,1,1;b3900,66,1,2;b3900,66,1,3;s4200,66;b4503,66,1,1;b5501,66,1,1;s5600,66;s2900,66;s6713,66;b1600,66,1,1;s1250,66;b8153,66,1,1;b3600,67,6,1;s0,68;s1000,68;s1000,68;s1000,68;s1000,68;s1000,68;s4500,66;b4693,66,1,1;b4211,67,4,1;s0,68;s1000,68;s1000,68;s1000,68;s4500,66;b4792,66,1,1;b5501,66,1,1;b5501,66,1,1;b5501,66,1,1;b5501,66,1,1;s5600,66;s2900,66;b8004,66,1,1;s1250,66;s1000,66;b8752,66,1,1;s1600,66;b2300,66,1,2;s1700,66;s1000,66;b2450,66,1,1;b3900,67,1,1;s500,66;b8554,66,1,1;b0,69,1,1;b7000,66,1,1;s1600,66;s1000,66;s1000,66;b300,67,1,1;b0,70,1,1;b3500,66,1,1;s1500,66;s1000,66;s1000,66;b500,67,1,1;b0,70,1,1;b9106,66,1,1;s1600,66;s1000,66;s1000,66;b300,67,1,1;s700,66;s1000,66;s1000,66;s1000,66;b200,68,1,1;s800,66;s1000,66;s1000,66;s1000,66;b1800,66,1,1;s1800,66;s5514,66;b1600,66,1,1;s1250,66;b9443,66,1,1;s1250,66;s1000,66;b8752,66,1,1;s1250,66;s1000,66;b32664,62,20,1;b25597,58,1,1;b5992,55,1,1;b5992,52,1,1;b5992,49,1,1;b6673,44,1,1;b5992,41,1,1;b4599,39,26,1;b6972,40,1,1;s5600,40;b18275,35,20,1;b9124,36,1,1;s3500,36;b10476,36,1,1;b3900,37,1,1;b3900,38,1,1;b3900,39,1,1;b4599,37,32,1;b8224,38,1,1;s2500,38;b2100,38,1,1;b6400,38,1,1;b3900,38,1,2;s2600,38;b11123,33,26,1;b8076,36,4,1;s7300,34;s1000,34;s4500,34;s1000,34;b9721,29,1,1;b6347,25,1,1;b6673,20,1,1;b5599,18,1,1;b5992,15,1,1;b6673,10,1,1;b5599,8,1,1;b5599,6,1,1;b6673,1,1,1;b6347,-3,1,1;b6673,-8,1,1;b5599,-10,1,1;b6347,-14,1,1;b6673,-19,1,1;b6346,-23,1,1;b5992,-26,1,1;b6347,-30,1,1;b6673,-35,1,1;b4992,-38,26,1;b10133,-37,1,1;s2500,-37;b2100,-37,1,1;b16116,-40,1,1;b6347,-44,1,1;b6347,-48,1,1;b5992,-51,1,1;b6347,-55,1,1;b5992,-58,1,1;b6673,-63,1,1;b6673,-68,1,1;b5992,-71,1,1;b5992,-74,1,1;b6347,-78,1,1;b6672,-83,1,1;b4992,-86,26,1;b9416,-85,1,1;s2500,-85;b2100,-85,1,1;b16831,-90,32,1;b9768,-87,4,1;b7300,-89,1,1;s3500,-89;b16674,-93,1,1;b6347,-97,1,1;b5992,-100,1,1;b6673,-105,1,1;b5599,-107,1,1;b3600,-106,1,1;b3900,-105,1,1;b4600,-107,20,1;b9113,-106,1,1;s2500,-106;b2100,-106,1,1;b12209,-112,1,1;b5992,-115,1,1;b6673,-120,1,1;b5992,-123,1,1;b6347,-127,1,1;b5599,-129,1,1;b4600,-131,20,1;b8487,-130,1,1;b3900,-130,1,2;s2600,-130;b10255,-134,1,1;b5599,-136,1,1;b5599,-138,1,1;b5600,-140,1,1;b5992,-143,1,1;b5992,-146,1,1;b4992,-149,32,1;b8170,-145,4,1;v2000,-146;s5300,-148;s1000,-148;b4500,-148,1,1;s3500,-148;b13127,-153,1,1;b5992,-156,1,1;b6673,-161,1,1;b5599,-163,1,1;b6347,-167,1,1;b5992,-170,1,1;b5599,-172,1,1;b5992,-175,1,1;b6347,-179,1,1;b5992,-182,1,1;b5992,-185,1,1;b5992,-188,1,1;b5600,-190,1,1;b5992,-193,1,1;b5599,-195,1,1;b5599,-197,1,1;b6347,-201,1,1;b6347,-205,1,1;b5992,-208,1,1;b3600,-207,1,1;b3900,-206,1,1;b3600,-205,1,1;b3900,-204,1,1;b3900,-203,1,1;b3900,-202,1,1;b6347,-206,1,1;b5992,-209,1,1;b6673,-214,1,1;b6672,-219,1,1;b5993,-222,1,1;b4992,-225,12.097204202451849,1;b89985,-399,1,1;s2500,-399;b2100,-399,1,2;b17900,-398,6,1;s0,-397;s1000,-397;s1000,-397;s1000,-397;s1000,-397;s1000,-397;b5500,-399,1,1;s2500,-399;b2100,-399,1,1;s2900,-399;s1000,-399;b18000,-397,6,1;v2000,-398;v1000,-398;b7500,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;s4200,-399;b14500,-399,1,1;b3600,-398,4,1;s0,-397;s1000,-397;s1000,-397;s1000,-397;s4500,-399;b12500,-398,5,1;s0,-397;s1000,-397;s1000,-397;s1000,-397;s1000,-397;s4500,-399;b14000,-398,4,1;s0,-397;s1000,-397;s1000,-397;s1000,-397;s4500,-399;b9000,-399,1,1;b3900,-399,5,2;s2600,-397;s6000,-399;s13000,-399;b5000,-398,4,1;s0,-397;s1000,-397;s1000,-397;s1000,-397;b6500,-399,1,1;b3900,-399,1,2;s2100,-399;b3050,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;s2150,-399;b8500,-399,1,1;b3900,-399,1,2;b4600,-399,1,2;s3500,-399;b15500,-399,8,1;b3000,-397,4,1;s0,-396;s1000,-396;s1000,-396;s1000,-396;b7500,-399,1,1;s5600,-399;s2900,-399;b6500,-399,1,1;s2500,-399;b2100,-399,1,1;s2900,-399;s1000,-399;b18000,-397,6,1;v2000,-398;v1000,-398;b10500,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;s4200,-399;b5500,-399,1,1;b3900,-399,1,2;s2100,-399;s1000,-399;s1000,-399;b1500,-399,1,2;b10000,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;s1700,-399;s1000,-399;b1900,-399,1,3;s3600,-399;b6500,-399,1,1;b4600,-399,1,1;b4600,-399,1,1;s3800,-399;b7500,-399,1,1;b3900,-399,1,2;b5150,-399,1,1;s1950,-399;b6500,-399,1,1;s5600,-399;b15900,-398,5,1;s0,-397;s1000,-397;s1000,-397;s1000,-397;s1000,-397;s4500,-399;b9000,-399,1,1;b3900,-399,1,2;s2100,-399;s1000,-399;b1500,-399,1,2;s3500,-399;b7500,-399,1,1;s3500,-399;s3500,-399;b6500,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;s4200,-399;b7500,-399,1,1;b3900,-399,1,2;b5150,-399,1,1;b3900,-399,1,2;s4550,-399;b8500,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;b5150,-399,1,2;b5150,-399,1,1;s2900,-399;b6500,-399,1,1;s3500,-399;s3500,-399;b9500,-399,1,1;b3900,-399,1,2;s2100,-399;b3050,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;s2150,-399;b7500,-399,1,1;s2500,-399;b2100,-399,1,1;s2900,-399;s1000,-399;b11000,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;b3900,-399,1,4;s4800,-399;s1000,-399;b13000,-398,5,1;s0,-397;s1000,-397;s1000,-397;s1000,-397;s1000,-397;s4500,-399;b6000,-399,1,1;b4600,-399,1,1;b4600,-399,1,1;s3800,-399;b15500,-398,5,1;s0,-397;s1000,-397;s1000,-397;s1000,-397;s1000,-397;s4500,-399;b6000,-399,1,1;s3500,-399;s3500,-399;b15500,-399,8,1;b3000,-397,4,1;s0,-396;s1000,-396;s1000,-396;s1000,-396;b9500,-399,1,1;b4600,-399,1,1;b4600,-399,1,1;s3800,-399;b5500,-399,1,1;b4600,-399,1,1;b4600,-399,1,1;s3800,-399;b7500,-399,1,1;b3900,-399,1,2;b5150,-399,1,1;b3900,-399,1,2;s4550,-399;b5500,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;b5150,-399,1,2;b5150,-399,1,1;s2900,-399;b7500,-399,1,1;s3000,-399;b10500,-399,1,1;b3900,-399,1,2;b5150,-399,1,1;b3900,-399,1,2;s4550,-399;b8500,-399,1,1;b3900,-399,1,2;s2100,-399;b3050,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;s2150,-399;b5500,-399,1,1;b4600,-399,1,1;b4600,-399,1,1;s3800,-399;b8500,-399,1,1;s2500,-399;b2100,-399,1,2;s9900,-399;b5500,-399,1,1;b3900,-399,1,2;s2100,-399;s1000,-399;b1500,-399,1,2;s3500,-399;b9500,-399,1,1;b3900,-399,5,2;s2600,-397;s6000,-399;b6000,-399,1,1;s3000,-399;s1000,-399;b9500,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;s4200,-399;b8500,-399,1,1;b3900,-399,6,2;s2600,-397;b10000,-399,1,1;b3900,-399,5,2;s2600,-397;s5000,-399;s16000,-399;b5000,-398,4,1;s0,-397;s1000,-397;s1000,-397;s1000,-397;b7500,-399,1,1;b3900,-399,1,2;b4600,-399,1,2;s3500,-399;b5500,-399,1,1;b3900,-399,5,2;s2600,-397;s6000,-399;b6000,-399,1,1;b3900,-399,1,2;b5150,-399,1,1;s1950,-399;s14500,-399;b5000,-398,4,1;s0,-397;s1000,-397;s1000,-397;s1000,-397;b5500,-399,1,1;b3900,-399,1,2;s2100,-399;s1000,-399;s1000,-399;b1500,-399,1,2;b7000,-399,1,1;b4600,-399,1,1;b4600,-399,1,1;s3800,-399;b6500,-399,1,1;b3900,-399,1,2;b8600,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;b3900,-399,1,4;s4800,-399;s1000,-399;b9000,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;s6200,-399;b7500,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;s1700,-399;s1000,-399;b1900,-399,1,3;s3600,-399;b6500,-399,1,1;s2000,-399;s1000,-399;b1600,-399,1,1;s1900,-399;s1000,-399;b1700,-399,1,1;b8300,-399,1,1;b3900,-399,6,2;s2600,-397;b9000,-399,2,1;s2000,-399;s1000,-399;b1000,-399,2,1;s2000,-399;s1000,-399;b1000,-399,1,1;b8500,-399,1,1;b3900,-399,1,2;b3900,-399,1,3;b3900,-399,1,4", "ground": [{"x0": -1000000000, "x1": 781.766, "y": 0}, {"x0": 781.766, "x1": 2036.375, "y": 66}, {"x0": 2893.35784, "x1": 1000000000, "y": -399}], "level": {"plateauEnd": 2036.375, "fallX": 2894.35784, "N": 66, "cycle": 3.9, "xTop": 781.766, "floorY": -399, "landX": 2916.245562544615, "genStart": 2966.245562544615, "killY": -419}};
   function decodeBaked(B) {
     const out = []; let x10 = 0;
     B.data.split(";").forEach(tok => {
       const t = tok[0], n = tok.slice(1).split(",").map(Number);
       x10 += n[0];
-      out.push(t === "b" ? { t: "b", x: x10 / 10, y: n[1], w: n[2], h: n[3] } : { t: t, x: x10 / 10, y: n[1] });
+      out.push(t === "b" ? { t: "b", x: x10 / 1000, y: n[1], w: n[2], h: n[3] } : { t: t, x: x10 / 1000, y: n[1] });   // positions kept to the millimeter so beat timing is exact
     });
     return out;
   }
   function Course(seed, allowed) {
+    if (!SCRIPT && !(BAKED.data && !allowed)) SCRIPT = buildLevel();
     this.r = rng(seed);
-    this.objs = [];
-    this.end = 14; // empty runway at the start
+    this.objs = SCRIPT ? SCRIPT.slice() : [];
+    this.end = LEVEL.genStart;   // scripted up to here; limbo is generated after it
     this.allowed = allowed || null;
-    this.frontier = [newPlayer(0)];
-    if (!allowed && seed === BAKED.seed) {
+    this.frontier = [{ x: this.end - 2, y: LEVEL.floorY, vy: 0, grounded: true, dead: false }];
+    if (!allowed && seed === BAKED.seed && BAKED.data) {
       this.objs = decodeBaked(BAKED);
       this.end = BAKED.end + 6;
-      this.frontier = [{ x: this.end - 2, y: 0, vy: 0, grounded: true, dead: false }];
+      this.frontier = [{ x: this.end - 2, y: LEVEL.floorY, vy: 0, grounded: true, dead: false }];
       this.r = rng(seed + 1);
     }
   }
@@ -532,7 +860,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       for (const s of states) {
         const opts = s.grounded ? [false, true] : [false];
         for (const j of opts) {
-          const n = step({ x: s.x, y: s.y, vy: s.vy, grounded: s.grounded, dead: false }, this, j);
+          const n = step({ x: s.x, y: s.y, vy: s.vy, grounded: s.grounded, dead: false, lastG: s.lastG === undefined ? s.y : s.lastG }, this, j);
           if (!n.dead) next.set(stateKey(n), n);
         }
       }
@@ -542,11 +870,11 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     return states;
   };
   Course.prototype.place = function (c, base) {
-    const added = [];
+    const added = [], gy = LEVEL.floorY;   // limbo patterns sit on the limbo floor
     let right = 0;
     c.o.forEach(o => {
-      if (o[0] === "s" || o[0] === "v") { added.push({ t: o[0], x: base + o[1], y: o[2] }); right = Math.max(right, o[1] + 1); }
-      else { added.push({ t: "b", x: base + o[1], y: o[2], w: o[3], h: o[4] }); right = Math.max(right, o[1] + o[3]); }
+      if (o[0] === "s" || o[0] === "v") { added.push({ t: o[0], x: base + o[1], y: gy + o[2] }); right = Math.max(right, o[1] + 1); }
+      else { added.push({ t: "b", x: base + o[1], y: gy + o[2], w: o[3], h: o[4] }); right = Math.max(right, o[1] + o[3]); }
     });
     return { added: added, right: Math.max(c.w, right) };
   };
@@ -554,11 +882,14 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     while (this.end < x) {
       const tier = tierAt(this.end);
       const pool = CHUNKS.filter(c => c.tier <= tier && (!this.allowed || this.allowed.indexOf(c.id) !== -1));
-      const weights = pool.map(c => c.tier === tier ? (tier >= 3 ? 6 : 3) : c.tier === tier - 1 && tier >= 3 ? 3 : 1);
+      const SPIKY = ["spike", "double", "triple", "hop", "pair", "double-double"];
+      const weights = pool.map(c => (c.tier >= 3 ? 3 : c.tier === 2 ? 2 : 1) * (DROPJUMP.indexOf(c.id) !== -1 ? 1.6 : 1) * (SPIKY.indexOf(c.id) !== -1 ? 0.35 : 1));   // limbo mixes every kind, leaning on blocks
       let pick = this.r() * weights.reduce((a, b) => a + b, 0), c = pool[0];
       for (let i = 0; i < pool.length; i++) { pick -= weights[i]; if (pick <= 0) { c = pool[i]; break; } }
       if (this.retry) { c = this.retry; this.retry = null; } // a chunk that needed more runway gets its turn now
-      const base = this.end;
+      // a pattern with a flush tunnel gets a flat run-up first, so nobody arrives high enough to fly over it
+      const hasTunnel = c.o.some(o => o[0] === "b" && o[2] >= 1 && o[3] >= 4);
+      const base = onBeat(this.end + (hasTunnel ? 7 : 0));
       const pl = this.place(c, base);
       const zone = clearZoneHit(base, base + pl.right + 1);
       if (zone) {
@@ -581,20 +912,21 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
         }
         if (!kept && this.objs.length !== before) this.objs.length = before;
       }
-      if (!kept && this.end === base) { this.frontier = this.advance(this.frontier.slice(), base + 4); this.end = base + 6; }
+      if (!kept && this.end <= base) { this.frontier = this.advance(this.frontier.slice(), base + 4); this.end = base + 6; }
     }
   };
   Course.prototype.near = function (x0, x1, into) {
     const a = this.objs, out = into || [];
     out.length = 0;
     let lo = 0, hi = a.length;
-    const from = x0 - 10;
+    if (this._maxW === undefined || this._maxWn !== a.length) { let m = 10; for (const o of a) if (o.w > m) m = o.w; this._maxW = m; this._maxWn = a.length; }
+    const from = x0 - this._maxW - 0.5;   // look back far enough to catch the longest platform
     while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid].x < from) lo = mid + 1; else hi = mid; }
     for (let i = lo; i < a.length && a[i].x < x1; i++) { const o = a[i]; if (o.x + (o.w || 1) > x0) out.push(o); }
     return out;
   };
   Course.prototype.trim = function (x) {
-    if (this.objs.length > 400) this.objs = this.objs.filter(o => o.x + (o.w || 1) > x - 20);
+    if (this.objs.length > 600) this.objs = this.objs.filter(o => o.x + (o.w || 1) > x - 40);
   };
 
   function spikeTri(o) {
@@ -628,17 +960,23 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   }
   const NEAR = [];
 
-  function newPlayer(x) { return { x: x, y: 0, vy: 0, grounded: true, dead: false }; }
+  function newPlayer(x) { const g = surfaceY(x); return { x: x, y: g === null ? 0 : g, vy: 0, grounded: true, dead: false, lastG: g === null ? 0 : g }; }
 
   /* One fixed physics step. jump = true means "jump now if you can". Returns the player (mutated). */
   function step(pl, course, jump) {
     const dt = P.dt, S = P.size;
     if (pl.dead) return pl;
+    if (pl.grounded) pl.lastG = pl.y;                                              // remember the last surface before any jump leaves it
     if (pl.grounded && jump) { pl.vy = P.jumpV; pl.grounded = false; }
 
     const prevY = pl.y;
     pl.x += P.speed * dt;
     const near = course.near(pl.x - 1, pl.x + 2, NEAR);
+    const gu = groundUnder(pl.x);
+    if (gu !== null && pl.y < gu - P.stepTol) { pl.dead = true; return pl; }   // ran into a wall of ground (the plateau's edge)
+    if (LEVEL.killY !== undefined && pl.y < LEVEL.killY) { pl.dead = true; return pl; }
+    if (pl.grounded) pl.lastG = pl.y;
+    if (!pl.grounded && pl.lastG !== undefined && pl.x > LEVEL.plateauEnd && pl.x < LEVEL.fallX - 1 && pl.y < pl.lastG - 14) { pl.dead = true; return pl; }
 
     // walking or flying into a block's side
     for (let i = 0; i < near.length; i++) {
@@ -654,7 +992,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
 
     // support check: walk off an edge and you fall
     if (pl.grounded) {
-      let support = pl.y <= 1e-6;
+      let support = gu !== null && Math.abs(pl.y - gu) < 1e-4;
       if (!support) for (let i = 0; i < near.length; i++) {
         const b = near[i]; if (b.t !== "b") continue;
         if (Math.abs(b.y + b.h - pl.y) < 1e-4 && pl.x + S > b.x + 0.04 && pl.x < b.x + b.w - 0.04) { support = true; break; }
@@ -666,11 +1004,11 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       pl.vy -= P.gravity * dt;
       pl.y += pl.vy * dt;
       if (pl.vy <= 0) {
-        let land = pl.y <= 0 ? 0 : null;
+        let land = gu !== null && prevY >= gu - 1e-6 && pl.y <= gu ? gu : null;
         for (let i = 0; i < near.length; i++) {
           const b = near[i]; if (b.t !== "b") continue;
           const top = b.y + b.h;
-          if (pl.x + S > b.x + 0.04 && pl.x < b.x + b.w - 0.04 && prevY >= top - 1e-6 && pl.y <= top) land = Math.max(land === null ? -1 : land, top);
+          if (pl.x + S > b.x + 0.04 && pl.x < b.x + b.w - 0.04 && prevY >= top - 1e-6 && pl.y <= top) land = Math.max(land === null ? -Infinity : land, top);
         }
         if (land !== null) { pl.y = land; pl.vy = 0; pl.grounded = true; }
       } else {
@@ -690,7 +1028,11 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     return pl;
   }
 
-  const api = { P: P, CHUNKS: CHUNKS, CLEAR: CLEAR, BAKED: BAKED, decodeBaked: decodeBaked, Course: Course, newPlayer: newPlayer, step: step, spikeTri: spikeTri, rng: rng };
+  if (BAKED.data) { BAKED.ground.forEach(g => GROUND.push(g)); Object.assign(LEVEL, BAKED.level); }   // the phone just reads the finished level
+  else SCRIPT = buildLevel();
+  const api = {
+    DEBUG: DEBUG, tightestWindow: tightestWindow, steadyTightest: steadyTightest, canRideOver: canRideOver, P: P, CHUNKS: CHUNKS, CLEAR: CLEAR, BEATS: BEATS, BAKED: BAKED, decodeBaked: decodeBaked, Course: Course, newPlayer: newPlayer, step: step, spikeTri: spikeTri, rng: rng,
+    TL: TL, X: X, LEVEL: LEVEL, GROUND: GROUND, surfaceY: surfaceY, groundUnder: groundUnder };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.HMNGame = api;
 })(this);
@@ -784,6 +1126,16 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     if (ctx && ctx.state !== "running") { try { ctx.resume(); } catch (e) {} }
   }
   let step = 0, nextTime = 0, playing = false;
+  /* The soundtrack: an edited track the page loads once. While it plays, the synthesized score is silent until
+     limbo, which still comes from the synthesizer, timed to start as the track fades (69.27 s into the track). */
+  /* Two files: the run (all of 01, the cut of 02, all of 03) and limbo (04, which loops seamlessly). */
+  let trackBuffer = null, limboBuffer = null, trackLoading = false, trackSrc = null, limboSrc = null, trackGain = null, trackOut = null, trackT0 = 0;
+  function decodeInto(bytes, set) {
+    let done = false; const ok = b => { if (!done) { done = true; set(b); } };
+    try { const p = ctx.decodeAudioData(bytes, ok, () => { trackLoading = false; }); if (p && p.then) p.then(ok, () => { trackLoading = false; }); }
+    catch (e) { trackLoading = false; }
+  }
+  function b64bytes(s) { const bin = atob(s), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
   let muted = lsGet(LSK) === "off";
   const LEVEL = 0.46;
 
@@ -1208,18 +1560,55 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       unlock();
       this.stop();
       run = newRun();
-      playing = true; step = 0; nextTime = ctx.currentTime + 0.06;
+      playing = true;
+      const t0 = ctx.currentTime + 0.05;
+      const TLg = root.HMNGame && root.HMNGame.TL;
+      if (trackBuffer && limboBuffer && TLg) {
+        // start a hair ahead to cover the speaker's delay, so what you hear lines up with what you see
+        const lag = Math.min(0.25, (ctx.outputLatency || 0) + (ctx.baseLatency || 0));
+        trackOut = ctx.createGain(); trackOut.gain.value = muted ? 0 : 0.92; trackOut.connect(ctx.destination);
+        trackGain = ctx.createGain(); trackGain.connect(trackOut);
+        trackSrc = ctx.createBufferSource(); trackSrc.buffer = trackBuffer; trackSrc.connect(trackGain);
+        trackSrc.start(t0, lag);
+        // 04 comes in exactly as 03 ends and you start to fall, then loops forever
+        limboSrc = ctx.createBufferSource(); limboSrc.buffer = limboBuffer; limboSrc.loop = true;
+        limboSrc.loopStart = TLg.loopStart; limboSrc.loopEnd = TLg.loopEnd; limboSrc.connect(trackGain);
+        limboSrc.start(t0 + TLg.limboAt - lag);
+        trackT0 = t0 - lag;
+        playing = true; return;    // nothing synthesized in this version
+      } else {
+        step = 0; nextTime = t0;   // no track yet (still loading or offline): the synthesized score plays instead
+      }
       schedule();
       timer = setInterval(schedule, 25);
     },
     stop() {
       playing = false;
       if (timer) { clearInterval(timer); timer = null; }
+      if (trackSrc && ctx) {
+        const s2 = trackSrc, l2 = limboSrc, g2 = trackGain, o2 = trackOut; trackSrc = limboSrc = trackGain = trackOut = null;
+        g2.gain.setTargetAtTime(0, ctx.currentTime, 0.02);
+        setTimeout(() => { try { s2.stop(); s2.disconnect(); if (l2) { l2.stop(); l2.disconnect(); } g2.disconnect(); o2.disconnect(); } catch (e) {} }, 300);
+      }
       endRun();
     },
+    get trackPosition() { return trackSrc && ctx ? ctx.currentTime - trackT0 : -1; },
     pause() { if (ctx && ctx.state === "running") ctx.suspend(); },
     resume() { if (ctx && ctx.state !== "running" && ctx.state !== "closed") ctx.resume(); },
     unlock() { if (init()) unlock(); },
+    loadTrack() {
+      if ((trackBuffer && limboBuffer) || trackLoading || !init()) return;
+      trackLoading = true;
+      if (root.HMN_TRACK_B64 && root.HMN_LIMBO_B64) { // the preview page carries both files inside itself
+        decodeInto(b64bytes(root.HMN_TRACK_B64), b => { trackBuffer = b; });
+        decodeInto(b64bytes(root.HMN_LIMBO_B64), b => { limboBuffer = b; });
+        return;
+      }
+      const get = (url, set) => fetch(url).then(r => { if (!r.ok) throw new Error("missing " + url); return r.arrayBuffer(); }).then(a => decodeInto(a, set));
+      Promise.all([get(root.HMN_TRACK_URL || "arcade-run.mp3", b => { trackBuffer = b; }), get(root.HMN_LIMBO_URL || "arcade-limbo.mp3", b => { limboBuffer = b; })])
+        .catch(() => { trackLoading = false; });
+    },
+    get trackReady() { return !!(trackBuffer && limboBuffer); },
     crash() {
       if (!ctx || muted) return;
       const g = ctx.createGain(); g.connect(out);
@@ -1235,6 +1624,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     setMuted(m) {
       muted = !!m; lsSet(LSK, muted ? "off" : "on");
       if (out && ctx) out.gain.setTargetAtTime(muted ? 0 : LEVEL, ctx.currentTime, 0.02);
+      if (trackOut && ctx) trackOut.gain.setTargetAtTime(muted ? 0 : 0.92, ctx.currentTime, 0.02);
     },
     get state() { return ctx ? ctx.state : "none"; },
     get playing() { return playing; }
@@ -1272,6 +1662,24 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   const root = $("arcade");
   if (!root) return;
   const stage = $("ar-stage"), cv = $("ar-cv"), ctx = cv.getContext("2d");
+  /* A background layer behind the game canvas. Steady backgrounds (the starfield's sky, the black hole) live here:
+     the black hole repaints a few times a second, and its shake and the opening's fade are applied by the browser's
+     compositor, so the game canvas only draws what moves: stars, skyline, floor, obstacles, the cube. */
+  const bgcv = document.createElement("canvas");
+  bgcv.setAttribute("aria-hidden", "true");
+  bgcv.style.cssText = "position:absolute;left:0;top:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:none;will-change:transform,opacity";
+  stage.style.isolation = "isolate";
+  stage.insertBefore(bgcv, cv);
+  const bgx = bgcv.getContext("2d");
+  let bgShown = "", bgWant = "", bgOpacity = "", bgXform = "", bgPainted = "", bgTick = 0;
+  function bgSize(w, h) { if (bgcv.width !== w || bgcv.height !== h) { bgcv.width = w; bgcv.height = h; bgPainted = ""; } }
+  function bgUse(what, opacity, xform) {   // called while drawing a frame: which background the layer should show
+    bgWant = what;
+    const o = String(Math.round(opacity * 1000) / 1000); if (o !== bgOpacity) { bgcv.style.opacity = o; bgOpacity = o; }
+    if (xform !== bgXform) { bgcv.style.transform = xform; bgXform = xform; }
+    ctx.clearRect(-60, -60, W + 120, H + 120);   // the game canvas is see-through this frame
+  }
+  function bgFinish() { if (bgWant !== bgShown) { bgcv.style.display = bgWant ? "block" : "none"; bgShown = bgWant; } }
   const startCard = $("ar-start"), nameIn = $("ar-name"), topLine = $("ar-top-line");
   const hudAttempt = $("ar-attempt"), hudDist = $("ar-dist"), hudTop = $("ar-top"), hudTopName = $("ar-top-name");
   const fill = $("ar-fill"), trackNote = $("ar-note"), whoLine = $("ar-who");
@@ -1289,6 +1697,22 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   const reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
   let course = null;
+  /* Only the falling stones in the descent fly in: single floating blocks each lower than the surface before them.
+     Obstacles sitting on the long platforms, and the steps of a climb, stay put. */
+  let stones = null;
+  function findStones() {
+    stones = new Set();
+    const bl = course.objs.filter(o => o.t === "b" && o.x >= LV.plateauEnd - 0.01 && o.x < LV.fallX).sort((a, b) => a.x - b.x);
+    let prevTop = LV.N;
+    for (const o of bl) {
+      const top = o.y + o.h;
+      const resting = bl.some(p => p !== o && p.w >= 4 && Math.abs(p.y + p.h - o.y) < 1e-6 && o.x >= p.x - 0.01 && o.x < p.x + p.w);
+      if (resting || o.y - Math.floor(o.y) !== 0 && false) continue;   // an obstacle sitting on a platform
+      if (o.w >= 4) { prevTop = top; continue; }                        // a platform
+      if (o.w === 1 && o.h === 1) { if (top < prevTop - 1e-6) stones.add(o); prevTop = top; }
+    }
+  }
+  function isStone(o) { if (!stones) findStones(); return stones.has(o); }
 
   let top = null;
   try { top = JSON.parse(LS.get(K_TOP) || "null"); } catch (e) { top = null; }
@@ -1316,8 +1740,10 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     cv.style.width = W + "px"; cv.style.height = H + "px";
     // roughly 11.5 blocks across and 5.9 above the floor, the same view as before;
     // everything below the floor is a band for thumbs, so tapping never covers the action
-    U = Math.min(W / 11.5, (H - 64) / 5.9);
-    groundY = U * 5.9;
+    // zoomed out 20% from the floor: the floor line stays put, and you see further ahead and higher up
+    const base = Math.min(W / 11.5, (H - 64) / 5.9);
+    U = base * 0.8;
+    groundY = base * 5.9;
     buildSprites();
     draw();
   }
@@ -1335,7 +1761,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     const s = U, pad = Math.ceil(U * 0.5);
     const square = glow => layer(s + pad * 2, s + pad * 2, x => {
       x.translate(pad + s / 2, pad + s / 2);
-      if (glow) { x.shadowColor = C.gold; x.shadowBlur = 14; }
+      x.shadowColor = "rgba(255,122,26,0.65)"; x.shadowBlur = 5;   // the cube: a gentle orange glow, quieter than the course
       const g = x.createRadialGradient(0, 0, s * 0.05, 0, 0, s * 0.7);
       g.addColorStop(0, C.gold); g.addColorStop(1, C.ember);
       x.fillStyle = g; x.fillRect(-s / 2, -s / 2, s, s);
@@ -1346,54 +1772,110 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     SPR.pad = pad; SPR.player = square(false); SPR.playerGlow = square(true);
     const spike = (fill, line, glow, down) => layer(s + pad * 2, s + pad * 2, x => {
       x.translate(pad, pad);
-      if (glow) { x.shadowColor = "#ffffff"; x.shadowBlur = 12; }
-      x.beginPath();
-      if (!down) { x.moveTo(2, s - 1); x.lineTo(s - 2, s - 1); x.lineTo(s / 2, 2); }
-      else { x.moveTo(2, 1); x.lineTo(s - 2, 1); x.lineTo(s / 2, s - 2); }
-      x.closePath(); x.lineJoin = "round";
-      x.fillStyle = fill; x.fill(); x.strokeStyle = line; x.lineWidth = 2; x.stroke();
+      const path = () => { x.beginPath();
+        if (!down) { x.moveTo(2, s - 1); x.lineTo(s - 2, s - 1); x.lineTo(s / 2, 2); }
+        else { x.moveTo(2, 1); x.lineTo(s - 2, 1); x.lineTo(s / 2, s - 2); }
+        x.closePath(); };
+      x.lineJoin = "round";
+      path(); x.fillStyle = fill; x.fill();
+      x.shadowColor = glow; x.shadowBlur = 4; x.strokeStyle = line; x.lineWidth = 1.6; path(); x.stroke(); path(); x.stroke(); path(); x.stroke();   // glow: small radius, stacked strong
+      x.shadowBlur = 0; x.lineWidth = 1.6; path(); x.stroke();                                                                                   // hard edge   // glowing edge
+      x.shadowBlur = 0; x.strokeStyle = line === N.deep ? "#5aa8ff" : N.core; x.lineWidth = 0.6; path(); x.stroke(); // bright core
     });
-    const SP = { stage: [C.black, C.bone, false], bh: ["#05060b", C.ember, false], fourD: ["rgba(255,255,255,0.16)", "#ffffff", true], limbo: [C.black, C.black, false] };
+    const SP = { stage: [N.dark, N.cyan, N.cyan], bh: [N.dark, "#5cc8ff", N.blue], fourD: ["rgba(63,243,255,0.08)", N.core, N.cyan], limbo: ["#f4fcff", N.deep, "#4d9bff"] };
     SPR.spike = {}; SPR.hang = {};
     for (const k in SP) { SPR.spike[k] = spike(SP[k][0], SP[k][1], SP[k][2], false); SPR.hang[k] = spike(SP[k][0], SP[k][1], SP[k][2], true); }
-    SPR.cell = layer(s, s, x => { x.fillStyle = "rgba(255,255,255,0.05)"; x.fillRect(1.5, 1.5, s - 3, s - 3); x.strokeStyle = "rgba(255,255,255,0.9)"; x.lineWidth = 1.6; x.strokeRect(2.5, 2.5, s - 5, s - 5); });
+    SPR.cell = layer(s, s, x => {
+      x.fillStyle = "rgba(2,10,20,0.85)"; x.fillRect(2, 2, s - 4, s - 4);
+      x.shadowColor = N.cyan; x.shadowBlur = 4; x.strokeStyle = N.cyan; x.lineWidth = 1.3; x.strokeRect(3, 3, s - 6, s - 6); x.strokeRect(3, 3, s - 6, s - 6); x.strokeRect(3, 3, s - 6, s - 6);
+      x.shadowBlur = 0; x.strokeRect(3, 3, s - 6, s - 6);
+      x.shadowBlur = 0; x.strokeStyle = N.core; x.lineWidth = 0.5; x.strokeRect(3, 3, s - 6, s - 6);
+    });
     // backgrounds
-    SPR.stageBg = layer(W, H, x => {
-      const gy = groundY;
-      const beam = x.createLinearGradient(W, 0, W * 0.35, gy);
-      beam.addColorStop(0, "rgba(255,223,0,0.30)"); beam.addColorStop(0.55, "rgba(253,152,0,0.08)"); beam.addColorStop(1, "rgba(253,152,0,0)");
-      x.fillStyle = beam; x.beginPath(); x.moveTo(W, 0); x.lineTo(W, H * 0.12); x.lineTo(W * 0.42, gy); x.lineTo(W * 0.12, gy); x.closePath(); x.fill();
-      const lamp = x.createRadialGradient(W, 0, 0, W, 0, H * 0.7);
-      lamp.addColorStop(0, "rgba(255,180,71,0.45)"); lamp.addColorStop(1, "rgba(255,180,71,0)");
-      x.fillStyle = lamp; x.fillRect(0, 0, W, H);
+    SPR.stageBg = layer(W, H, x => { // the neon sky: deep blue fading up to black, a faint grid, a glowing horizon
+      const gr = x.createLinearGradient(0, 0, 0, groundY); gr.addColorStop(0, N.sky0); gr.addColorStop(1, N.sky1);
+      x.fillStyle = gr; x.fillRect(0, 0, W, H);
+      x.strokeStyle = "rgba(63,243,255,0.06)"; x.lineWidth = 1; x.beginPath();
+      for (let yy = groundY; yy > 0; yy -= U * 0.9) { x.moveTo(0, yy); x.lineTo(W, yy); }
+      x.stroke();
+      const hz = x.createLinearGradient(0, groundY - U * 2.4, 0, groundY); hz.addColorStop(0, "rgba(42,140,255,0)"); hz.addColorStop(1, "rgba(42,140,255,0.1)");
+      x.fillStyle = hz; x.fillRect(0, groundY - U * 2.4, W, U * 2.4);
+    });
+    // a distant skyline of outlined towers, drawn once twice as wide as the screen and scrolled slowly
+    const SKW = Math.ceil(W * 2);
+    SPR.skyW = SKW;
+    SPR.skyline = layer(SKW, groundY + 2, x => {
+      let r = 7, rnd = () => (r = (r * 16807) % 2147483647) / 2147483647, xx = 0;
+      x.lineJoin = "miter";
+      while (xx < SKW) {
+        const w = U * (0.8 + rnd() * 1.6), h = U * (0.8 + rnd() * 2.8), gap = U * (0.15 + rnd() * 0.5);
+        const top = groundY - h;
+        x.fillStyle = "rgba(2,8,20,0.9)"; x.fillRect(xx, top, w, h);
+        x.shadowColor = N.blue; x.shadowBlur = 3; x.strokeStyle = "rgba(60,160,255,0.75)"; x.lineWidth = 0.9; x.strokeRect(xx + 0.5, top + 0.5, w - 1, h + 2); x.strokeRect(xx + 0.5, top + 0.5, w - 1, h + 2);
+        x.shadowBlur = 0; x.strokeStyle = "rgba(80,175,255,0.9)"; x.strokeRect(xx + 0.5, top + 0.5, w - 1, h + 2);
+        x.shadowBlur = 0; x.strokeStyle = "rgba(63,243,255,0.18)"; x.lineWidth = 1; x.beginPath();
+        for (let yy = top + U * 0.35; yy < groundY - U * 0.2; yy += U * 0.35) { x.moveTo(xx + w * 0.18, yy); x.lineTo(xx + w * 0.82, yy); }
+        x.stroke();
+        xx += w + gap;
+      }
     });
     SPR.warpGlow = layer(W, H, x => {
       const g = x.createRadialGradient(W * 0.68, H * 0.3, 0, W * 0.68, H * 0.3, H * 0.9);
-      g.addColorStop(0, "rgba(190,215,255,0.22)"); g.addColorStop(1, "rgba(190,215,255,0)");
+      g.addColorStop(0, "rgba(63,243,255,0.14)"); g.addColorStop(1, "rgba(63,243,255,0)");
       x.fillStyle = g; x.fillRect(0, 0, W, H);
     });
     SPR.spaceBg = layer(W, H, x => {
-      const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#04050a"); g.addColorStop(1, "#0c0f1c"); x.fillStyle = g; x.fillRect(0, 0, W, H);
-      for (const st of stars) { x.fillStyle = "rgba(230,229,211," + (0.3 + 0.5 * ((st.tw * 7) % 1)) + ")"; x.fillRect(st.x * W, st.y * H * 0.9, st.r * 1.3, st.r * 1.3); }
+      const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#010208"); g.addColorStop(1, "#030a1c"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+      for (const st of stars) { x.fillStyle = "rgba(120,235,255," + (0.25 + 0.5 * ((st.tw * 7) % 1)) + ")"; x.fillRect(st.x * W, st.y * H * 0.9, st.r * 1.3, st.r * 1.3); }
     });
-    SPR.fdBg = layer(W, H, x => { const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#0a0614"); g.addColorStop(1, "#160c22"); x.fillStyle = g; x.fillRect(0, 0, W, H); });
-    SPR.strand = layer(3, H, x => { const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(0.5, "rgba(255,240,215,0.28)"); g.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = g; x.fillRect(0, 0, 3, H); });
-    SPR.limboBg = layer(W, H, x => { const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#fbfaf6"); g.addColorStop(1, "#ecebe4"); x.fillStyle = g; x.fillRect(0, 0, W, H); });
+    SPR.fdBg = layer(W, H, x => { const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#00030a"); g.addColorStop(1, "#021028"); x.fillStyle = g; x.fillRect(0, 0, W, H); });
+    SPR.strand = layer(3, H, x => { const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "rgba(63,243,255,0)"); g.addColorStop(0.5, "rgba(63,243,255,0.32)"); g.addColorStop(1, "rgba(63,243,255,0)"); x.fillStyle = g; x.fillRect(0, 0, 3, H); });
+    SPR.limboBg = layer(W, H, x => { const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, N.limboBg0); g.addColorStop(1, N.limboBg1); x.fillStyle = g; x.fillRect(0, 0, W, H); });
     // the black hole at full size: glow, back of the disk, photon ring, lensed arc, dark core, front of the disk
-    const r = H * 0.13, bhHalf = Math.ceil(r * 3.1);
+    const r = H * 0.15, bhHalf = Math.ceil(r * 3.8);
     SPR.bhHalf = bhHalf;
-    SPR.bh = layer(bhHalf * 2, bhHalf * 2, x => {
-      const cx = bhHalf, cy = bhHalf;
-      const glow = x.createRadialGradient(cx, cy, r * 0.8, cx, cy, r * 3.05);
-      glow.addColorStop(0, "rgba(253,152,0,0.55)"); glow.addColorStop(0.45, "rgba(221,75,0,0.18)"); glow.addColorStop(1, "rgba(221,75,0,0)");
-      x.fillStyle = glow; x.fillRect(0, 0, bhHalf * 2, bhHalf * 2);
-      const bands = [[2.35, 0.52, 0.42, "rgba(221,75,0,0.45)"], [2.05, 0.46, 0.3, "rgba(253,152,0,0.7)"], [1.75, 0.4, 0.18, "rgba(255,200,110,0.9)"], [1.5, 0.34, 0.08, "rgba(255,240,205,0.95)"]];
-      const disk = (from, to) => bands.forEach(([rx, ry, lw, col]) => { x.beginPath(); x.ellipse(cx, cy, r * rx, r * ry, -0.16, from, to); x.strokeStyle = col; x.lineWidth = r * lw; x.stroke(); });
-      disk(Math.PI, Math.PI * 2);
-      x.beginPath(); x.arc(cx, cy, r * 1.12, 0, Math.PI * 2); x.strokeStyle = "rgba(255,230,170,0.9)"; x.lineWidth = Math.max(1.5, r * 0.06); x.stroke();
-      x.beginPath(); x.ellipse(cx, cy - r * 0.08, r * 1.35, r * 1.05, 0, Math.PI * 1.08, Math.PI * 1.92); x.strokeStyle = "rgba(255,180,71,0.55)"; x.lineWidth = r * 0.12; x.stroke();
+    const cx = bhHalf, cy = bhHalf;
+    const WARM = ["255,250,240", "255,228,190", "255,196,140", "232,150,95"];       // white-hot to deep amber
+    SPR.bhShadow = layer(bhHalf * 2, bhHalf * 2, x => {   // the hole darkens everything around it
+      const g0 = x.createRadialGradient(cx, cy, r * 1.0, cx, cy, r * 3.8);
+      g0.addColorStop(0, "rgba(0,0,0,0.8)"); g0.addColorStop(0.4, "rgba(0,0,0,0.4)"); g0.addColorStop(1, "rgba(0,0,0,0)");
+      x.fillStyle = g0; x.fillRect(0, 0, bhHalf * 2, bhHalf * 2);
+    });
+    const diskLayer = (r0, r1, count, seed, bright) => layer(bhHalf * 2, bhHalf * 2, x => {   // flat and round; spun and squashed when drawn
+      let q = seed; const rnd = () => (q = (q * 16807) % 2147483647) / 2147483647;
+      x.lineCap = "round";
+      for (let k = 0; k < count; k++) {
+        const rr = r0 + (r1 - r0) * Math.pow(rnd(), 0.75), a0 = rnd() * Math.PI * 2, len = 0.2 + rnd() * 1.4;
+        const heat = 1 - (rr - r0) / (r1 - r0);
+        const alpha = bright * (0.1 + 0.6 * heat * heat) * (0.5 + rnd() * 0.5);
+        x.strokeStyle = "rgba(" + WARM[heat > 0.8 ? 0 : heat > 0.55 ? 1 : heat > 0.3 ? 2 : 3] + "," + alpha + ")";
+        x.lineWidth = 0.5 + rnd() * (1.2 + heat * 2.4);
+        x.beginPath(); x.arc(cx, cy, rr, a0, a0 + len); x.stroke();
+      }
+      x.shadowColor = "#fff2dc"; x.shadowBlur = 10; x.strokeStyle = "rgba(255,250,240,0.9)"; x.lineWidth = 2.6;   // the white-hot inner rim
+      x.beginPath(); x.arc(cx, cy, r0 + 1, 0, Math.PI * 2); x.stroke(); x.shadowBlur = 0;
+    });
+    SPR.diskInner = diskLayer(r * 1.3, r * 2.1, 260, 11, 1);
+    SPR.diskOuter = diskLayer(r * 2.0, r * 3.5, 360, 23, 0.75);
+    SPR.bhCore = layer(bhHalf * 2, bhHalf * 2, x => {   // the shadow, the photon ring, and the disk's far side bent over the top and under the bottom
       x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fillStyle = "#000"; x.fill();
-      disk(0, Math.PI);
+      const halo = (ry, rx, from, to, lw, col, blur) => { x.shadowColor = "#ffe6c4"; x.shadowBlur = blur; x.strokeStyle = col; x.lineWidth = lw; x.beginPath(); x.ellipse(cx, cy, r * rx, r * ry, 0, from, to); x.stroke(); x.stroke(); x.shadowBlur = 0; };
+      halo(1.28, 1.26, Math.PI * 1.02, Math.PI * 1.98, r * 0.22, "rgba(255,228,190,0.55)", 14);   // the broad arc of the far side, over the top
+      halo(1.2, 1.2, Math.PI * 1.04, Math.PI * 1.96, r * 0.09, "rgba(255,250,240,0.95)", 10);
+      halo(1.14, 1.14, Math.PI * 0.08, Math.PI * 0.92, r * 0.07, "rgba(255,236,205,0.7)", 8);     // the thinner image under the bottom
+      x.shadowColor = "#fff"; x.shadowBlur = 5; x.strokeStyle = "rgba(255,255,255,0.95)"; x.lineWidth = 1.6;   // the photon ring, razor thin
+      x.beginPath(); x.arc(cx, cy, r * 1.02, 0, Math.PI * 2); x.stroke(); x.stroke(); x.shadowBlur = 0;
+    });
+    SPR.beam = layer(bhHalf * 2, bhHalf * 2, x => {   // the side racing toward you is far brighter
+      x.beginPath(); x.arc(cx, cy, r * 3.5, 0, Math.PI * 2); x.arc(cx, cy, r * 1.25, 0, Math.PI * 2, true); x.clip();
+      const g1 = x.createLinearGradient(cx - r * 3.5, 0, cx + r * 3.5, 0);
+      g1.addColorStop(0, "rgba(255,250,240,0.35)"); g1.addColorStop(0.4, "rgba(255,240,215,0.12)"); g1.addColorStop(0.6, "rgba(0,0,0,0.15)"); g1.addColorStop(1, "rgba(0,0,0,0.55)");
+      x.fillStyle = g1; x.fillRect(0, 0, bhHalf * 2, bhHalf * 2);
+    });
+    SPR.bhHaze = layer(bhHalf * 2, bhHalf * 2, x => {   // a warm haze around the whole thing
+      const g2 = x.createRadialGradient(cx, cy, r * 1.1, cx, cy, r * 3.6);
+      g2.addColorStop(0, "rgba(255,210,160,0.22)"); g2.addColorStop(0.5, "rgba(255,190,130,0.08)"); g2.addColorStop(1, "rgba(255,170,110,0)");
+      x.fillStyle = g2; x.fillRect(0, 0, bhHalf * 2, bhHalf * 2);
     });
   }
 
@@ -1417,8 +1899,8 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   /* ---------- game flow ---------- */
   function startAttempt() {
     attempts++; LS.set(K_ATTEMPTS, String(attempts));
-    player = G.newPlayer(0);
-    rot = 0; acc = 0; buffer = 0; banner = 1.4; newTop = false; particles = []; camY = 0; zoneBanner = null;
+    player = G.newPlayer(START_X);
+    rot = 0; acc = 0; buffer = 0; banner = 1.4; newTop = false; particles = []; camY = player.y; camVel = 0; camGround = player.y; camMode = ""; camLandX = player.x; camLandY = player.y; camSlope = 0; zoneBanner = null; resetOpening();
     mode = "play";
     simClock = performance.now(); pressAt = releaseAt = -1; pressUsed = true; held = false; syncPrev();
     playing(true);
@@ -1445,6 +1927,11 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     hud();
   }
 
+  function finishSection() {
+    mode = "done"; held = false; release();
+    music.stop();
+    hud();
+  }
   function die() {
     mode = "dead"; deadT = 0.85; shake = reduceMotion ? 0 : 0.22;
     music.stop(); music.crash();
@@ -1521,6 +2008,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     return ts && ts > now - 1000 && ts <= now + 5 ? ts : now;
   }
   function press(e) {
+    if (mode === "done") { startAttempt(); return; }
     if (mode === "name") return;
     clearSelection();
     if (mode === "paused") { resume(); return; }
@@ -1575,17 +2063,42 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       const buffered = !pressUsed && pressAt <= T && T - pressAt <= 120;
       const wasGrounded = player.grounded;
       G.step(player, course, holding || buffered);
+      if (player.grounded) camOnLand(player.x, player.y);
+      if (SEC && SEC.end && !player.dead && player.x >= SEC.end) { finishSection(); break; }   // every landing reaches the camera, even ones that last a single physics step
       if (wasGrounded && !player.grounded && player.vy > 0 && pressAt <= T) pressUsed = true;
       if (!player.grounded) rot += ROT_RATE * P.dt;
       else { // settle flat with a quick turn instead of an instant snap (a landing mid-spin used to pop up to 45 degrees in one frame)
         const d = Math.round(rot / 90) * 90 - rot, mx = 900 * P.dt;
         rot += Math.abs(d) <= mx ? d : (d > 0 ? mx : -mx);
       }
-      if (player.dead) { if (godMode) { player.dead = false; player.grounded = true; player.y = Math.max(0, player.y); player.vy = 0; } else die(); }
+      if (player.dead) { if (godMode) { const gu = G.groundUnder(player.x); player.dead = false; player.grounded = true; player.y = gu === null ? player.y : Math.max(gu, player.y); player.vy = 0; } else die(); }
     }
   }
+  // the highest surface directly under the cube (a block top or the ground), or null over open void
+  const SUPP = [];
+  function camOnLand(x, y) {
+    if (Math.abs(y - camLandY) > 1e-3) {               // a new surface: if it's a step up, learn the slope of the climb
+      const dx = x - camLandX;
+      camSlope = y > camLandY && dx > 0.5 && dx < 14 ? Math.min(0.6, (y - camLandY) / dx) : 0;
+      camLandX = x; camLandY = y;
+    } else if (x - camLandX > 6) camSlope = 0;       // a flat stretch: the climb is over
+    camGround = y;
+  }
+  function supportBelow(x, y) {
+    let best = G.groundUnder(x);
+    if (best !== null && best > y + 1e-6) best = null;
+    for (const b of course.near(x - 1, x + 2, SUPP)) {
+      if (b.t !== "b" || !(x + 1 > b.x + 0.04 && x < b.x + b.w - 0.04)) continue;
+      const tp = b.y + b.h;
+      if (tp <= y + 1e-6 && (best === null || tp > best)) best = tp;
+    }
+    return best;
+  }
+  let dtFrame = 0;
   function frame(t) {
+    if (!onScreen) { last = 0; if (running && !root.hidden) requestAnimationFrame(frame); else running = false; return; }   // off screen: no drawing
     const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
+    dtFrame = dt;
     last = t;
     if (mode !== "paused") { clock += dt; skyStep(dt, player && mode !== "name" ? lightSpeed(mode === "play" ? drawX : player.x) : 0); }
     if (mode === "play") {
@@ -1598,8 +2111,25 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
         drawRot = prevRot + (rot - prevRot) * k;
       }
       banner = Math.max(0, banner - dt);
-      const want = Math.max(0, player.y - 2.4);
-      camY += (want - camY) * Math.min(1, dt * 5);
+      /* The camera follows where you're standing, not every hop, and moves on a soft spring (no snapping, no wobble).
+         It only rides along with the cube itself during a real fall, so it never lags behind one. */
+      const viewH = groundY / U, gu = G.groundUnder(player.x), sb = supportBelow(player.x, player.y);
+      if (player.grounded) { /* landings are recorded by the physics loop (camOnLand) */ }
+      else if (sb !== null && sb < camGround && player.y - sb < 6) camGround = sb;              // stepping off toward a nearby lower surface: start gliding to it now
+      let want, cm;
+      if (!player.grounded && player.vy < 0 && (sb === null || player.y - sb > 6)) { want = player.y - 1.5; cm = "fall"; }   // nothing close below: a long fall, ride it down
+      else if (gu !== null && camGround - gu < 1.6) { want = gu; cm = "ground"; }              // on the ground or a low block: hold still
+      else if (gu === null) { want = camGround - 1.5; cm = "void"; }                            // platforms over the void: show what's below
+      else { want = camLandY + camSlope * (player.x - camLandX) - 2.0; cm = "climb"; }          // the staircase: a target that rises with the climb itself
+      // during a long fall the spring also matches the fall's speed, easing into it and easing out on landing
+      const wantVel = cm === "fall" && camMode === "fall" && dt > 0 ? (want - camWant) / dt : cm === "climb" ? camSlope * G.P.speed : 0;
+      camMode = cm; camWant = want;
+      const K = 6;
+      camVel += ((want - camY) * K * K + (wantVel - camVel) * 2 * K) * dt; camY += camVel * dt;
+      const band = (H - groundY) / U;                                                            // the space below the floor line is on screen too
+      const hi = player.y + Math.max(1.2, band - 1.2), lo = player.y - (viewH - 1.0);          // safety: the cube always stays on screen
+      if (camY > hi) { camY = hi; camVel = Math.min(camVel, 0); } else if (camY < lo) { camY = lo; camVel = Math.max(camVel, 0); }
+      if (window.__CAMTRACE) window.__CAMTRACE.push([t, camY, player.x, player.y, cm, want, player.grounded ? 1 : 0, camGround]);
       for (const zb of ZONE_BANNERS) {
         if (player.x >= zb[0] && player.x - P.speed * dt * 1.5 < zb[0]) zoneBanner = { text: zb[1], t: 2.6 };
       }
@@ -1620,39 +2150,79 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   }
 
   /* ---------- drawing ---------- */
+  /* neon: everything near-black, every edge traced in glowing cyan; the cube stays orange */
+  const N = { sky0: "#010309", sky1: "#04122a", cyan: "#3ff3ff", core: "#e6fdff", blue: "#2a8cff", deep: "#0a5cff", dark: "#02060d", limboBg0: "#f3fcff", limboBg1: "#d6f1ff" };
   const C = { black: "#12110f", coal: "#262221", olive: "#52513f", khaki: "#aeac94", bone: "#e6e5d3", ember: "#fd9800", rust: "#dd4b00", gold: "#ffb447", signal: "#ffdf00" };
   const motes = Array.from({ length: 18 }, (_, i) => ({ x: (i * 37.3) % 60, y: 1.5 + (i * 2.17) % 5, r: i % 3 ? 1.2 : 2 }));
   const stars = Array.from({ length: 110 }, (_, i) => ({ x: (i * 97.13) % 1, y: (i * 61.7) % 1, r: (i % 7 === 0) ? 1.6 : (i % 3 ? 0.7 : 1.1), tw: (i * 1.7) % 6.28 }));
   const strands = Array.from({ length: 14 }, (_, i) => ({ x: (i * 0.0714 + (i * 37) % 7 * 0.011), w: 0.6 + (i % 4) * 0.4 }));
-  let camY = 0, clock = 0;
+  let camY = 0, clock = 0, camVel = 0, camGround = 0, camMode = "", camWant = 0, camLandX = 0, camLandY = 0, camSlope = 0;
   const VIS = [];
 
-  /* where the run is: stage, light speed 192-304 m, black hole from 304 m, pulled in 416-448 m, fourth dimension from 448 m, limbo from 592 m */
-  const Z = { bh: 304, bhIn: 320, bhCalmEnd: 352, warp: 416, fourD: 448, limboIn: 576, limbo: 592 }; // one music bar = 16 m
+  /* where the run is (from the soundtrack): stars, light speed 217-296 m, black hole from 296 m, pulled in 408-446 m, fourth dimension from 446 m, limbo from 596 m */
+  // every world is placed by the soundtrack: climax of 01 (black hole), the last bar of 02 (pulled in), 03 (fourth dimension), the free fall (limbo)
+  const TL = G.TL, LV = G.LEVEL, XX = G.X;
+  const SEC = window.HMN_SECTION || null;   // a single-section page: { start, end, label }
+  /* The opening: black with only the cube while the floor line draws in slowly, finishing at the first obstacle. From there
+     glowing tracers snake across the grid like traces on a circuit board, lighting lines that scroll away behind you, faster
+     and more of them as the staircase nears, so the grid is complete by the drop. Everything moves with the world. */
+  const OPEN = { lineEnd: XX(TL.b01) + 1.3, gridEnd: XX(TL.drop) };
+  const ROWS = 9;
+  let lit = new Set(), tracers = [], colSeen = new Map();
+  function openPhase(x) { return x >= OPEN.gridEnd ? null : x; }
+  function segKey(kind, i, j) { return kind + i + "," + j; }
+  function spawnTracer(j0, cols) { tracers.push({ kind: "c", i: 0, j: j0 + Math.floor(Math.random() * (cols + 2)), dir: 1, f: 0 }); }
+  function stepTracers(dt, j0, cols, p) {
+    const speed = (6 + 16 * p) * dt;                                                        // segments per second, rising through the opening
+    for (const t of tracers) {
+      if (t.j < j0 - 1) { t.dead = true; continue; }                                        // scrolled away behind us
+      t.f += speed;
+      while (t.f >= 1) {
+        lit.add(segKey(t.kind, t.i, t.j)); t.f -= 1;
+        let ni, nj;
+        if (t.kind === "c") { ni = t.i + (t.dir > 0 ? 1 : 0); nj = t.j; } else { ni = t.i; nj = t.j + (t.dir > 0 ? 1 : 0); }
+        const opts = [];
+        if (ni < ROWS) opts.push({ kind: "c", i: ni, j: nj, dir: 1, w: t.kind === "c" && t.dir > 0 ? 3 : 1 });
+        if (ni > 1) opts.push({ kind: "c", i: ni - 1, j: nj, dir: -1, w: t.kind === "c" && t.dir < 0 ? 3 : 0.6 });
+        if (ni > 0) { opts.push({ kind: "r", i: ni, j: nj, dir: 1, w: t.kind === "r" && t.dir > 0 ? 3 : 1.4 }); opts.push({ kind: "r", i: ni, j: nj - 1, dir: -1, w: t.kind === "r" && t.dir < 0 ? 3 : 0.7 }); }
+        const open = opts.filter(o => !lit.has(segKey(o.kind, o.i, o.j)));
+        if (!open.length) { t.dead = true; break; }
+        let pick = Math.random() * open.reduce((a, o) => a + o.w, 0), ch = open[0];
+        for (const o of open) { pick -= o.w; if (pick <= 0) { ch = o; break; } }
+        t.kind = ch.kind; t.i = ch.i; t.j = ch.j; t.dir = ch.dir;
+      }
+    }
+    tracers = tracers.filter(t => !t.dead);
+    const want = Math.round(3 + 21 * p);
+    while (tracers.length < want) spawnTracer(j0, cols);
+  }
+  function resetOpening() { lit = new Set(); tracers = []; colSeen = new Map(); }
+  window.__OPENING = () => ({ lit: lit.size, tracers: tracers.length });
+  const START_X = SEC ? SEC.start : 0;
+  const Z = { bh: XX(TL.climax), bhIn: XX(TL.climax) + 9, bhCalmEnd: XX(TL.b02a), warp: XX(TL.b02a + (TL.bars02 - 1) * 4 * TL.beat02), fourD: XX(TL.end02), limboIn: LV.fallX, limbo: LV.landX };
   function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
   function scene(x) {
     return {
       bh: clamp01((x - Z.bh) / (Z.bhIn - Z.bh)),                 // black hole fades in
       grow: clamp01((x - Z.bhIn) / (Z.bhCalmEnd - Z.bhIn)),       // and looms closer through the calm
-      warp: clamp01((x - Z.warp) / (Z.fourD - Z.warp)),           // then swallows the screen
-      fd: x >= Z.fourD ? 1 : 0,
-      fdIn: clamp01((x - Z.fourD) / 8),
+      warp: clamp01((x - Z.fourD) / (Z.limboIn - Z.fourD)),       // the descent: pulled toward the horizon until it swallows the screen
+      fd: 0,
+      fdIn: 1,
       limbo: clamp01((x - Z.limboIn) / (Z.limbo - Z.limboIn))
     };
   }
   function styleFor(x) {
     const sc = scene(x);
-    if (sc.limbo >= 1) return { name: "limbo", ink: C.black, banner: C.black };
-    if (sc.fd) return { name: "fourD", ink: "#ffffff", banner: "#ffffff" };
-    if (sc.bh >= 0.5) return { name: "bh", ink: C.gold, banner: C.bone };
-    return { name: "stage", ink: C.bone, banner: C.bone };
+    if (sc.limbo > 0) return { name: "limbo", ink: N.deep, banner: N.deep };
+    if (sc.bh >= 0.5) return { name: "bh", ink: N.cyan, banner: N.core };
+    return { name: "stage", ink: N.cyan, banner: N.core };
   }
   /* Fourth dimension: blocks wait under the floor and pop up one at a time, stacking from the bottom,
      so each column is finished exactly one jump ahead of you. Purely visual; collisions always use the
      final positions, which are set before you can reach them. */
   const RISE_TO = 4.6;
   function snapUp(p) { const c1 = 1.5, c3 = c1 + 1, q = p - 1; return 1 + c3 * q * q * q + c1 * q * q; } // quick, with a small overshoot
-  function inFourD(x) { return x >= Z.fourD && x < Z.limboIn; }
+  function inFourD(x) { return false; }   // platforms float during the descent, so blocks don't rise out of a floor here
   /* For one column of a block: null when it's in place; otherwise how it's drawn right now.
      Ground columns stack ("stack": P blocks have popped up, fractional); floating ones shoot up whole ("shift"). */
   function colState(o, cx, px) {
@@ -1681,12 +2251,12 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     const win = 1.2, p = clamp01((RISE_TO + win - (o.x - px)) / win);
     return p >= 1 ? 0 : (1 - snapUp(p)) * (o.y + 1.3);
   }
-  const ZONE_BANNERS = [[Z.bhIn, "Black hole"], [Z.fourD + 2, "Fourth dimension"], [Z.limbo, "Limbo"]];
+  const ZONE_BANNERS = []; // the neon version lets each world speak for itself: no level-name text
   let zoneBanner = null;
 
-  /* Stage one's sky is full of stars drifting toward you. From ~192 m they stretch into light-speed streaks,
-     and right at 304 m they snap back to points as you drop out in front of the black hole. */
-  const LIGHT = { on: 192, full: 208, off: 296, out: 305 };
+  /* Stage one's sky is full of stars drifting toward you. From ~227 m they stretch into light-speed streaks,
+     and right at 378 m they snap back to points as you drop out in front of the black hole. */
+  const LIGHT = { on: XX(TL.drop - 8 * TL.beat01), full: XX(TL.drop), off: XX(TL.climax) - 6, out: XX(TL.climax) + 0.5 };
   function lightSpeed(x) {
     if (x <= LIGHT.on || x >= LIGHT.out) return 0;
     if (x < LIGHT.full) { const k = (x - LIGHT.on) / (LIGHT.full - LIGHT.on); return k * k; }
@@ -1719,8 +2289,8 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     const tint = w > 0.05;
     for (let band = 0; band < 3; band++) {    // three brightness bands, one stroke each
       ctx.globalAlpha = a * (0.4 + band * 0.28);
-      ctx.strokeStyle = tint ? (band === 2 ? "#f2f8ff" : "#cfe2ff") : C.bone;
-      ctx.fillStyle = C.bone;
+      ctx.strokeStyle = band === 2 ? N.core : N.cyan;
+      ctx.fillStyle = band === 2 ? N.core : N.cyan;
       ctx.lineWidth = tint ? (band === 2 ? 1.6 : 1) : 1;
       ctx.beginPath();
       for (let i = 0; i < sky.length; i++) {
@@ -1744,46 +2314,91 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     }
     ctx.globalAlpha = 1;
   }
-  function drawStage(a, camX, sy) {
+  function drawStage(a, camX, sy, solo) {
     if (a <= 0) return;
+    const op = player && mode !== "name" ? openPhase(player.x) : null;
+    if (op !== null) a *= Math.max(0, Math.min(1, (op - OPEN.lineEnd) / (OPEN.gridEnd - OPEN.lineEnd)));
+    if (solo) {   // on the layer: painted once, faded in by the compositor over the stage's black
+      bgSize(cv.width, cv.height);
+      if (bgPainted !== "stage") { bgx.setTransform(1, 0, 0, 1, 0, 0); bgx.clearRect(0, 0, bgcv.width, bgcv.height); bgx.drawImage(SPR.stageBg, 0, 0, bgcv.width, bgcv.height); bgPainted = "stage"; }
+      bgUse("stage", a, "none");
+      if (a <= 0.001) return;
+    } else {
+      if (op !== null) { ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H); if (a <= 0.001) return; }
+      ctx.globalAlpha = a;
+      ctx.drawImage(SPR.stageBg, 0, 0, W, H);
+    }
     ctx.globalAlpha = a;
-    ctx.fillStyle = C.black; ctx.fillRect(0, 0, W, H);
     drawStars(a);
-    const beamA = a * (1 - skyWarp);         // the projector light fades while you're at light speed
-    if (beamA > 0.01) { ctx.globalAlpha = beamA; ctx.drawImage(SPR.stageBg, 0, 0, W, H); }
-    ctx.globalAlpha = beamA;
-    ctx.fillStyle = "rgba(255,223,0,0.35)";
-    for (const m of motes) {
-      const px = ((m.x - camX * 0.25) % 60 + 60) % 60 * U * 0.6;
-      if (px < W) { ctx.beginPath(); ctx.arc(px, sy(m.y), m.r, 0, Math.PI * 2); ctx.fill(); }
+    const calm = a * (1 - skyWarp);   // the skyline falls away while you're at light speed
+    if (calm > 0.01) {
+      const SW = SPR.skyW, off = ((camX * U * 0.18) % SW + SW) % SW, top = sy(0) - groundY;
+      ctx.globalAlpha = calm * 0.9;
+      const hh = groundY + 2, first = Math.min(W, SW - off);
+      ctx.drawImage(SPR.skyline, off, 0, first, hh, 0, top, first, hh);
+      if (first < W) ctx.drawImage(SPR.skyline, 0, 0, W - first, hh, first, top, W - first, hh);
     }
     ctx.globalAlpha = 1;
   }
 
+  let bhBuf = null, bhCtx = null, bhTick = 0; const BHQ = 1.25;
+  function shakeAmount(x) {
+    if (x < Z.bh) return 0;
+    if (x < LV.plateauEnd) return (x - Z.bh) / (LV.plateauEnd - Z.bh);
+    if (x < LV.fallX) return 1;
+    return 0;
+  }
   function drawSpace(a, sc, camX) {
     if (a <= 0) return;
+    const k = shakeAmount(player ? player.x : 0) * 2.8;
+    const jx = k * (Math.sin(clock * 29) + 0.5 * Math.sin(clock * 47)), jy = k * (Math.cos(clock * 33) + 0.5 * Math.sin(clock * 59));
+    ctx.save(); ctx.translate(jx, jy);
     ctx.globalAlpha = a;
-    ctx.drawImage(SPR.spaceBg, 0, 0, W, H);
     // the starfield is part of the pre-drawn sky (distant stars barely move anyway)
-    // the black hole: glow, back half of the disk, the dark core, photon ring, front half of the disk
-    const scale = (0.55 + 0.45 * sc.grow) * (1 + sc.warp * 7);
-    const cx = W * (0.68 - 0.18 * sc.warp), cy = H * (0.3 + 0.12 * sc.warp), r = H * 0.13 * scale;
-    const spin = clock * (0.6 + sc.warp * 4);
-    // the black hole itself is pre-drawn once; only the spinning streak across the front of the disk is live
-    const half = SPR.bhHalf * scale;
-    ctx.drawImage(SPR.bh, cx - half, cy - half, half * 2, half * 2);
-    ctx.beginPath(); ctx.ellipse(cx, cy, r * 1.9, r * 0.43, -0.16, 0, Math.PI);
-    ctx.strokeStyle = "rgba(255,245,220,0.55)"; ctx.lineWidth = Math.max(1, r * 0.035);
-    ctx.setLineDash([r * 0.5, r * 0.9]); ctx.lineDashOffset = -spin * r * 1.6; ctx.stroke(); ctx.setLineDash([]);
+    // the black hole: shadow, a spinning turbulent disk behind, the core with its photon ring and lensed arcs, the disk's front half over it
+    const pull = sc.warp;                                                                        // 0 through 02, rising to 1 across the descent
+    const scale = (0.6 + 0.4 * sc.grow) * (1 + pull * pull * 9);                                 // the horizon swallows the screen by the end
+    const cx = W * (0.68 - 0.2 * pull), cy = H * (0.3 + 0.14 * pull), r = H * 0.15 * scale;
+    const spin = clock * (0.5 + pull * 3);
+    const half = SPR.bhHalf * scale, tilt = -0.12, squash = 0.3;
+    const pulse = 0.93 + 0.07 * Math.sin(clock * 2.1);
+    // the sky and the black hole are painted into one buffer at a bit over half resolution, refreshed every third frame
+    // (the hole spins slowly, so nobody can tell); each frame copies the buffer onto the screen once, shaken
+    const bw = Math.round(W * BHQ), bh = Math.round(H * BHQ), layered = a >= 0.999;
+    let x;
+    if (layered) { bgSize(bw, bh); x = bgx; if (bgPainted !== "space") bgTick = 0; }
+    else { if (!bhBuf || bhBuf.width !== bw || bhBuf.height !== bh) { bhBuf = document.createElement("canvas"); bhBuf.width = bw; bhBuf.height = bh; bhCtx = bhBuf.getContext("2d"); bhTick = 0; } x = bhCtx; }
+    if (bhTick++ % 3 === 0) {
+      x.setTransform(1, 0, 0, 1, 0, 0); x.globalAlpha = 1; x.drawImage(SPR.spaceBg, 0, 0, bw, bh); x.setTransform(BHQ, 0, 0, BHQ, 0, 0);
+      x.drawImage(SPR.bhHaze, cx - half * 1.2, cy - half * 1.2, half * 2.4, half * 2.4);
+      x.drawImage(SPR.bhShadow, cx - half * 1.1, cy - half * 1.1, half * 2.2, half * 2.2);
+      const disk = (clipFront) => {
+        x.save();
+        if (clipFront !== undefined) { x.beginPath(); x.rect(cx - half * 1.5, clipFront ? cy : cy - half * 1.5, half * 3, half * 1.5); x.clip(); }
+        x.translate(cx, cy); x.rotate(tilt); x.scale(1, squash);
+        x.save(); x.rotate(spin * 1.6); x.globalAlpha = pulse; x.drawImage(SPR.diskInner, -half, -half, half * 2, half * 2); x.restore();
+        x.save(); x.rotate(spin * 0.7); x.globalAlpha = pulse; x.drawImage(SPR.diskOuter, -half, -half, half * 2, half * 2); x.restore();
+        x.globalAlpha = 1; x.drawImage(SPR.beam, -half, -half, half * 2, half * 2);
+        x.restore();
+      };
+      disk(false);                                                                            // the back half
+      x.globalAlpha = 1; x.drawImage(SPR.bhCore, cx - half, cy - half, half * 2, half * 2); // the shadow, the photon ring, the lensed arcs
+      disk(true);                                                                             // the front half, passing in front of the hole
+      if (layered) bgPainted = "space";
+    }
+    if (layered) { ctx.restore(); ctx.save(); bgUse("space", 1, "translate(" + jx.toFixed(2) + "px," + jy.toFixed(2) + "px) scale(1.025)"); ctx.translate(jx, jy); }   // the compositor shakes the layer
+    else { ctx.globalAlpha = a; ctx.drawImage(bhBuf, -4, -4, W + 8, H + 8); }   // fading in or out: sky and black hole together, a touch oversized so the shake never shows an edge
+    ctx.restore(); ctx.save(); ctx.translate(jx, jy); ctx.globalAlpha = a;
     // being pulled in: streaks spiral toward the center, then everything goes white
     if (sc.warp > 0) {
-      ctx.strokeStyle = "rgba(255,214,150," + (0.15 + sc.warp * 0.45) + ")"; ctx.lineWidth = 1.5;
-      for (let i = 0; i < 26; i++) {
+      ctx.strokeStyle = "rgba(255,220,180," + (0.1 + sc.warp * 0.45) + ")"; ctx.lineWidth = 1.5;
+      for (let i = 0; i < Math.round(8 + 22 * sc.warp); i++) {
         const ang = i * 0.97 + spin * 0.8, d0 = Math.max(W, H) * (0.9 - ((clock * 0.6 + i * 0.13) % 1) * 0.8);
         ctx.beginPath(); ctx.moveTo(cx + Math.cos(ang) * d0, cy + Math.sin(ang) * d0);
         ctx.lineTo(cx + Math.cos(ang + 0.5) * d0 * 0.6, cy + Math.sin(ang + 0.5) * d0 * 0.6); ctx.stroke();
       }
     }
+    ctx.restore();
     ctx.globalAlpha = 1;
   }
 
@@ -1793,7 +2408,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     ctx.drawImage(SPR.fdBg, 0, 0, W, H);
     // an endless corridor of frames rushing past, with threads of light
     const vx = W * 0.62, vy = H * 0.4, N = 9, travel = camX * 0.22;
-    ctx.strokeStyle = "rgb(255,226,180)";
+    ctx.strokeStyle = N.cyan;
     for (let k = N; k >= 1; k--) {
       const d = ((k - travel) % N + N) % N + 0.35, sc = 1 / d;
       const w = W * 0.9 * sc, h = H * 0.75 * sc, al = Math.min(1, sc * 0.9), x0 = vx - w / 2, y0 = vy - h / 2;
@@ -1821,7 +2436,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     if (a <= 0) return;
     ctx.globalAlpha = a;
     ctx.drawImage(SPR.limboBg, 0, 0, W, H);
-    ctx.fillStyle = "rgba(82,81,63,0.18)";
+    ctx.fillStyle = "rgba(10,92,255,0.16)";
     for (const m of motes) {
       const px = ((m.x - camX * 0.12) % 60 + 60) % 60 * U * 0.6;
       if (px < W) { ctx.beginPath(); ctx.arc(px, H * 0.12 + (m.y * 37 % 1) * H * 0.5 + Math.sin(clock + m.x) * 4, m.r * 1.4, 0, Math.PI * 2); ctx.fill(); }
@@ -1832,6 +2447,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   function draw() {
     if (!W) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    bgWant = "";
     const px = player ? (mode === "play" || mode === "paused" ? drawX : player.x) : 0;
     const camX = px - (W * 0.28) / U;
     const sx = x => (x - camX) * U, sy = y => groundY - (y - camY) * U;
@@ -1841,37 +2457,100 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     ctx.save(); ctx.translate(ox, oy);
 
     // backgrounds, cross-fading between worlds
-    if (sc.fd) { // fourth dimension, cross-fading into limbo; nothing from earlier worlds is painted underneath
+    if (sc.limbo > 0) { // through the horizon: the swallowed screen gives way to limbo's white abstract space during the fall
+      if (sc.limbo < 1) drawSpace(1, sc, camX);
+      drawLimbo(Math.min(1, sc.limbo * 1.8), camX);
+    } else if (sc.fd) { // fourth dimension, cross-fading into limbo; nothing from earlier worlds is painted underneath
       if (sc.limbo < 1) drawFourD(1, camX);
       drawLimbo(sc.limbo, camX);
     } else {
       const space = sc.bh;
-      drawStage(1 - space, camX, sy);
+      drawStage(1 - space, camX, sy, space <= 0);
       drawSpace(space, sc, camX);
     }
 
-    // floor
-    const gy = sy(0);
-    if (st.name === "stage") {
-      ctx.fillStyle = C.coal; ctx.fillRect(0, gy, W, H - gy + 40);
-      ctx.fillStyle = C.black;
-      const hole = U * 0.34, pitch = U * 0.8, offs = ((-camX * U) % pitch + pitch) % pitch;
-      for (let x = offs - pitch; x < W; x += pitch) {
-        ctx.fillRect(x, gy + U * 0.28, hole, hole * 0.75);
-        ctx.fillRect(x, H + camY * U - U * 0.28 - hole * 0.75, hole, hole * 0.75);
+    // floor: every strip of ground in view gets the glowing grid; the descent is open void
+    let gy = H + 60;   // the ground line under the cube, on screen (used by the hint text)
+    for (const seg of G.GROUND) {
+      const a0 = Math.max(seg.x0, camX - 2), a1 = Math.min(seg.x1, camX + W / U + 2);
+      if (a1 <= a0) continue;
+      const gT = sy(seg.y);
+      if (gT > H + 10) continue;
+      const L0 = Math.max(0, sx(a0)), R0 = Math.min(W, sx(a1));
+      if (R0 <= L0) continue;
+      if (px + 0.5 >= seg.x0 && px + 0.5 < seg.x1) gy = gT;
+      const op = seg.y === 0 && player && mode !== "name" ? openPhase(player.x) : null;
+      if (op !== null) {   // the opening: black, the floor line drawing in, then the circuit tracers lighting the grid as it scrolls by
+        ctx.save(); ctx.beginPath(); ctx.rect(L0, gT - 10, R0 - L0, H - gT + 60); ctx.clip();
+        ctx.fillStyle = "#000"; ctx.fillRect(L0, gT, R0 - L0, H - gT + 40);
+        const depth = H - gT + 40, vx = W * 0.5, sp = U * 1.25;
+        const colX = (j, f) => { const x = j * sp - camX * U; return x + (x - vx) * 1.8 * f; };    // a column's x at depth fraction f, moving with the world
+        const rowF = i => Math.pow(i / ROWS, 1.7), rowY = i => gT + depth * rowF(i);
+        const j0 = Math.floor(camX * U / sp) - 2, cols = Math.ceil(W / sp) + 4;
+        const lineW = W * Math.max(0, Math.min(1, op / OPEN.lineEnd));
+        // the floor line, growing slowly, with its nodes sliding past
+        ctx.fillStyle = N.cyan; ctx.globalAlpha = 0.6; ctx.fillRect(0, gT - 2.5, lineW, 5);
+        ctx.globalAlpha = 1; ctx.fillRect(0, gT - 1, lineW, 2); ctx.fillStyle = N.core; ctx.fillRect(0, gT - 0.5, lineW, 1);
+        ctx.fillStyle = N.cyan; ctx.globalAlpha = 0.85;
+        for (let j = j0; j < j0 + cols; j++) { const x = colX(j, 0); if (x >= 0 && x <= lineW) ctx.fillRect(x - 1.5, gT - 1.5, 3, 3); }
+        if (op >= OPEN.lineEnd) {
+          const p = (op - OPEN.lineEnd) / (OPEN.gridEnd - OPEN.lineEnd);
+          stepTracers(Math.min(0.05, dtFrame), j0, cols, p);
+          for (let j = j0; j < j0 + cols; j++) if (!colSeen.has(j)) colSeen.set(j, clock);
+          const ageT = 7 * (1 - p) * (1 - p) + 0.05;   // lines that have been on screen this long fill in on their own, sooner and sooner
+          const seg = (kind, i, j) => { if (lit.has(segKey(kind, i, j))) return 1; const age = clock - (colSeen.get(j) || clock); return age > ageT ? Math.min(1, (age - ageT) / 0.5) : 0; };
+          for (const pass of [0.35, 1]) {   // faint for lines still fading in, then the solid ones
+            ctx.strokeStyle = N.cyan; ctx.lineWidth = 1; ctx.globalAlpha = pass === 1 ? 0.5 : 0.2; ctx.beginPath();
+            for (let i = 1; i <= ROWS; i++) for (let j = j0; j < j0 + cols; j++) {
+              const r1 = seg("r", i, j), c1 = i < ROWS ? seg("c", i, j) : 0;
+              if (pass === 1 ? r1 >= 1 : r1 > 0 && r1 < 1) { ctx.moveTo(colX(j, rowF(i)), rowY(i)); ctx.lineTo(colX(j + 1, rowF(i)), rowY(i)); }
+              if (i < ROWS && (pass === 1 ? c1 >= 1 : c1 > 0 && c1 < 1)) { ctx.moveTo(colX(j, rowF(i)), rowY(i)); ctx.lineTo(colX(j, rowF(i + 1)), rowY(i + 1)); }
+            }
+            for (let j = j0; j < j0 + cols; j++) { const c0 = seg("c", 0, j); if (pass === 1 ? c0 >= 1 : c0 > 0 && c0 < 1) { ctx.moveTo(colX(j, 0), gT); ctx.lineTo(colX(j, rowF(1)), rowY(1)); } }
+            ctx.stroke();
+          }
+          // the tracers: the part of their segment they've covered, and a bright head
+          ctx.globalAlpha = 0.95; ctx.strokeStyle = N.cyan; ctx.beginPath();
+          const heads = [];
+          for (const t of tracers) {
+            let x0, y0, x1, y1;
+            if (t.kind === "c") { const a = t.dir > 0 ? t.i : t.i + 1, b = t.dir > 0 ? t.i + 1 : t.i; x0 = colX(t.j, rowF(a)); y0 = rowY(a); x1 = colX(t.j, rowF(b)); y1 = rowY(b); }
+            else { const a = t.dir > 0 ? t.j : t.j + 1, b = t.dir > 0 ? t.j + 1 : t.j; x0 = colX(a, rowF(t.i)); y0 = rowY(t.i); x1 = colX(b, rowF(t.i)); y1 = rowY(t.i); }
+            const hx = x0 + (x1 - x0) * t.f, hy = y0 + (y1 - y0) * t.f;
+            ctx.moveTo(x0, y0); ctx.lineTo(hx, hy); heads.push([hx, hy]);
+          }
+          ctx.stroke(); ctx.fillStyle = N.core; ctx.globalAlpha = 1;
+          for (const [hx, hy] of heads) ctx.fillRect(hx - 1.5, hy - 1.5, 3, 3);
+        }
+        ctx.restore();
+        continue;
       }
-      ctx.fillStyle = C.bone; ctx.fillRect(0, gy - 1, W, 2);
-    } else if (st.name === "bh") {
-      ctx.fillStyle = "rgba(6,7,12,0.92)"; ctx.fillRect(0, gy, W, H - gy + 40);
-      ctx.fillStyle = C.gold; ctx.fillRect(0, gy - 1, W, 2);
-    } else if (st.name === "fourD") {
-      ctx.fillStyle = "rgba(10,6,20,0.9)"; ctx.fillRect(0, gy, W, H - gy + 40);
-      ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fillRect(0, gy - 6, W, 12);
-      ctx.fillStyle = "rgba(255,255,255,0.25)"; ctx.fillRect(0, gy - 3, W, 6);
-      ctx.fillStyle = "#fff"; ctx.fillRect(0, gy - 1, W, 2);
-    } else {
-      ctx.fillStyle = "#e6e5d3"; ctx.fillRect(0, gy, W, H - gy + 40);
-      ctx.fillStyle = C.black; ctx.fillRect(0, gy - 1, W, 2);
+      ctx.save(); ctx.beginPath(); ctx.rect(L0, gT - 10, R0 - L0, H - gT + 60); ctx.clip();
+      {
+        const lim = st.name === "limbo", depth = H - gT + 40, vx = W * 0.5, col = lim ? N.deep : N.cyan;
+        ctx.fillStyle = lim ? "#e4f6ff" : "#01050d"; ctx.fillRect(0, gT, W, depth);
+        ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.globalAlpha = lim ? 0.22 : 0.3; ctx.beginPath();
+        for (let k = 1; k <= 9; k++) { const y = gT + depth * Math.pow(k / 9, 1.7); ctx.moveTo(0, y); ctx.lineTo(W, y); }
+        ctx.stroke();
+        ctx.fillStyle = col;
+        ctx.globalAlpha = 0.22; ctx.fillRect(0, gT - 4, W, 8);
+        ctx.globalAlpha = 0.6; ctx.fillRect(0, gT - 2.5, W, 5);
+        ctx.globalAlpha = 1; ctx.fillRect(0, gT - 1, W, 2);                                    // hard edge
+        ctx.fillStyle = lim ? "#9cc4ff" : N.core; ctx.fillRect(0, gT - 0.5, W, 1);
+        // the grid's columns fan toward you and slide with the run (only part drawn live)
+        const sp = U * 1.25, offs = ((-camX * U) % sp + sp) % sp, x0 = offs - sp * Math.ceil(vx / sp / 2.8 + 1), x1 = W - x0;
+        ctx.strokeStyle = lim ? N.deep : N.cyan; ctx.lineWidth = 1; ctx.globalAlpha = lim ? 0.2 : 0.28; ctx.beginPath();
+        for (let x = x0; x < x1; x += sp) { ctx.moveTo(x, gT); ctx.lineTo(vx + (x - vx) * 2.8, gT + depth); }
+        ctx.stroke(); ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+      // a cliff edge where a strip starts or stops in view
+      ctx.fillStyle = st.name === "limbo" ? N.deep : N.cyan;
+      for (const ex of [seg.x0 > camX - 2 ? L0 : null, seg.x1 < camX + W / U + 2 ? R0 : null]) {
+        if (ex === null) continue;
+        ctx.globalAlpha = 0.3; ctx.fillRect(ex - 2.5, gT, 5, H - gT);
+        ctx.globalAlpha = 1; ctx.fillRect(ex - 1, gT, 2, H - gT);
+      }
     }
 
     // obstacles, styled for each world
@@ -1881,17 +2560,28 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     const off = new Map();
     if (st.name === "fourD") for (const o of objs) { const v = riseOffset(o, objs, px); if (v !== 0) off.set(o, v); }
     const rise = o => off.get(o) || 0;
-    if (st.name === "fourD") { ctx.save(); ctx.beginPath(); ctx.rect(-20, -20, W + 40, gy + 21); ctx.clip(); }
-    const blockFill = { stage: C.coal, bh: "#0d0f18", fourD: "rgba(255,255,255,0.05)", limbo: C.black }[st.name];
-    const blockLine = { stage: C.bone, bh: C.gold, fourD: "rgba(255,255,255,0.9)", limbo: C.black }[st.name];
+
+    const blockFill = { stage: "#020a16", bh: "#020814", fourD: "rgba(2,10,20,0.85)", limbo: "#f4fcff" }[st.name];
+    const blockLine = { stage: N.cyan, bh: "#5cc8ff", fourD: N.cyan, limbo: N.deep }[st.name];
     const seams = [];
+    // single blocks in the descent fly up from underneath, arriving just before you need them (physics is unaffected)
+    const flyIn = o => {
+      if (!isStone(o)) return 0;
+      const lead = o.x - px;
+      if (lead > 4.8) return Infinity;
+      if (lead < 1.0) return 0;
+      const e = (4.8 - lead) / 3.8, k = 1 - Math.pow(1 - e, 3);
+      return (1 - k) * 14;
+    };
     for (const o of objs) {
       if (o.t !== "b") continue;
+      const fly = flyIn(o);
+      if (fly === Infinity) continue;
       if (st.name === "fourD") { // individual blocks; each column builds itself as you approach
         for (let i = 0; i < o.w; i++) {
           const cx = o.x + i, X = sx(cx), s = colState(o, cx, px);
           const cell = bottom => { ctx.drawImage(SPR.cell, X, sy(bottom + 1), U, U); };
-          if (!s) { for (let j = 0; j < o.h; j++) cell(o.y + j); continue; }
+          if (!s) { for (let j = 0; j < o.h; j++) cell(o.y + j - fly); continue; }
           if (s.stack) {
             // P blocks have popped up; the newest pushes the stack from underneath
             const shown = Math.min(o.h, Math.ceil(s.P - 1e-6) + 1);
@@ -1904,11 +2594,15 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
         }
         continue;
       }
-      const x = sx(o.x), y = sy(o.y + o.h), w = o.w * U, h = o.h * U;
+      const x = sx(o.x), y = sy(o.y + o.h - fly), w = o.w * U, h = o.h * U;
       ctx.fillStyle = blockFill; ctx.fillRect(x, y, w, h);
-      ctx.strokeStyle = blockLine; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
-      if (st.name !== "limbo") {
-        ctx.strokeStyle = st.name === "fourD" ? "rgba(255,255,255,0.2)" : "rgba(230,229,211,0.18)"; ctx.lineWidth = 1;
+      ctx.strokeStyle = blockLine;   // glow: a wide soft stroke, a medium one, then a bright thin core
+      ctx.globalAlpha = 0.22; ctx.lineWidth = 6; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+      ctx.globalAlpha = 0.6; ctx.lineWidth = 3.6; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+      ctx.globalAlpha = 1; ctx.lineWidth = 1.6; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);   // hard edge
+      ctx.strokeStyle = st.name === "limbo" ? "#7fb2ff" : N.core; ctx.lineWidth = 0.6; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+      {
+        ctx.strokeStyle = st.name === "limbo" ? "rgba(10,92,255,0.2)" : "rgba(63,243,255,0.22)"; ctx.lineWidth = 1;
         for (let i = 1; i < o.w; i++) { ctx.beginPath(); ctx.moveTo(x + i * U, y + 3); ctx.lineTo(x + i * U, y + h - 3); ctx.stroke(); }
         for (let j = 1; j < o.h; j++) { ctx.beginPath(); ctx.moveTo(x + 3, y + j * U); ctx.lineTo(x + w - 3, y + j * U); ctx.stroke(); }
       }
@@ -1921,10 +2615,10 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       }
     }
     if (st.name === "fourD") {
-      ctx.restore(); // floor clip
+      /* no floor clip in this version */
       // a seam of light where each block is breaking through the floor
       for (const [X, a] of seams) {
-        ctx.globalAlpha = a * 0.35; ctx.fillStyle = "#fff"; ctx.fillRect(X - 6, gy - 6, U + 12, 12);
+        ctx.globalAlpha = a * 0.45; ctx.fillStyle = N.cyan; ctx.fillRect(X - 3, gy - 4, U + 6, 8);
         ctx.globalAlpha = a; ctx.fillRect(X - 3, gy - 2, U + 6, 4);
       }
       ctx.globalAlpha = 1;
@@ -1932,7 +2626,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
 
     // player
     if (player && mode !== "dead") {
-      const cx = sx(px + 0.5), cy = sy((mode === "play" || mode === "paused" ? drawY : player.y) + 0.5), spr = st.name === "fourD" ? SPR.playerGlow : SPR.player, half = U / 2 + SPR.pad;
+      const cx = sx(px + 0.5), cy = sy((mode === "play" || mode === "paused" ? drawY : player.y) + 0.5), spr = SPR.playerGlow, half = U / 2 + SPR.pad;
       ctx.save(); ctx.translate(cx, cy); ctx.rotate((mode === "play" || mode === "paused" ? drawRot : rot) * Math.PI / 180);
       ctx.drawImage(spr, -half, -half, half * 2, half * 2);
       ctx.restore();
@@ -1943,20 +2637,21 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     }
     for (const p of particles) {
       ctx.globalAlpha = Math.max(0, p.life / 0.7);
-      ctx.fillStyle = Math.random() < 0.5 ? C.ember : C.rust;
+      ctx.fillStyle = Math.random() < 0.6 ? C.ember : N.cyan;
       ctx.fillRect(sx(p.x) - p.size * U / 2, sy(p.y) - p.size * U / 2, p.size * U, p.size * U);
     }
     ctx.globalAlpha = 1;
 
     // the white-out when you're pulled through, and again into limbo
-    const dropOut = Math.max(0, 1 - Math.abs(px - 304) / 2.2) * 0.6;
-    const flash = Math.max(dropOut, sc.fd ? 1 - sc.fdIn : (sc.warp > 0.82 ? (sc.warp - 0.82) / 0.18 : 0));
-    if (flash > 0) { ctx.fillStyle = "rgba(255,255,255," + Math.min(1, flash) + ")"; ctx.fillRect(-10, -10, W + 20, H + 20); }
+    const dropOut = Math.max(0, 1 - Math.abs(px - XX(TL.climax)) / 2.8) * 0.6;
+    const through = sc.limbo > 0 && sc.limbo < 1 ? Math.sin(Math.min(1, sc.limbo / 0.7) * Math.PI) * 0.9 : 0;   // pulled through: a white bloom
+    const flash = Math.max(dropOut, through);
+    if (flash > 0) { ctx.fillStyle = "rgba(225,250,255," + Math.min(1, flash) + ")"; ctx.fillRect(-10, -10, W + 20, H + 20); }
 
     // a reminder in the floor band at the start of each run
-    if (player && mode === "play" && player.x < 30) {
-      ctx.globalAlpha = Math.min(1, (30 - player.x) / 10) * 0.75;
-      ctx.fillStyle = st.name === "limbo" ? C.black : C.khaki;
+    if (player && mode === "play" && player.x < START_X + 30) {
+      ctx.globalAlpha = Math.min(1, (START_X + 30 - player.x) / 10) * 0.75;
+      ctx.fillStyle = st.name === "limbo" ? N.deep : N.cyan;
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.font = "700 " + Math.max(11, Math.round(U * 0.36)) + "px Montserrat, system-ui, sans-serif";
       const bandMid = (gy + H) / 2;
@@ -1964,9 +2659,18 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       ctx.globalAlpha = 1;
     }
 
+    if (mode === "done") {
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.font = "600 " + Math.round(U * 1.1) + "px Teko, 'Arial Narrow', sans-serif";
+      ctx.shadowColor = st.name === "limbo" ? "#4d9bff" : N.cyan; ctx.shadowBlur = 6;
+      ctx.fillStyle = st.banner; ctx.fillText("SECTION COMPLETE", W / 2, H * 0.3);
+      ctx.font = "700 " + Math.max(11, Math.round(U * 0.36)) + "px Montserrat, system-ui, sans-serif"; ctx.shadowBlur = 0;
+      ctx.fillStyle = st.ink; ctx.fillText("TAP TO PLAY IT AGAIN", W / 2, H * 0.3 + U * 0.9);
+    }
     // banners: attempt number, world names, run result
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.font = "600 " + Math.round(U * 1.1) + "px Teko, 'Arial Narrow', sans-serif";
+    ctx.shadowColor = st.name === "limbo" ? "#4d9bff" : N.cyan; ctx.shadowBlur = 6;
     if (player && (banner > 0 || mode === "dead")) {
       ctx.globalAlpha = mode === "dead" ? 1 : Math.min(1, banner / 0.4);
       ctx.fillStyle = st.banner;
@@ -1980,13 +2684,27 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
       ctx.globalAlpha = 1;
     }
     ctx.restore();
+    bgFinish();
   }
 
-  let running = false;
+  let running = false, onScreen = true, watching = false;
+  function watchScreen() {
+    if (watching) return; watching = true;
+    if (!("IntersectionObserver" in window)) { if (music.loadTrack) music.loadTrack(); return; }
+    onScreen = false;
+    new IntersectionObserver(es => {
+      for (const e of es) {
+        if (e.intersectionRatio >= 0.15 && music.loadTrack) music.loadTrack();      // actually on screen: start downloading the music
+        onScreen = e.isIntersecting;
+        if (!onScreen && mode === "play") { release(); pause(); }                   // scrolled away mid-run: pause it
+      }
+    }, { threshold: [0, 0.15] }).observe(root);
+  }
   function show() {
     if (root.hidden === false && running) return;
     root.hidden = false;
     if (!course) { course = new G.Course(SEED); course.ensure(60); buildAhead(); }
+    watchScreen();   // the soundtrack downloads once the arcade scrolls near view, not on page load
     resize();
     if (mode === "name") showStart();
     hud();
@@ -2006,10 +2724,11 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   // test hook for previewing each world (?arcadetest=1). Runs that use it never count toward the top score.
   if (/[?&]arcadetest=1/.test(location.search)) {
     window.HMNArcade.test = {
-      go(x) { if (!player) return; testRun = true; simClock = performance.now(); setTimeout(syncPrev, 0); course.ensure(x + 60); player.x = x; player.y = 0; player.vy = 0; player.grounded = true; player.dead = false; camY = 0; particles = []; mode = "play"; banner = 0; },
+      go(x) { if (!player) return; testRun = true; simClock = performance.now(); setTimeout(syncPrev, 0); course.ensure(x + 60); player.x = x; player.y = (() => { const gu = G.groundUnder(x); let y = gu === null ? -1e9 : gu; for (const b of course.near(x - 1, x + 2, [])) if (b.t === "b" && x + 1 > b.x + 0.04 && x < b.x + b.w - 0.04) y = Math.max(y, b.y + b.h); return y > -1e8 ? y : 0; })(); player.vy = 0; player.grounded = true; player.dead = false; camY = player.y; camVel = 0; camGround = player.y; camMode = ""; camLandX = x; camLandY = player.y; camSlope = 0; particles = []; mode = "play"; banner = 0; },
       freeze() { if (mode === "play") { pausedFrom = "play"; mode = "paused"; } },
       thaw() { if (mode === "paused") { mode = "play"; last = 0; acc = 0; simClock = performance.now(); syncPrev(); } },
-      god(on) { godMode = !!on; testRun = true; }
+      god(on) { godMode = !!on; testRun = true; },
+      mode() { return mode; }
     };
   }
 })();
