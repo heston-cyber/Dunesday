@@ -332,7 +332,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 .ar-ticket{--notch:9px;position:relative;background:var(--bone);color:var(--black);font-family:var(--site-body);
   -webkit-mask:radial-gradient(circle var(--notch) at top left,#0000 98%,#000) top left/51% 51% no-repeat,radial-gradient(circle var(--notch) at top right,#0000 98%,#000) top right/51% 51% no-repeat,radial-gradient(circle var(--notch) at bottom left,#0000 98%,#000) bottom left/51% 51% no-repeat,radial-gradient(circle var(--notch) at bottom right,#0000 98%,#000) bottom right/51% 51% no-repeat;
   mask:radial-gradient(circle var(--notch) at top left,#0000 98%,#000) top left/51% 51% no-repeat,radial-gradient(circle var(--notch) at top right,#0000 98%,#000) top right/51% 51% no-repeat,radial-gradient(circle var(--notch) at bottom left,#0000 98%,#000) bottom left/51% 51% no-repeat,radial-gradient(circle var(--notch) at bottom right,#0000 98%,#000) bottom right/51% 51% no-repeat}
-.ar-cells{display:grid;grid-template-columns:.8fr 1fr 1.3fr}
+.ar-cells{display:grid;grid-template-columns:1.3fr 1fr 1fr}
 .ar-cells > div{padding:10px 12px 8px;border-right:1.5px solid var(--black);min-width:0}
 .ar-cells > div:last-child{border-right:0}
 .ar-hud small{display:block;font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--olive)}
@@ -434,9 +434,9 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
         <p class="ar-player"><span id="ar-who"></span><button id="ar-change" class="ar-link" type="button">Change player</button></p>
         <div class="ar-ticket ar-hud" aria-label="Score">
           <div class="ar-cells">
-            <div><small>Attempt</small><b id="ar-attempt">1</b></div>
-            <div><small>Distance</small><b id="ar-dist">0 m</b></div>
             <div class="ar-topcell"><small>Top score</small><b id="ar-top">&ndash;</b><span id="ar-top-name">No score yet</span></div>
+            <div><small>Your best</small><b id="ar-best">&ndash;</b></div>
+            <div><small>Last run</small><b id="ar-last">&ndash;</b></div>
           </div>
           <div class="ar-track"><div class="ar-bar" aria-hidden="true"><i id="ar-fill"></i></div><span id="ar-note">Set the first top score</span></div>
         </div>
@@ -1657,6 +1657,10 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   };
   const K_NAME = "hmn.arcade.name", K_TOP = "hmn.arcade.top", K_ATTEMPTS = "hmn.arcade.attempts";
+  // this phone's own personal best and last finished run, kept on the phone
+  const K_BEST = "hmn.arcade.best", K_LAST = "hmn.arcade.last";
+  const readNum = k => { const v = parseInt(LS.get(k) || "", 10); return v > 0 ? v : null; };
+  let best = readNum(K_BEST), lastRun = readNum(K_LAST), newBest = false;
 
   const $ = id => document.getElementById(id);
   const root = $("arcade");
@@ -1681,7 +1685,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   }
   function bgFinish() { if (bgWant !== bgShown) { bgcv.style.display = bgWant ? "block" : "none"; bgShown = bgWant; } }
   const startCard = $("ar-start"), nameIn = $("ar-name"), topLine = $("ar-top-line");
-  const hudAttempt = $("ar-attempt"), hudDist = $("ar-dist"), hudTop = $("ar-top"), hudTopName = $("ar-top-name");
+  const hudBest = $("ar-best"), hudLast = $("ar-last"), hudTop = $("ar-top"), hudTopName = $("ar-top-name");
   const fill = $("ar-fill"), trackNote = $("ar-note"), whoLine = $("ar-who");
   const pauseBtn = $("ar-pause"), pauseCard = $("ar-paused"), pauseLine = $("ar-paused-line"), changeBtn = $("ar-change");
   const soundBtn = $("ar-sound");
@@ -1884,23 +1888,27 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
   const hudCache = { w: "", b: null };
   function hud() {
     const d = player ? Math.max(0, Math.floor(player.x)) : 0;
-    setText(hudAttempt, String(Math.max(attempts, 1)));
-    setText(hudDist, d + " m");
+    setText(hudBest, best ? best + " m" : "\u2013");
+    setText(hudLast, lastRun ? lastRun + " m" : "\u2013");
     setText(hudTop, top ? top.score + " m" : "\u2013");
     setText(hudTopName, top ? top.name : "No score yet");
     const goal = top ? Math.max(top.score, 50) : 200;
     const wPct = Math.min(100, Math.round(d / goal * 1000) / 10) + "%";
     if (wPct !== hudCache.w) { fill.style.width = wPct; hudCache.w = wPct; }
-    const beating = !!(top && d > top.score);
+    const beating = !!(top && (d > top.score || (newTop && d >= top.score)));   // passing the record, or just set it
     if (beating !== hudCache.b) { root.classList.toggle("beating", beating); hudCache.b = beating; }
-    setText(trackNote, beating ? "New top score" : top ? (Math.max(0, top.score - d)) + " m to beat " + top.name : "Set the first top score");
+    const live = mode === "play" || mode === "paused" || mode === "dead";
+    const pb = !beating && best && (d > best || (newBest && d >= best));
+    const toGo = top ? Math.max(0, top.score - d) : 0;
+    const note = beating ? "New top score" : pb ? "New personal best" : !top ? "Set the first top score" : live ? toGo + " m to go" : toGo + " m to beat " + top.name;
+    setText(trackNote, live ? d + " m \u00b7 " + note : note);   // the record holder's name is already in the Top score cell
   }
 
   /* ---------- game flow ---------- */
   function startAttempt() {
     attempts++; LS.set(K_ATTEMPTS, String(attempts));
     player = G.newPlayer(START_X);
-    rot = 0; acc = 0; buffer = 0; banner = 1.4; newTop = false; particles = []; camY = player.y; camVel = 0; camGround = player.y; camMode = ""; camLandX = player.x; camLandY = player.y; camSlope = 0; zoneBanner = null; resetOpening();
+    rot = 0; acc = 0; buffer = 0; banner = 1.4; newTop = false; newBest = false; particles = []; camY = player.y; camVel = 0; camGround = player.y; camMode = ""; camLandX = player.x; camLandY = player.y; camSlope = 0; zoneBanner = null; resetOpening();
     mode = "play";
     simClock = performance.now(); pressAt = releaseAt = -1; pressUsed = true; held = false; syncPrev();
     playing(true);
@@ -1923,7 +1931,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     if (pending && (!valid || t.score < pending)) return; // our new top is still on its way to the sheet
     top = valid ? { name: String(t.name), score: Math.floor(t.score) } : null;
     LS.set(K_TOP, JSON.stringify(top));
-    if (!startCard.hidden) topLine.textContent = top ? "Top score: " + top.score + " m by " + top.name : "No top score yet. Set the first one.";
+    if (!startCard.hidden) topLine.textContent = (top ? "Top score: " + top.score + " m by " + top.name : "No top score yet. Set the first one.") + (best ? " \u00b7 Your best: " + best + " m" : "");
     hud();
   }
 
@@ -1936,6 +1944,10 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     mode = "dead"; deadT = 0.85; shake = reduceMotion ? 0 : 0.22;
     music.stop(); music.crash();
     const d = Math.floor(player.x);
+    if (!testRun && !SEC && d > 0) {   // this phone's last run and personal best (the single-track test pages don't count)
+      lastRun = d; LS.set(K_LAST, String(d));
+      if (!best || d > best) { best = d; LS.set(K_BEST, String(d)); newBest = true; }
+    }
     if (!testRun && (!top || d > top.score)) {
       if (d > 0) { top = { name: name, score: d }; LS.set(K_TOP, JSON.stringify(top)); newTop = true; submit(d); }
     }
@@ -1972,7 +1984,7 @@ html.ar-playing,html.ar-playing body{-webkit-user-select:none;user-select:none;-
     setText(whoLine, name ? "Last played as " + name : "Enter your name to play");
     changeBtn.hidden = true;
     nameIn.value = name || LS.get(K_NAME) || LS.get("seats.myname") || "";
-    topLine.textContent = top ? "Top score: " + top.score + " m by " + top.name : "No top score yet. Set the first one.";
+    topLine.textContent = (top ? "Top score: " + top.score + " m by " + top.name : "No top score yet. Set the first one.") + (best ? " \u00b7 Your best: " + best + " m" : "");
   }
 
   /* ---------- pause ---------- */
