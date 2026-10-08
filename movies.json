@@ -1,6 +1,407 @@
 {
- "_how_to_add_a_movie": "Add an entry to movies. Seat ids are row + number (I19). seats are listed left to right as you face the screen. theme is dune, doom, or classic. tagline is the short line under the title; ghost is the big outlined word behind it. trailer is the YouTube video ID (the part after watch?v=).",
+ "_how_to_add_a_movie": "Add an entry to movies. Seat ids are row + number (I19). seats are listed left to right as you face the screen. theme is dune, doom, mommy, or classic. tagline is the short line under the title; ghost is the big outlined word behind it. trailer is the YouTube video ID (the part after watch?v=).",
  "movies": [
+  {
+   "id": "mommy",
+   "title": "Other Mommy",
+   "theme": "mommy",
+   "format": "Cine XL",
+   "date": "2026-10-08",
+   "time": "19:30",
+   "note": "Thursday preview. The film opens Oct 9. Rated R, 1 hr 33 min.",
+   "price": 16.5,
+   "theater": {
+    "name": "Harkins Bricktown 16",
+    "address1": "150 East Reno Ave.",
+    "address2": "Oklahoma City, OK 73104",
+    "phone": "405-231-4747",
+    "maps": "https://www.google.com/maps/search/?api=1&query=Harkins%20Bricktown%2016%2C%20150%20E%20Reno%20Ave%2C%20Oklahoma%20City%2C%20OK%2073104"
+   },
+   "auditorium": "Auditorium 1",
+   "row": "I",
+   "seats": [
+    14,
+    15,
+    16,
+    17
+   ],
+   "ghostLeft": 13,
+   "aisleRight": false,
+   "map": {
+    "pitch": 24.73,
+    "numbering": "ltr",
+    "viewBox": [
+     28,
+     650,
+     1062,
+     1095
+    ],
+    "screen": [
+     60,
+     1060,
+     760,
+     690
+    ],
+    "rows": [
+     {
+      "y": 830,
+      "segments": [
+       [
+        99,
+        8
+       ],
+       [
+        395,
+        14
+       ],
+       [
+        840,
+        8
+       ]
+      ]
+     },
+     {
+      "y": 877,
+      "segments": [
+       [
+        99,
+        8
+       ],
+       [
+        370,
+        16
+       ],
+       [
+        840,
+        8
+       ]
+      ]
+     },
+     {
+      "y": 924,
+      "segments": [
+       [
+        99,
+        8
+       ],
+       [
+        370,
+        17
+       ],
+       [
+        840,
+        8
+       ]
+      ]
+     },
+     {
+      "y": 971,
+      "segments": [
+       [
+        74,
+        9
+       ],
+       [
+        345,
+        18
+       ],
+       [
+        864,
+        9
+       ]
+      ]
+     },
+     {
+      "y": 1018,
+      "segments": [
+       [
+        74,
+        9
+       ],
+       [
+        345,
+        19
+       ],
+       [
+        864,
+        9
+       ]
+      ]
+     },
+     {
+      "y": 1065,
+      "segments": [
+       [
+        74,
+        8
+       ],
+       [
+        345,
+        20
+       ],
+       [
+        889,
+        8
+       ]
+      ]
+     },
+     {
+      "y": 1112,
+      "points": [
+       74,
+       99,
+       124,
+       148,
+       197,
+       222,
+       247,
+       345,
+       370,
+       395,
+       420,
+       444,
+       469,
+       494,
+       519,
+       544,
+       569,
+       617,
+       642,
+       667,
+       691,
+       716,
+       741,
+       766,
+       790,
+       815,
+       889,
+       914,
+       938,
+       987,
+       1012,
+       1036,
+       1061
+      ]
+     },
+     {
+      "y": 1198,
+      "segments": [
+       [
+        147,
+        6
+       ],
+       [
+        345,
+        13
+       ],
+       [
+        692,
+        3
+       ],
+       [
+        862,
+        6
+       ]
+      ]
+     },
+     {
+      "y": 1245,
+      "segments": [
+       [
+        147,
+        6
+       ],
+       [
+        345,
+        11
+       ],
+       [
+        862,
+        6
+       ]
+      ],
+      "ours": true
+     },
+     {
+      "y": 1292,
+      "segments": [
+       [
+        147,
+        6
+       ],
+       [
+        345,
+        19
+       ],
+       [
+        862,
+        6
+       ]
+      ]
+     },
+     {
+      "y": 1339,
+      "segments": [
+       [
+        147,
+        6
+       ],
+       [
+        345,
+        19
+       ],
+       [
+        862,
+        6
+       ]
+      ]
+     },
+     {
+      "y": 1386,
+      "segments": [
+       [
+        147,
+        6
+       ],
+       [
+        345,
+        19
+       ],
+       [
+        862,
+        6
+       ]
+      ]
+     },
+     {
+      "y": 1433,
+      "segments": [
+       [
+        147,
+        6
+       ],
+       [
+        345,
+        19
+       ],
+       [
+        862,
+        6
+       ]
+      ]
+     },
+     {
+      "y": 1480,
+      "segments": [
+       [
+        147,
+        6
+       ],
+       [
+        345,
+        19
+       ],
+       [
+        862,
+        6
+       ]
+      ]
+     },
+     {
+      "y": 1527,
+      "segments": [
+       [
+        147,
+        6
+       ],
+       [
+        345,
+        19
+       ],
+       [
+        862,
+        6
+       ]
+      ]
+     },
+     {
+      "y": 1574,
+      "segments": [
+       [
+        147,
+        6
+       ],
+       [
+        345,
+        19
+       ],
+       [
+        862,
+        6
+       ]
+      ]
+     },
+     {
+      "y": 1621,
+      "segments": [
+       [
+        147,
+        6
+       ],
+       [
+        345,
+        19
+       ],
+       [
+        862,
+        6
+       ]
+      ]
+     },
+     {
+      "y": 1668,
+      "segments": [
+       [
+        147,
+        6
+       ],
+       [
+        345,
+        19
+       ],
+       [
+        862,
+        6
+       ]
+      ]
+     },
+     {
+      "y": 1715,
+      "segments": [
+       [
+        147,
+        6
+       ],
+       [
+        345,
+        6
+       ],
+       [
+        667,
+        6
+       ],
+       [
+        862,
+        6
+       ]
+      ]
+     }
+    ]
+   },
+   "tagline": "Preview night",
+   "ghost": "Mommy",
+   "trailer": "bEpTgowZ1dI"
+  },
   {
    "id": "dune",
    "title": "Dune: Part Three",
