@@ -262,6 +262,10 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 .ghostseat .back{border-color:var(--muted);color:var(--muted);border-style:dashed}
 .ghostseat .back::after{background:var(--muted)}
 .aisle{flex:0 0 auto;align-self:stretch;writing-mode:vertical-rl;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-left:1.5px dashed var(--line);padding-left:4px;margin-left:4px;max-height:64px;text-align:center}
+.aisle.l{border-left:0;border-right:1.5px dashed var(--line);padding-left:0;padding-right:4px;margin-left:0;margin-right:4px}
+.chair-gap{flex:1 1 0;min-width:0;max-width:58px}
+.seatrow.multi + .seatrow.multi{margin-top:8px}
+.rowtag{flex:0 0 auto;width:16px;align-self:flex-start;padding-top:10px;font-weight:700;font-size:12px;line-height:1;letter-spacing:.06em;color:var(--accent);text-align:center}
 
 .editor{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;min-height:58px}
 .ed-hint{margin:6px 0;color:var(--muted);font-size:14px}
@@ -2910,7 +2914,8 @@ function isPast(m){ return when(m).getTime() + 4 * 3600e3 < Date.now(); }
 function amount(n){ return Math.round(n * 100) % 100 ? n.toFixed(2) : String(Math.round(n)); }
 function money(n){ return "$" + amount(n); }
 function themeOf(m){ return m && THEMES.indexOf(m.theme) !== -1 ? m.theme : "classic"; }
-function seatIds(m){ return m.seats.map(n => m.row + n); }
+function seatIds(m){ return m.rows.flatMap(g => g.seats.map(n => g.row + n)); }
+function rowsWord(m){ const L = m.rows.map(g => g.row); return L.length === 1 ? "row " + L[0] : "rows " + L.slice(0, -1).join(", ") + " and " + L[L.length - 1]; }
 function hasSeat(m, s){ return seatIds(m).indexOf(s) !== -1; }
 function info(m, s){ return (seats[m.id] && seats[m.id][s]) || null; }
 function nm(m, s){ const i = info(m, s); return i ? i.name : ""; }
@@ -2922,10 +2927,17 @@ function typing(){ const a = document.activeElement; return !!(a && a.id === "ed
 
 /* ---------- data ---------- */
 function normalizeMovie(m){
-  if (!m || !m.id || !m.title || !m.date || !m.row || !Array.isArray(m.seats) || !m.map) return null;
+  if (!m || !m.id || !m.title || !m.date || !m.map) return null;
+  const groups = (Array.isArray(m.rows) && m.rows.length ? m.rows : [{ row: m.row, seats: m.seats, ghostLeft: m.ghostLeft, aisleRight: m.aisleRight, aisleLeft: m.aisleLeft }])
+    .filter(g => g && g.row && Array.isArray(g.seats) && g.seats.length)
+    .map(g => ({ row: String(g.row).toUpperCase(), seats: g.seats.map(Number), ghostLeft: g.ghostLeft, aisleRight: !!g.aisleRight, aisleLeft: !!g.aisleLeft }))
+    .sort((a, b) => a.row < b.row ? -1 : a.row > b.row ? 1 : 0);   // front row first
+  if (!groups.length) return null;
   const out = Object.assign({}, m);
   out.id = String(m.id).toLowerCase();
-  out.row = String(m.row).toUpperCase();
+  out.rows = groups;
+  out.row = String(m.row || groups[0].row).toUpperCase();
+  out.total = groups.reduce((t, g) => t + g.seats.length, 0);
   out.price = Number(m.price) || 0;
   out.theater = m.theater || {};
   return out;
@@ -3231,16 +3243,17 @@ function mapSVG(m){
   let k = 0;
   for (const r of mp.rows) {
     const xs = r.points ? r.points.slice() : r.segments.flatMap(seg => Array.from({ length: seg[1] }, (_, i) => seg[0] + i * p));
-    if (r.ours) {
+    const g = r.ours ? m.rows.find(x => x.row === (typeof r.ours === "string" ? r.ours.toUpperCase() : m.row)) : null;
+    if (g) {
       out += '<rect class="band" x="' + vb[0] + '" y="' + (r.y - p * 0.66).toFixed(1) + '" width="' + vb[2] + '" height="' + (p * 1.32).toFixed(1) + '" rx="' + (p * 0.5).toFixed(1) + '"/>';
-      out += '<text class="rowlabel" x="' + (xs[0] - p * 0.9).toFixed(1) + '" y="' + r.y + '">Row ' + esc(m.row) + '</text>';
+      out += '<text class="rowlabel" x="' + (xs[0] - p * 0.9).toFixed(1) + '" y="' + r.y + '">Row ' + esc(g.row) + '</text>';
     }
     xs.forEach((x, i) => {
       const geo = ' x="' + (x - w / 2).toFixed(1) + '" y="' + (r.y - h / 2).toFixed(1) + '" width="' + w + '" height="' + h + '" rx="' + rx + '"/>';
-      if (r.ours) {
+      if (g) {
         const num = mp.numbering === "rtl" ? xs.length - i : i + 1;
-        if (m.seats.indexOf(num) !== -1) {
-          const s = m.row + num;
+        if (g.seats.indexOf(num) !== -1) {
+          const s = g.row + num;
           out += '<rect class="s m' + (nm(m, s) ? ' f' : '') + (mine(m, s) ? ' y' : '') + (selected === s ? ' sel' : '') + '" data-act="pick" data-seat="' + s + '" style="--d:' + (k++ * 45) + 'ms"' + geo;
           return;
         }
@@ -3305,30 +3318,76 @@ function editorHTML(m){
     '<p class="ed-meta">Taken. Ask ' + esc(ORGANIZER) + ' if this needs to change.</p>';
 }
 
+function seatXs(m, row){   // where each seat of a row sits across the auditorium, from the map
+  const mp = m.map, p = mp.pitch;
+  const r = mp.rows.find(x => x.ours && (typeof x.ours === "string" ? x.ours.toUpperCase() : m.row) === row);
+  if (!r) return null;
+  const xs = r.points ? r.points.slice() : r.segments.flatMap(seg => Array.from({ length: seg[1] }, (_, i) => seg[0] + i * p));
+  return num => { const i = mp.numbering === "rtl" ? xs.length - num : num - 1; return i >= 0 && i < xs.length ? xs[i] : null; };
+}
+
 function closeHTML(m){
-  let s = '<div class="frame close"><div class="frame-h"><span>Row ' + esc(m.row) + ' up close</span><span>As you face the screen</span></div><div class="seatrow">';
-  if (m.ghostLeft) s += '<div class="ghostseat" aria-hidden="true"><span class="back">' + esc(m.ghostLeft) + '</span><span class="who">&nbsp;</span></div>';
-  m.seats.forEach((num, i) => {
-    const seat = m.row + num, name = nm(m, seat), you = mine(m, seat);
-    s += '<button type="button" class="chair' + (i % 2 ? ' lo' : '') + (name ? ' filled' : '') + (you ? ' you' : '') + (selected === seat ? ' sel' : '') + (moveFrom === seat ? ' from' : '') + '" data-act="pick" data-seat="' + seat + '" aria-label="' + esc("Seat " + seat + (name ? ", " + name + (you ? ", yours" : "") : ", open")) + '">' +
+  const multi = m.rows.length > 1;
+  const chair = (g, num, i) => {
+    const seat = g.row + num, name = nm(m, seat), you = mine(m, seat);
+    return '<button type="button" class="chair' + (i % 2 ? ' lo' : '') + (name ? ' filled' : '') + (you ? ' you' : '') + (selected === seat ? ' sel' : '') + (moveFrom === seat ? ' from' : '') + '" data-act="pick" data-seat="' + seat + '" aria-label="' + esc("Seat " + seat + (name ? ", " + name + (you ? ", yours" : "") : ", open")) + '">' +
       '<span class="back">' + num + '</span><span class="who">' + (esc(short(name)) || '\u00b7') + '</span></button>';
-  });
-  if (m.aisleRight) s += '<div class="aisle" aria-hidden="true">Aisle</div>';
-  return s + '</div><div id="editor" class="editor" aria-live="polite">' + editorHTML(m) + '</div></div>';
+  };
+  const ghost = n => '<div class="ghostseat" aria-hidden="true"><span class="back">' + esc(n) + '</span><span class="who">&nbsp;</span></div>';
+  const gap = '<div class="chair-gap" aria-hidden="true"></div>';
+  const aisle = (side, show) => '<div class="aisle' + (side === "l" ? ' l' : '') + '" aria-hidden="true"' + (show ? '' : ' style="visibility:hidden"') + '>Aisle</div>';
+  // the widest row sets the columns; other rows put each chair in the column nearest its real position
+  const ref = m.rows.reduce((a, g) => g.seats.length > a.seats.length ? g : a, m.rows[0]);
+  const refX = multi ? seatXs(m, ref.row) : null;
+  const cols = [];
+  if (ref.ghostLeft) cols.push({ x: refX ? refX(ref.ghostLeft) : null });
+  ref.seats.forEach(n => cols.push({ x: refX ? refX(n) : null }));
+  const anyL = m.rows.some(g => g.aisleLeft), anyR = m.rows.some(g => g.aisleRight);
+  const lines = [];
+  for (const g of m.rows) {
+    let cells = null;
+    if (multi && g !== ref && refX && cols.every(c => c.x != null)) {
+      const gx = seatXs(m, g.row);
+      if (gx && g.seats.every(n => gx(n) != null)) {
+        cells = cols.map(() => null);
+        for (const n of g.seats) {
+          const x = gx(n); let best = 0;
+          cols.forEach((c, k) => { if (Math.abs(c.x - x) < Math.abs(cols[best].x - x)) best = k; });
+          if (cells[best] !== null) { cells = null; break; }
+          cells[best] = n;
+        }
+      }
+    }
+    let row = '<div class="seatrow' + (multi ? ' multi' : '') + '">';
+    if (multi) row += '<div class="rowtag" aria-hidden="true">' + esc(g.row) + '</div>';
+    if (anyL) row += aisle("l", g.aisleLeft);
+    if (cells) {   // lined up with the widest row
+      let i = 0;
+      cells.forEach(n => { row += n === null ? gap : chair(g, n, i++); });
+    } else {
+      if (g.ghostLeft) row += ghost(g.ghostLeft);
+      g.seats.forEach((num, i) => { row += chair(g, num, i); });
+    }
+    if (anyR) row += aisle("r", g.aisleRight);
+    lines.push(row + '</div>');
+  }
+  const title = multi ? 'Rows ' + m.rows.map(g => g.row).join(" &amp; ") + ' up close' : 'Row ' + esc(m.rows[0].row) + ' up close';
+  return '<div class="frame close"><div class="frame-h"><span>' + title + '</span><span>As you face the screen</span></div>' + lines.join("") +
+    '<div id="editor" class="editor" aria-live="polite">' + editorHTML(m) + '</div></div>';
 }
 
 function seatsSecHTML(m){
   const taken = seatIds(m).filter(s => nm(m, s)).length;
   return '<section class="sec" id="seats" aria-labelledby="seats-h"><header class="sec-h"><h2 id="seats-h">Seats</h2>' +
-    '<p>' + (seatStatus === "loading" ? 'Loading seats\u2026' : (m.seats.length - taken) + ' of ' + m.seats.length + ' open in row ' + esc(m.row)) + '</p></header>' +
-    '<div class="frame mapframe"><div class="frame-h"><span>' + esc(m.auditorium || m.theater.name || "Auditorium") + '</span><span>Row ' + esc(m.row) + ' is ours</span></div>' +
+    '<p>' + (seatStatus === "loading" ? 'Loading seats\u2026' : (m.total - taken) + ' of ' + m.total + ' open in ' + esc(rowsWord(m))) + '</p></header>' +
+    '<div class="frame mapframe"><div class="frame-h"><span>' + esc(m.auditorium || m.theater.name || "Auditorium") + '</span><span>' + (m.rows.length > 1 ? 'R' + esc(rowsWord(m)).slice(1) + ' are ours' : 'Row ' + esc(m.rows[0].row) + ' is ours') + '</span></div>' +
     mapSVG(m) +
     '<div class="legend"><span><i class="sw full"></i>Taken</span><span><i class="sw open"></i>Open</span>' + (MODE === "api" ? '<span><i class="sw you"></i>Yours</span>' : '') + '</div></div>' +
     closeHTML(m) + '</section>';
 }
 
 function qtyFor(m){
-  const max = m.seats.length;
+  const max = m.total;
   const held = seatIds(m).filter(s => mine(m, s)).length;
   const n = qty[m.id] != null ? qty[m.id] : Math.max(1, held);
   return Math.min(Math.max(1, n), max);
@@ -3349,7 +3408,7 @@ function payHTML(m){
       '<span class="pt-head"><span class="pt-admit">Admit ' + n + '</span><span class="pt-title">' + esc(m.title) + '</span></span>' +
       '<span class="tk-cells pt-cells"><span><small>Price</small>' + money(m.price) + '</span>' +
       '<span class="pt-qty"><small>Tickets</small><span class="qty"><button type="button" class="qty-b" data-act="qty" data-d="-1" aria-label="One fewer ticket"' + (n <= 1 ? ' disabled' : '') + '>\u2212</button>' +
-      '<b aria-live="polite">' + n + '</b><button type="button" class="qty-b" data-act="qty" data-d="1" aria-label="One more ticket"' + (n >= m.seats.length ? ' disabled' : '') + '>+</button></span></span>' +
+      '<b aria-live="polite">' + n + '</b><button type="button" class="qty-b" data-act="qty" data-d="1" aria-label="One more ticket"' + (n >= m.total ? ' disabled' : '') + '>+</button></span></span>' +
       '<span><small>Seats</small>' + (held.length ? esc(held.join(", ")) : 'Pick above') + '</span></span></span>' +
       '<span class="tk-stub"><span class="tk-small">Total</span><span class="tk-big">' + money(total) + '</span></span>' +
       '<i class="perf perf-t"></i><i class="perf perf-b"></i></div>';
@@ -3375,13 +3434,13 @@ function ticketsSecHTML(m){
 }
 
 function whoSecHTML(m){
-  const total = m.seats.length, taken = seatIds(m).filter(s => nm(m, s)).length;
+  const total = m.total, taken = seatIds(m).filter(s => nm(m, s)).length;
   let s = '<section class="sec" id="who" aria-labelledby="who-h"><header class="sec-h"><h2 id="who-h">Who\u2019s in</h2><p>' +
     (seatStatus === "loading" ? 'Loading\u2026' : taken + ' of ' + total + ' taken') + '</p></header>';
   if (seatStatus === "error") s += '<p class="ro-note">The seat list didn\u2019t load. Refresh the page to try again.</p>';
   else if (MODE === "api") s += '<p class="ro-note">Tap any open seat to claim it. This phone can move or give up the seats it picks.</p>';
-  s += '<ul class="lines">' + m.seats.map(num => {
-    const seat = m.row + num, name = nm(m, seat), you = mine(m, seat);
+  s += '<ul class="lines">' + seatIds(m).map(seat => {
+    const name = nm(m, seat), you = mine(m, seat);
     return '<li class="seatline' + (selected === seat ? ' sel' : '') + '" data-row="' + seat + '"><button type="button" class="sl-btn" data-act="pick" data-seat="' + seat + '" data-scroll="1">' +
       '<span class="sl-num">' + seat + '</span><span class="sl-name' + (name ? '' : ' open') + '">' + (name ? esc(name) : 'Open') + '</span>' +
       (you ? '<span class="you-tag">You</span>' : '') + '</button></li>';
@@ -3393,8 +3452,10 @@ function listText(m){
   const t = m.theater;
   const L = [m.title + (m.format ? " (" + m.format + ")" : ""), dayLabel(m) + " at " + timeLabel(m), (t.name || "") + (m.auditorium ? ", " + m.auditorium : ""), [t.address1, t.address2].filter(Boolean).join(", ")];
   if (m.price) L.push("Tickets are " + money(m.price) + (VENMO ? ". Venmo @" + VENMO : "") + (CASHTAG ? (VENMO ? " or" : ".") + " Cash App $" + CASHTAG : "") + ".");
-  L.push("", "Row " + m.row + ", left to right as you face the screen:");
-  for (const num of m.seats) { const s = m.row + num; L.push(s + "  " + (nm(m, s) || "open")); }
+  for (const g of m.rows) {
+    L.push("", "Row " + g.row + ", left to right as you face the screen:");
+    for (const num of g.seats) { const s = g.row + num; L.push(s + "  " + (nm(m, s) || "open")); }
+  }
   return L.join("\n");
 }
 
@@ -3407,7 +3468,7 @@ function whereSecHTML(m){
     (t.phone ? '<a class="btnq" href="tel:' + String(t.phone).replace(/\D/g, "") + '">Call ' + esc(t.phone) + '</a>' : '') + '</div></div>' +
     '<div class="share"><p class="share-t">Send the seat list</p><p>Copies the showtime, theater, ticket price, and who\u2019s in each seat for a group text.</p>' +
     '<button type="button" class="btn" data-act="copylist">Copy seat list</button>' +
-    '<details class="prev" id="prev"><summary>Preview the text</summary><textarea id="listprev" readonly rows="' + (m.seats.length + 9) + '">' + esc(listText(m)) + '</textarea></details></div></div></section>';
+    '<details class="prev" id="prev"><summary>Preview the text</summary><textarea id="listprev" readonly rows="' + (m.total + 8 + 2 * m.rows.length) + '">' + esc(listText(m)) + '</textarea></details></div></div></section>';
 }
 
 function trailerHTML(m){
@@ -3594,7 +3655,7 @@ appEl.addEventListener("click", async e => {
   else if (act === "copy") { const c = t.getAttribute("data-text"); toast((await copy(c)) ? "Copied " + c : "Couldn\u2019t copy. It\u2019s " + c); }
   else if (act === "qty") {
     const m = current(); if (!m) return;
-    qty[m.id] = Math.min(Math.max(1, qtyFor(m) + Number(t.getAttribute("data-d"))), m.seats.length);
+    qty[m.id] = Math.min(Math.max(1, qtyFor(m) + Number(t.getAttribute("data-d"))), m.total);
     renderPay();
   }
   else if (act === "jump") {

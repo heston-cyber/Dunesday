@@ -1,5 +1,5 @@
 {
- "_how_to_add_a_movie": "Add an entry to movies. Seat ids are row + number (I19). seats are listed left to right as you face the screen. theme is dune, doom, mommy, or classic. tagline is the short line under the title; ghost is the big outlined word behind it. trailer is the YouTube video ID (the part after watch?v=).",
+ "_how_to_add_a_movie": "Add an entry to movies. Seat ids are row + number (I19). seats are listed left to right as you face the screen. For seats in more than one row, add rows: [{row, seats}, ...] and mark each of those map rows with ours: \"<row letter>\". theme is dune, doom, mommy, or classic. tagline is the short line under the title; ghost is the big outlined word behind it. trailer is the YouTube video ID (the part after watch?v=).",
  "movies": [
   {
    "id": "mommy",
@@ -561,7 +561,8 @@
         909,
         5
        ]
-      ]
+      ],
+      "ours": "H"
      },
      {
       "y": 1137,
@@ -579,7 +580,7 @@
         8
        ]
       ],
-      "ours": true
+      "ours": "I"
      },
      {
       "y": 1179,
@@ -738,7 +739,36 @@
    },
    "tagline": "Early screening",
    "ghost": "Dune",
-   "trailer": "NdvqHc56lE0"
+   "trailer": "NdvqHc56lE0",
+   "rows": [
+    {
+     "row": "H",
+     "seats": [
+      15,
+      14,
+      13,
+      12
+     ]
+    },
+    {
+     "row": "I",
+     "seats": [
+      19,
+      18,
+      17,
+      16,
+      15,
+      14,
+      13,
+      12,
+      11,
+      10,
+      9
+     ],
+     "ghostLeft": 20,
+     "aisleRight": true
+    }
+   ]
   },
   {
    "id": "doom",
@@ -759,6 +789,9 @@
    "auditorium": "",
    "row": "I",
    "seats": [
+    7,
+    8,
+    9,
     10,
     11,
     12,
@@ -768,8 +801,7 @@
     16,
     17
    ],
-   "ghostLeft": 9,
-   "aisleRight": false,
+   "aisleRight": true,
    "map": {
     "pitch": 24.73,
     "numbering": "ltr",
@@ -1143,7 +1175,8 @@
    },
    "tagline": "Opening weekend",
    "ghost": "Doomsday",
-   "trailer": "irVNGjRFZGk"
+   "trailer": "irVNGjRFZGk",
+   "aisleLeft": true
   }
  ]
 }
