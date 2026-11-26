@@ -346,7 +346,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 .tix-yours{margin:4px 0 0;font-size:15px;font-weight:600}
 .tix-yours mark{background:#ffe08a;color:#111;padding:0 4px;border-radius:3px}
 .tix-code{margin:6px 0 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;letter-spacing:.12em;color:#444}
-.tix-big{margin:6px 0 4px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(30px,10vw,44px);font-weight:700;letter-spacing:.14em;color:#111;word-break:break-all}
+.tix-big{margin:6px 0 4px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(28px,8.5vw,40px);font-weight:700;letter-spacing:.14em;color:#111;word-break:break-all}
 .tix-help{margin:10px 0 0;font-size:13.5px;line-height:1.45;color:#333}
 .tix-who{margin:10px 0 0;padding-top:10px;border-top:1px solid #e4e4e4;font-size:13px;color:#555}
 .tix-tip{max-width:460px;margin:16px auto 0;text-align:center;font-size:13px;color:rgba(255,255,255,.7)}
@@ -3510,9 +3510,10 @@ function entrySecHTML(m){
   else if (!list.length) body = '<p class="entry-txt">No tickets are in the sheet for this movie yet.</p>';
   else {
     const mineSeats = held.filter(s => covered[s]);
-    const txt = mineSeats.length
-      ? 'Scan in at the door with <b>' + esc(seatList(mineSeats)) + '</b>. No need to wait for ' + esc(ORGANIZER) + '.'
-      : 'You can see every ticket for this movie.';
+    const allPickup = minesList.length > 0 && minesList.every(t => t.kind === "pickup");
+    const txt = !mineSeats.length ? 'You can see every ticket for this movie.'
+      : allPickup ? 'Pick up the tickets for <b>' + esc(seatList(mineSeats)) + '</b> at the box office with your code. No need to wait for ' + esc(ORGANIZER) + '.'
+      : 'Scan in at the door with <b>' + esc(seatList(mineSeats)) + '</b>. No need to wait for ' + esc(ORGANIZER) + '.';
     const label = admin && list.length > minesList.length ? (list.length === 1 ? 'Show the ticket' : 'Show all ' + list.length + ' tickets') : (minesList.length > 1 ? 'Show my tickets' : 'Show my ticket');
     body = '<p class="entry-txt">' + txt + '</p><button type="button" class="btn" data-act="showtix">' + label + '</button>';
   }
@@ -3548,6 +3549,7 @@ function tixCardHTML(m, t, held, admin){
   let s = '<article class="tix-card">';
   s += '<p class="tix-kind">' + esc((m.theater && m.theater.name) || "") + (pickup ? ' · Box office pickup' : ' · Scan at the door') + '</p>';
   if (pickup) {
+    try { s += qrSVG(code); } catch(e) {}
     s += '<p class="tix-help">Confirmation number</p><p class="tix-big">' + esc(code) + '</p>';
   } else if (code) {
     try { s += qrSVG(code); } catch(e) { s += '<p class="tix-big">' + esc(code) + '</p>'; }
@@ -3555,7 +3557,7 @@ function tixCardHTML(m, t, held, admin){
   s += '<p class="tix-admit">' + (pickup ? 'Seats ' : 'Admits ') + esc(t.seats.join(" · ")) + '</p>';
   if (yours.length && yours.length < t.seats.length) s += '<p class="tix-yours">Yours: <mark>' + esc(seatList(yours)) + '</mark></p>';
   if (!pickup && code) s += '<p class="tix-code">Order ' + esc(t.order || code) + '</p>';
-  if (pickup) s += '<p class="tix-help">Give this number at the box office to get the tickets for ' + esc(seatList(t.seats)) + '.' + (many ? ' It covers everyone on this order, so pick them up together.' : '') + '</p>';
+  if (pickup) s += '<p class="tix-help">At the box office, show this code or give the number to get the tickets for ' + esc(seatList(t.seats)) + '.' + (many ? ' It covers everyone on this order, so pick them up together.' : '') + '</p>';
   else if (many) s += '<p class="tix-help">One code lets in everyone on this order. Go in together.</p>';
   if (t.note) s += '<p class="tix-help">' + esc(t.note) + '</p>';
   if (admin) s += '<p class="tix-who">' + t.seats.map(x => esc(x) + ' ' + (nm(m, x) ? esc(short(nm(m, x))) : 'open')).join(' · ') + '</p>';
