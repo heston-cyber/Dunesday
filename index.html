@@ -329,7 +329,7 @@ h2{font-family:var(--display);font-weight:var(--dweight);text-transform:var(--dc
 
 /* ---------- door tickets ---------- */
 .entry-card{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px;padding:18px;border:1.5px solid var(--accent2);border-radius:3px;background:var(--band,rgba(255,255,255,.04))}
-.entry-card .btn{flex:0 0 auto}
+.entry-btns{display:flex;flex-wrap:wrap;gap:10px;flex:1 1 100%;min-width:0}
 .entry-txt{flex:1 1 220px;margin:0;font-size:14px;color:var(--muted)}
 .entry-txt b{color:var(--ink);font-weight:700}
 .entry-miss{margin:12px 0 0;font-size:14px;color:var(--muted)}
@@ -3514,11 +3514,13 @@ function entrySecHTML(m){
     const txt = !mineSeats.length ? 'You can see every ticket for this movie.'
       : allPickup ? 'Pick up the tickets for <b>' + esc(seatList(mineSeats)) + '</b> at the box office with your code. No need to wait for ' + esc(ORGANIZER) + '.'
       : 'Scan in at the door with <b>' + esc(seatList(mineSeats)) + '</b>. No need to wait for ' + esc(ORGANIZER) + '.';
-    const label = admin && list.length > minesList.length ? (list.length === 1 ? 'Show the ticket' : 'Show all ' + list.length + ' tickets') : (minesList.length > 1 ? 'Show my tickets' : 'Show my ticket');
-    body = '<p class="entry-txt">' + txt + '</p><button type="button" class="btn" data-act="showtix">' + label + '</button>';
+    let btns = '';
+    if (minesList.length) btns += '<button type="button" class="btn" data-act="showtix">' + (minesList.length > 1 ? 'Show my tickets' : 'Show my ticket') + '</button>';
+    if (admin) btns += '<button type="button" class="' + (minesList.length ? 'btnq' : 'btn') + '" data-act="showtix" data-all="1">All tickets (' + list.length + ')</button>';
+    body = '<p class="entry-txt">' + txt + '</p><span class="entry-btns">' + btns + '</span>';
   }
   let s = '<section class="sec" id="entry" aria-labelledby="entry-h"><header class="sec-h"><h2 id="entry-h">Get in</h2><p>' +
-    (admin ? 'Admin: every ticket' : 'Your ticket for the door') + '</p></header><div class="entry-card">' + body + '</div>';
+    (held.length || !admin ? 'Your ticket for the door' : 'Admin: every ticket') + '</p></header><div class="entry-card">' + body + '</div>';
   if (list.length && missing.length) s += '<p class="entry-miss">' + esc(ORGANIZER) + ' hasn’t added the ticket for ' + esc(seatList(missing)) + ' yet.</p>';
   return s + '</section>';
 }
@@ -3571,11 +3573,11 @@ function closeTickets(){
   document.documentElement.classList.remove("tix-open");
   if (tixBack && tixBack.focus) { try { tixBack.focus({ preventScroll: true }); } catch(e){} }
 }
-function showTickets(from){
+function showTickets(from, all){
   const m = current(); if (!m) return;
   const held = seatIds(m).filter(s => mine(m, s));
   const admin = !!(TIX && TIX.admin);
-  const list = ticketsFor(m).slice().sort((a, b) => {
+  const list = ticketsFor(m).filter(t => all || t.seats.some(s => held.indexOf(s) !== -1)).sort((a, b) => {
     const am = a.seats.some(s => held.indexOf(s) !== -1) ? 0 : 1, bm = b.seats.some(s => held.indexOf(s) !== -1) ? 0 : 1;
     return am - bm;
   });
@@ -3589,7 +3591,7 @@ function showTickets(from){
   tixEl.setAttribute("aria-label", "Tickets for " + m.title);
   tixEl.innerHTML = '<div class="tix-top"><p><b>' + esc(m.title) + '</b>' + esc(dayLabel(m) + ' · ' + timeLabel(m) + (m.auditorium ? ' · ' + m.auditorium : '')) + '</p>' +
     '<button type="button" class="tix-x" aria-label="Close">×</button></div>' +
-    '<div class="tix-cards">' + list.map(t => tixCardHTML(m, t, held, admin)).join("") + '</div>' +
+    '<div class="tix-cards">' + list.map(t => tixCardHTML(m, t, held, admin && all)).join("") + '</div>' +
     '<p class="tix-tip">Turn your screen brightness up before you scan.</p>';
   tixEl.addEventListener("click", e => { if (e.target === tixEl || e.target.closest(".tix-x")) closeTickets(); });
   document.body.appendChild(tixEl);
@@ -3817,7 +3819,7 @@ appEl.addEventListener("click", async e => {
   else if (act === "cancelmove") { selected = moveFrom; moveFrom = null; render(); }
   else if (act === "domove") doMove();
   else if (act === "copylist") copyList();
-  else if (act === "showtix") showTickets(t);
+  else if (act === "showtix") showTickets(t, t.hasAttribute("data-all"));
   else if (act === "copy") { const c = t.getAttribute("data-text"); toast((await copy(c)) ? "Copied " + c : "Couldn\u2019t copy. It\u2019s " + c); }
   else if (act === "qty") {
     const m = current(); if (!m) return;
